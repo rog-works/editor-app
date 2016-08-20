@@ -2,7 +2,7 @@
 
 const Express = require('express');
 
-const PUBLIC_ROOT_PATH = '/opt/app/_editor/app/public';
+const PUBLIC_ROOT_PATH = '/opt/app/app/app/public';
 const ACCESS_LOG_PATH = '/var/log/app/editor.log';
 
 class Application {
