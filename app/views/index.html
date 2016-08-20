@@ -1,0 +1,91 @@
+<DOCTYPE html>
+<html lang="ja">
+	<head>
+		<title>Editor</title>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0">
+		<link rel="stylesheet" chatset="utf8" href="http://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.6.3/css/font-awesome.min.css">
+		<link rel="stylesheet" chatset="utf8" href="vendors/normalize.css">
+		<link rel="stylesheet" chatset="utf8" href="css/style.css">
+	</head>
+	<body class="bc1 fc1">
+		<div id="main" class="fit" data-bind="style: size">
+			<div class="bc2 left fill-h" data-bind="css: { hide: tool.page() !== 'editor' }, style: editor.size">
+				<div id="editor" class="fill" data-bind="valueUpdate: 'keypress', event: { keypress: editor.click }"></div>
+			</div>
+			<div class="bc2 left fill-h hide" data-bind="css: { hide: tool.page() !== 'entry' }, style: entry.size">
+				<div class="fill scroll-y hide-scroll" data-bind="foreach: entry.entries">
+					<div class="bc2 fill-w h0 table underline" data-bind="css: { active: $data.selected, hide: $data.closed() }, attr: $data.attr">
+						<i class="wh0 cell center fa" data-bind="css: $data.icon"></i>
+						<i class="fc4 wh0 cell center fa" data-bind="css: { 'fa-caret-left': $data.edited() === false, 'fa-caret-right': $data.edited() }, click: $data.allow"></i>
+						<i class="wh0 cell center fa fa-pencil" data-bind="css: { hide: $data.edited() === false }, click: $data.rename"></i>
+						<i class="wh0 cell center fa fa-remove" data-bind="css: { hide: $data.edited() === false }, click: $data.delete"></i>
+						<a class="h0 cell middle" data-bind="text: $data.name, click: $data.click"></a>
+					</div>
+				</div>
+			</div>
+			<div class="bc2 left fill-h hide" data-bind="css: { hide: tool.page() !== 'shell' }, style: shell.size">
+				<div class="fill-w h1 table">
+					<span class="fc2 wh1 cell center">$</span>
+					<input class="bc2 fc2 fill-w h1 cell middle less" type="text" placeholder="input command" list="shell-history" data-bind="value: shell.query, css: shell.css, valueUpdate: 'keypress', event: { keypress: shell.click }">
+					<i class="wh1 cell center fa fa-remove" data-bind="click: shell.clear.bind($data.shell)"></i>
+					<datalist id="shell-history" data-bind="foreach: shell.history">
+						<option data-bind="value: $data">
+					</datalist>
+				</div>
+				<div class="fill-w h90 scroll hide-scroll" data-bind="foreach: shell.logs">
+					<div class="log-line" data-bind="text: $data.log, css: { 'line-close': $data.closed, 'line-separated': $data.separated }, click: $data.expand"></div>
+				</div>
+			</div>
+			<div class="bc2 left fill-h scroll hide-scroll hide" data-bind="css: { hide: tool.page() !== 'weblog' }, style: weblog.size">
+				<div class="wh1 right table">
+					<i class="wh1 cell center fa fa-remove" data-bind="click: weblog.clear.bind($data.weblog)"></i>
+				</div>
+				<div data-bind="foreach: weblog.logs">
+					<div class="log-line line-separated" data-bind="text: $data.log, css: { 'line-close': $data.closed }, click: $data.expand"></div>
+				</div>
+			</div>
+			<div class="bc2 left fill-h scroll hide-scroll hide" data-bind="css: { hide: tool.page() !== 'console' }, style: console.size">
+				<div class="wh1 right table">
+					<i class="wh1 cell center fa fa-remove" id="console-clear" data-bind="click: console.clear.bind($data.console)"></i>
+				</div>
+				<div data-bind="foreach: console.logs">
+					<div class="log-line line-separated" data-bind="text: $data.log, css: { 'line-close': $data.closed }, click: $data.expand"></div>
+				</div>
+			</div>
+			<div class="right w1 fill-h scroll-y hide-scroll">
+				<div class="bc1 wh1 table" data-bind="css: { active: tool.page() === 'entry' }, click: tool.activate.bind($data.tool, 'entry')">
+					<i class="cell center fa fa-sitemap"></i>
+				</div>
+				<div class="bc1 wh1 table" data-bind="css: { active: tool.page() === 'editor' }, click: tool.activate.bind($data.tool, 'editor')">
+					<i class="cell center fa fa-pencil"></i>
+				</div>
+				<div class="bc1 wh1 table" data-bind="css: { active: tool.page() === 'shell' }, click: tool.activate.bind($data.tool, 'shell')">
+					<i class="cell center fa fa-terminal"></i>
+				</div>
+				<div class="bc1 wh1 table" data-bind="css: { active: tool.page() === 'weblog' }, click: tool.activate.bind($data.tool, 'weblog')">
+					<i class="cell center fa fa-commenting"></i>
+				</div>
+				<div class="bc1 wh1 table" data-bind="css: { active: tool.page() === 'console' }, click: tool.activate.bind($data.tool, 'console')">
+					<i class="cell center fa fa-info"></i>
+				</div>
+				<div class="bc1 wh1 table" data-bind="click: editor.save.bind($data.editor)">
+					<i class="cell center fa fa-file"></i>
+				</div>
+			</div>
+		</div>
+		<script type="text/javascript" chatset="utf8" src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.2.0/ace.js"></script>
+		<script type="text/javascript" chatset="utf8" src="vendors/jquery-2.2.1.min.js"></script>
+		<script type="text/javascript" chatset="utf8" src="http://cdnjs.cloudflare.com/ajax/libs/knockout/2.3.0/knockout-min.js"></script>
+		<script type="text/javascript" chatset="utf8" src="js/lib/ws.js"></script>
+		<script type="text/javascript" chatset="utf8" src="js/models/page.js"></script>
+		<script type="text/javascript" chatset="utf8" src="js/models/log.js"></script>
+		<script type="text/javascript" chatset="utf8" src="js/models/editor.js"></script>
+		<script type="text/javascript" chatset="utf8" src="js/models/entry.js"></script>
+		<script type="text/javascript" chatset="utf8" src="js/models/weblog.js"></script>
+		<script type="text/javascript" chatset="utf8" src="js/models/shell.js"></script>
+		<script type="text/javascript" chatset="utf8" src="js/models/console.js"></script>
+		<script type="text/javascript" chatset="utf8" src="js/models/tool.js"></script>
+		<script type="text/javascript" chatset="utf8" src="js/client.js"></script>
+	</body>
+</html>
