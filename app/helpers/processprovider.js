@@ -1,6 +1,6 @@
 'use strict';
 
-const spawn = require('child_process').spawn;
+const exec = require('child_process').exec;
 
 class ProcessProvider {
 	/**
@@ -27,7 +27,7 @@ class ProcessProvider {
 	add (arg, available = true) {
 		if (available) {
 			if (Array.isArray(arg)) {
-				for (let a of arg) {
+				for (const a of arg) {
 					this._args.push(a);
 				}
 			} else {
@@ -80,10 +80,11 @@ class ProcessProvider {
 	 * @return bool Run result
 	 */
 	run () {
-    	console.log('executed', this._command, this._args);
-        let child = spawn(this._command, this._args, this._options);
-        child.stdout.on('data', this._handlers.stdout);
-        child.stderr.on('data', this._handlers.stderr);
+		console.log('executed', this._command, this._args);
+		const query = `${this._command} ${this._args.join(' ')}`;
+		const child = exec(query, this._options);
+		child.stdout.on('data', this._handlers.stdout);
+		child.stderr.on('data', this._handlers.stderr);
 		return true;
 	}
 }
