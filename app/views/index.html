@@ -34,7 +34,7 @@
 					</datalist>
 				</div>
 				<div class="fill-w h90 scroll hide-scroll" data-bind="foreach: shell.logs">
-					<pre class="space-less log-line" data-bind="text: $data.log, css: { 'line-close': $data.closed, 'line-separated': $data.separated }, click: $data.expand"></pre>
+					<pre class="space-less log-line" data-bind="text: $data.log, css: $data.css, click: $data.expand"></pre>
 				</div>
 			</div>
 			<div class="bc2 left fill-h scroll hide-scroll hide" data-bind="css: { hide: tool.page() !== 'weblog' }, style: weblog.size">

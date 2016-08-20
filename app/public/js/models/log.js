@@ -20,19 +20,20 @@ class Log extends Page {
 
 	_on (log, separated) {
 		// console.log(log, separated);
-		this.logs.push(new LogLine(log, separated, this.coloring(log)));
+		this.logs.push(new LogLine(log, this.coloring(log), separated));
 		return true;
 	}
 
 	coloring (log) {
-		return '#0f0';
+		return 'fc1';
 	}
 }
 
 class LogLine {
 	constructor (log, color, separated) {
 		this.log = ko.observable(log);
-		this.color = {color: color};
+		this.css = {};
+		this.css[color] = true;
 		this.closed = ko.observable(false);
 		this.separated = ko.observable(separated);
 	}

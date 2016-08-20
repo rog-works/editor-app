@@ -133,6 +133,14 @@ a.fc1:active {
 	color: #aaa;
 }
 
+.fc1-p {
+	color: #282;
+}
+
+.fc1-e {
+	color: #822;
+}
+
 .bc1 {
 	background-color: #000;
 }
