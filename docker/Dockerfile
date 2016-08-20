@@ -10,7 +10,7 @@ WORKDIR /opt
 
 # Install
 RUN apt-get update \
- && apt-get -y install vim git --no-install-recommends \
+ && apt-get -y install vim git ssh --no-install-recommends \
  && rm -rf /var/lib/apt/lists/* \
  && npm install --production \
  && npm cache clean
