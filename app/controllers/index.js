@@ -9,7 +9,7 @@ class IndexController extends Controller {
 	}
 
 	index () {
-		this.res.sendFile('/opt/app/_editor/app/views/index.html');
+		this.res.sendFile('/opt/app/app/app/views/index.html');
 	}
 
 	routes () {
