@@ -34,7 +34,7 @@
 					</datalist>
 				</div>
 				<div class="fill-w h90 scroll hide-scroll" data-bind="foreach: shell.logs">
-					<div class="log-line" data-bind="text: $data.log, css: { 'line-close': $data.closed, 'line-separated': $data.separated }, click: $data.expand"></div>
+					<pre class="space-less log-line" data-bind="text: $data.log, css: { 'line-close': $data.closed, 'line-separated': $data.separated }, click: $data.expand"></pre>
 				</div>
 			</div>
 			<div class="bc2 left fill-h scroll hide-scroll hide" data-bind="css: { hide: tool.page() !== 'weblog' }, style: weblog.size">
@@ -68,9 +68,6 @@
 				</div>
 				<div class="bc1 wh1 table" data-bind="css: { active: tool.page() === 'console' }, click: tool.activate.bind($data.tool, 'console')">
 					<i class="cell center fa fa-info"></i>
-				</div>
-				<div class="bc1 wh1 table" data-bind="click: editor.save.bind($data.editor)">
-					<i class="cell center fa fa-file"></i>
 				</div>
 			</div>
 		</div>

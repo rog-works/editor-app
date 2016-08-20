@@ -40,9 +40,10 @@ class Application {
 		const self = this;
 		this.resize();
 		// XXX handling for window event
-		window.onresize = () => { self.resize(); };
+		window.onresize = (e) => { return self.resize(e); };
+		document.onkeydown = (e) => { return self.keydown(e); };
 	}
-	
+
 	test () {
 		try {
 			console.log('resize scale');
@@ -52,8 +53,8 @@ class Application {
 			console.error(error.message, error.stack);
 		}
 	}
-	
-	resize () {
+
+	resize (e) {
 		const w = window.innerWidth;
 		const h = window.innerHeight;
 		this.size({ width: w, height: h });
@@ -67,6 +68,11 @@ class Application {
 			page.resize(w - 32, h);
 		});
 		console.log('On resize', w, h);
+		return true;
+	}
+
+	keydown (e) {
+		return this.editor.keydown(e);
 	}
 }
 

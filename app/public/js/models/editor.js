@@ -1,5 +1,7 @@
 'use strict';
 
+const KEY_CODE_S = 83;
+
 class Editor extends Page {
 	constructor () {
 		super();
@@ -33,20 +35,26 @@ class Editor extends Page {
 	focus () {
 		// XXX
 		APP.tool.activate('editor');
-		editor.focus();
+		this._editor().focus();
 	}
 
-	click (self, e) {
-		if (e.keyCode !== 999) {
-			console.log(e.keyCode);
-			return true;
+	keydown (e) {
+		// XXX depands on tool...
+		if (APP.tool.page() === 'editor') {
+			// handling ctrl + s
+			if ((e.ctrlKey || e.metaKey) && e.keyCode === KEY_CODE_S) {
+				this.save();
+				return false;
+			}
 		}
-		return APP.editor.save();
+		return true;
 	}
 
 	save () {
-		APP.entry.at(this.path).update(this._content());
-		return false;
+		const entry = APP.entry.at(this.path);
+		if (entry !== null) {
+			entry.update(this._content());
+		}
 	}
 
 	_content () {

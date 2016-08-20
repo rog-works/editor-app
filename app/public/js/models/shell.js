@@ -65,4 +65,16 @@ class Shell extends Log {
 		}
 		return true;
 	}
+
+	coloring (log) {
+		if (/^\tmodified:/.test(log)) {
+			return '#080';
+		} else if (/^\+\t:/.test(log)) {
+			return '#080';
+		} else if (/^\-\t:/.test(log)) {
+			return '#800';
+		} else {
+			return super.coloring(log);
+		}
+	}
 }
