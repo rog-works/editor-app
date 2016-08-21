@@ -47,14 +47,16 @@ class Shell extends Log {
  
  	_parse (query) {
  		let dir = this.dir();
- 		const matches = /^cd ([-.~\/_a-zA-Z0-9]+);?(.*)$/.match(query);
+ 		const matches = query.match(/^cd ([-.~\/_a-zA-Z0-9]+);?(.*)$/);
  		if (matches) {
  			if (matches.length > 1) {
  				if (matches[1].indexOf('~') === 0) {
- 					dir = '/' + /^[~\/]+(.*)$/.match(matches[1])[1];
+ 					dir = '/' + matches[1];
  				} else {
- 					dir = matches[1];
+ 					dir = dir + '/' + matches[1];
  				}
+				// XXX
+				dir = dir.replace('//', '/');
  			}
  			if (matches.length > 2) {
  				query = matches[2].trim();
@@ -68,7 +70,8 @@ class Shell extends Log {
 		if (query.length === 0) {
 			if (this.dir() !== dir) {
 				this.dir(dir);
-				this.line(`$ ${query}`);
+				this.query('');
+				this.line(`$ ${this.query()}`);
 			}
 			return true;
 		}

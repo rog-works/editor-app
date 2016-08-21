@@ -41,14 +41,17 @@ class EntryItem {
 		const depth = entity.path.split('/').length;
 		this.type = entity.type;
 		this.path = entity.path;
+		this.dir = entity.dir;
 		this.name = ko.observable(entity.name);
 		this.icon = ko.observable(EntryItem.toIcon(this.type));
-		this.selected = ko.observable(false);
-		this.closed = ko.observable(0);
-		this.edited = ko.observable(false);
-		this.attr = {
-			dir: entity.dir,
-			depth: depth
+		this.closes = 0;
+		this.display = {
+			acrive: ko.observable(false),
+			close: ko.observable(false),
+			[`depth${depth}`]: true
+		};
+		this.edit = {
+			close: ko.observable(true)
 		};
 	}
 
@@ -117,7 +120,7 @@ class EntryItem {
 	}
 
 	allow () {
-		this.edited(!this.edited());
+		this.edit.close(!this.edit.close());
 	}
 
 	static toEntry(entity) {
@@ -198,12 +201,12 @@ class EntryFile extends EntryItem {
 
 	_activate () {
 		for (const entry of APP.entry.entries()) {
-			if (entry.selected()) {
-				entry.selected(false);
+			if (entry.display.active()) {
+				entry.display.active(false);
 				break;
 			}
 		}
-		this.selected(!this.selected());
+		this.display.active(true);
 	}
 }
 
@@ -222,12 +225,13 @@ class EntryDirectory extends EntryItem {
 
 	_toggle (dir, expanded) {
 		for (const entry of APP.entry.entries()) {
-			if (entry.attr.dir.startsWith(dir)) {
-				if (expanded && entry.closed() > 0) {
-					entry.closed(entry.closed() - 1);
+			if (entry.dir.startsWith(dir)) {
+				if (expanded && entry.closes > 0) {
+					entry.closes -= 1;
 				} else if (!expanded) {
-					entry.closed(entry.closed() + 1);
+					entry.closes += 1;
 				}
+				entry.display.close(entry.closes > 0);
 			}
 		}
 	}

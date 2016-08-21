@@ -32,8 +32,7 @@ class Log extends Page {
 class LogLine {
 	constructor (log, color, separated) {
 		this.log = ko.observable(log);
-		this.css = {};
-		this.css[color] = true;
+		this.css = {[color]: true};
 		this.closed = ko.observable(false);
 		this.separated = ko.observable(separated);
 	}
