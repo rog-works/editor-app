@@ -5,6 +5,7 @@ const KEY_CODE_ENTER = 13;
 class Shell extends Log {
 	constructor () {
 		super();
+		this.dir = ko.observable('/');
 		this.query = ko.observable('');
 		this.css = ko.observable('');
 		this.history = ko.observableArray([]);
@@ -44,14 +45,37 @@ class Shell extends Log {
 		return APP.shell._exec();
 	}
  
+ 	_parse (query) {
+ 		let dir = this.dir();
+ 		const matches = /^cd ([-.~\/_a-zA-Z0-9]+);?(.*)$/.match(query);
+ 		if (matches) {
+ 			if (matches.length > 1) {
+ 				if (matches[1].indexOf('~') === 0) {
+ 					dir = '/' + /^[~\/]+(.*)$/.match(matches[1])[1];
+ 				} else {
+ 					dir = matches[1];
+ 				}
+ 			}
+ 			if (matches.length > 2) {
+ 				query = matches[2].trim();
+ 			}
+ 		}
+ 		return [dir, query];
+ 	}
+ 
 	_exec () {
-		const query = this.query();
+		const [dir, query] = this._parse(this.query());
 		if (query.length === 0) {
+			if (this.dir() !== dir) {
+				this.dir(dir);
+				this.line(`$ ${query}`);
+			}
 			return true;
 		}
 		this.query('');
 		this.line(`$ ${query}`);
-		Shell.send('', {data: {query: query}}, (res) => {
+		const url = '?dir=' + encodeURIComponent(this.dir());
+		Shell.send(url, {data: {query: query}}, (res) => {
 			if (this.history.indexOf(query) === -1) {
 				this.history.push(query);
 			}
