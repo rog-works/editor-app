@@ -28,6 +28,7 @@ class Application {
 			this.entry = Entry.init();
 			this.shell = Shell.init();
 			this.weblog = Weblog.init();
+			this.dialog = Dialog.init();
 			ko.applyBindings(this, document.getElementById(id));
 			this._after();
 			console.log('On load finished');
@@ -46,9 +47,9 @@ class Application {
 
 	test () {
 		try {
-			console.log('resize scale');
-			const viewport = document.getElementsByName('viewport')[0];
-			viewport.setAttribute('content', `width=device-width, initial-scale=1.0`);
+			this.dialog.build()
+				.on((result) => { console.log(result); })
+				.prompt();
 		} catch (error) {
 			console.error(error.message, error.stack);
 		}
@@ -67,6 +68,7 @@ class Application {
 		].forEach((page) => {
 			page.resize(w - 32, h);
 		});
+		this.dialog.resize(w, h);
 		console.log('On resize', w, h);
 		return true;
 	}

@@ -46,7 +46,7 @@ class EntryItem {
 		this.icon = ko.observable(EntryItem.toIcon(this.type));
 		this.closes = 0;
 		this.display = {
-			acrive: ko.observable(false),
+			active: ko.observable(false),
 			close: ko.observable(false),
 			[`depth${depth}`]: true
 		};
@@ -84,39 +84,50 @@ class EntryItem {
 		const url = '/' + encodeURIComponent(this.path);
 		EntryItem.send(url, {type: 'PUT', data: {content: content}}, (entity) => {
 			// XXX
-			alert(`${this.path} entry updated!`);
+			APP.dialog.build()
+				.message(`${this.path} entry updated!`)
+				.nortice();
 		});
 	}
 
 	rename () {
 		// XXX
-		const to = window.prompt('change file path', this.path);
-		if (!EntryItem.validSavePath(to) || EntryItem.pathExists(to)) {
-			return;
-		}
-		const encodePath = encodeURIComponent(this.path);
-		const encodeTo = encodeURIComponent(to);
-		const url = `/${encodePath}/rename?to=${encodeTo}`;
-		EntryItem.send(url, {type: 'PUT'}, (toPath) => {
-			this.path = toPath;
-		});
+		APP.dialog.build()
+			.message('Change file path')
+			.input(this.path)
+			.on((to) => {
+				if (!EntryItem.validSavePath(to) || EntryItem.pathExists(to)) {
+					return;
+				}
+				const encodePath = encodeURIComponent(this.path);
+				const encodeTo = encodeURIComponent(to);
+				const url = `/${encodePath}/rename?to=${encodeTo}`;
+				EntryItem.send(url, {type: 'PUT'}, (toPath) => {
+					this.path = toPath;
+				});
+			})
+			.prompt();
 	}
 
 	delete () {
 		// XXX
-		const ok = confirm(`'${this.path}' deleted?`);
-		if (!ok) {
-			console.log('delete cancel');
-			return;
-		}
-		const prev = this.path;
-		const url = '/' + encodeURIComponent(prev);
-		EntryItem.send(url, {type: 'DELETE'}, (deleted) => {
-			const removed = APP.entry.entries.remove((self) => {
-				return self.path === prev;
-			});
-			console.log(removed);
-		});
+		APP.dialog.build()
+			.message(`'${this.path}' deleted?`)
+			.on((ok) => {
+				if (!ok) {
+					console.log('delete cancel');
+					return;
+				}
+				const prev = this.path;
+				const url = '/' + encodeURIComponent(prev);
+				EntryItem.send(url, {type: 'DELETE'}, (deleted) => {
+					const removed = APP.entry.entries.remove((self) => {
+						return self.path === prev;
+					});
+					console.log(removed);
+				});
+			})
+			.confirm();
 	}
 
 	allow () {

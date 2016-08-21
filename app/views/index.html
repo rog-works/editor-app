@@ -71,6 +71,30 @@
 				<div class="bc1 wh1 table" data-bind="css: { active: tool.page() === 'console' }, click: tool.activate.bind($data.tool, 'console')">
 					<i class="cell center fa fa-info"></i>
 				</div>
+				<div class="bc1 wh1 table" data-bind="click: test">
+					<i class="cell center fa fa-info-circle"></i>
+				</div>
+			</div>
+			<div class="bc1 trans25 flow close" data-bind="css: dialog.display, style: dialog.size">
+				<div class="bc1 trans100 w8 auto" data-bind="style: dialog.pos">
+					<div class="fill-w h1">
+						<div class="left table">
+							<i class="wh1 cell center fa fa-info-circle"></i>
+							<span class="h1 cell middle" data-bind="text: dialog.title"></span>
+						</div>
+						<div class="right table" data-bind="click: dialog.cancel.bind($data.dialog)">
+							<i class="wh1 cell center fa fa-close"></i>
+						</div>
+					</div>
+					<div class="bc2 fill-w">
+						<div class="fill-w" data-bind="text: dialog.message"></div>
+						<input class="bc3 fc2 fill-w h1 less" data-bind="value: dialog.input, css: { close: dialog.prompted() === false }">
+					</div>
+					<div class="fill-w h1 table" data-bind="css: { close: dialog.confirmed() === false }">
+						<div class="bc2 fc1-e w50 h1 cell center right-line" data-bind="click: dialog.cancel.bind($data.dialog)"><i class="fa fa-close"></i>Cancel</div>
+						<div class="bc2 fc1-p w50 h1 cell center" data-bind="click: dialog.ok.bind($data.dialog)"><i class="fa fa-check"></i>OK</div>
+					</div>
+				</div>
 			</div>
 		</div>
 		<script type="text/javascript" chatset="utf8" src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.2.0/ace.js"></script>
@@ -85,6 +109,7 @@
 		<script type="text/javascript" chatset="utf8" src="js/models/shell.js"></script>
 		<script type="text/javascript" chatset="utf8" src="js/models/console.js"></script>
 		<script type="text/javascript" chatset="utf8" src="js/models/tool.js"></script>
+		<script type="text/javascript" chatset="utf8" src="js/models/dialog.js"></script>
 		<script type="text/javascript" chatset="utf8" src="js/client.js"></script>
 	</body>
 </html>

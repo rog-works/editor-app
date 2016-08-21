@@ -75,6 +75,7 @@ class Shell extends Log {
 			}
 			return true;
 		}
+		this.dir(dir);
 		this.query('');
 		this.line(`$ ${query}`);
 		const url = '?dir=' + encodeURIComponent(this.dir());
@@ -95,6 +96,8 @@ class Shell extends Log {
 
 	coloring (log) {
 		if (/^\tmodified:/.test(log)) {
+			return 'fc1-p';
+		} else if (/^\tnew file:/.test(log)) {
 			return 'fc1-p';
 		} else if (/^\+/.test(log)) {
 			return 'fc1-p';
