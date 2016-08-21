@@ -38,7 +38,7 @@ class Entry extends Page {
 
 class EntryItem {
 	constructor (entity) {
-		const depth = entity.path.split('/').length;
+		const depth = Math.max(1, entity.path.split('/').length - 1);
 		this.type = entity.type;
 		this.path = entity.path;
 		this.dir = entity.dir;

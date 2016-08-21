@@ -13,11 +13,16 @@ class FileProvider {
 	 * @throws no such file or directory
 	 */
 	static entries (directory, nameOnly = true) {
-		let options = {
+		if (directory.endsWith('/')) {
+			directory = directory.substr(0, directory.length - 1);
+		}
+		const options = {
 			ignore: ['**/node_modules/**']
 			// nosort: true
 		};
-		let entries = glob.sync(directory + '/**', options);
+		let entries = glob.sync(directory + '/**', options).filter((self) => {
+			return self !== directory;
+		});
 		entries.sort(FileProvider.sort);
 		if (nameOnly) {
 			return entries.map((self) => {
