@@ -10,7 +10,7 @@ class Dialog {
 		this.prompted = ko.observable(false);
 		this.pos = {
 			// XXX
-			'margin-top': ko.observable(64)
+			'margin-top': ko.observable(32)
 		};
 		this.size = {
 			width: ko.observable(0),
