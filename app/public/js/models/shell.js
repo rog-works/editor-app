@@ -47,11 +47,11 @@ class Shell extends Log {
  
  	_parse (query) {
  		let dir = this.dir();
- 		const matches = query.match(/^cd ([-.~\/_a-zA-Z0-9]+);?(.*)$/);
+ 		const matches = query.match(/^cd ([\d\w\-\/_.~]+);?(.*)$/);
  		if (matches) {
  			if (matches.length > 1) {
  				if (matches[1].indexOf('~') === 0) {
- 					dir = '/' + matches[1];
+ 					dir = '/' + matches[1].substr(1);
  				} else {
  					dir = dir + '/' + matches[1];
  				}
@@ -95,13 +95,12 @@ class Shell extends Log {
 	}
 
 	coloring (log) {
-		if (/^\tmodified:/.test(log)) {
+		if (/^\tmodified:/.test(log) ||
+			/^\tnew file:/.test(log) ||
+			/^\+/.test(log)) {
 			return 'fc1-p';
-		} else if (/^\tnew file:/.test(log)) {
-			return 'fc1-p';
-		} else if (/^\+/.test(log)) {
-			return 'fc1-p';
-		} else if (/^\-/.test(log)) {
+		} else if (/^\tdeleted:/.test(log) ||
+					/^\-/.test(log)) {
 			return 'fc1-e';
 		} else {
 			return super.coloring(log);

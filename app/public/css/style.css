@@ -1,3 +1,8 @@
+/* font styles */
+.font-s75 {
+	font-size: 75%;
+}
+
 /* align styles */
 .auto {
 	margin: 0 auto;
@@ -11,7 +16,7 @@
 	float: right;
 }
 
-.flow {
+.float {
 	position: fixed;
 	z-index: 1000;
 }
@@ -36,7 +41,7 @@
 	vertical-align: middle;
 }
 
-/* XXX */
+/* deprecated */
 .text-right {
 	text-align: right;
 }
@@ -176,7 +181,7 @@ a.fc1:active {
 .bc3.right-line { border-right: solid 1px #666; }
 .bc4.right-line { border-right: solid 1px #888; }
 
-/* XXX */
+/* deprecated */
 .hide-overflow {
 	overflow: hidden;
 }

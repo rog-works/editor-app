@@ -9,6 +9,7 @@ class Application {
 		this.entry = null;
 		this.shell = null;
 		this.weblog = null;
+		this.dialog = null;
 		this.size = ko.observable({ width: 360, height: 640 });
 	}
 
