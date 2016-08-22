@@ -10,14 +10,30 @@ class Application {
 		this.app = Express();
 	}
 
-	_accessLog () {
-		return require('fs').createWriteStream(ACCESS_LOG_PATH);
+	_log () {
+		const morgan = require('morgan');
+		const stream = require('fs').createWriteStream(ACCESS_LOG_PATH, {flags: 'a'});
+		const options = { stream: stream };
+		const format = [
+			':remote-addr',
+			'-',
+			':remote-user',
+			'[:date[iso]]',
+			'":method :url HTTP/:http-version"',
+			':status',
+			':res[content-length]',
+			':response-time',
+			'":referrer"',
+			'":user-agent"'
+		].join(' ');
+		morgan.format('my', format);
+		return morgan('my', options);
 	}
 
 	depended () {
 		this.app.use(Express.static(PUBLIC_ROOT_PATH));
 		this.app.use(require('body-parser').urlencoded({ extended: false }));
-		this.app.use(require('morgan')({ stream: this._accessLog() }));
+		this.app.use(this._log());
 	}
 
 	bind () {
