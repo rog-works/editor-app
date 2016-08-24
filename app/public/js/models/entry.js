@@ -63,16 +63,19 @@ class EntryItem {
 			dataType: 'json',
 			timeout: 1000,
 			success: (res) => {
+				APP.observeOn('connect', 'end');
 				console.log('respond', url);
 				callback(res);
 			},
 			error: (res, err) => {
+				APP.observeOn('connect', 'end');
 				console.error('error', url, err, res.status, res.statusText, res.responseText);
 				if (error !== null) {
 					error(res, err);
 				}
 			}
 		};
+		APP.observeOn('connect', 'begin');
 		console.log('request', url);
 		$.ajax($.extend(_data, data));
 	}
