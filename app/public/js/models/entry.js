@@ -55,18 +55,22 @@ class EntryItem {
 		};
 	}
 
-	static send (path, data, callback) {
+	static send (path, data, callback, error = null) {
 		const url = `/entry${path}`;
 		const _data = {
 			url: url,
 			type: 'GET',
 			dataType: 'json',
+			timeout: 1000,
 			success: (res) => {
 				console.log('respond', url);
 				callback(res);
 			},
 			error: (res, err) => {
-				console.error(err, res.status, res.statusText, res.responseText);
+				console.error('error', url, err, res.status, res.statusText, res.responseText);
+				if (error !== null) {
+					error(res, err);
+				}
 			}
 		};
 		console.log('request', url);
@@ -82,12 +86,21 @@ class EntryItem {
 
 	update (content) {
 		const url = '/' + encodeURIComponent(this.path);
-		EntryItem.send(url, {type: 'PUT', data: {content: content}}, (entity) => {
-			// XXX
-			APP.dialog.build()
-				.message(`${this.path} entry updated!`)
-				.nortice();
-		});
+		EntryItem.send(
+			url,
+			{type: 'PUT', data: {content: content}},
+			(entity) => {
+				// XXX
+				APP.dialog.build()
+					.message(`${this.path} entry updated!`)
+					.nortice();
+			},
+			(res, err) => {
+				if (err === 'timeout') {
+					// this.backup(this.path, content);
+				}
+			}
+		);
 	}
 
 	rename () {
@@ -130,6 +143,18 @@ class EntryItem {
 			.confirm();
 	}
 
+	backup (content) {
+		localStorage.setItem(this.path, content);
+	}
+
+	restore () {
+		const content = localStorage.getItem(this.path);
+		if (content) {
+			localStorage.removeItem(this.path);
+		}
+		return content;
+	}
+
 	allow () {
 		this.edit.close(!this.edit.close());
 	}
@@ -168,7 +193,8 @@ class EntryItem {
 			file: '',
 			directory: 'fa-folder-open',
 			// XXX
-			directoryClose:  'fa-folder'
+			directoryClose:  'fa-folder',
+			add: 'fa-plus'
 		};
 		return classes[type];
 	}
@@ -177,18 +203,23 @@ class EntryItem {
 class EntryAdd extends EntryItem {
 	constructor () {
 		super({
-			type: 'file',
+			type: 'add',
 			path: '',
-			name: '- create file -',
+			name: '',
 			dir: ''
 		});
 	}
 
 	click () {
-		const path = window.prompt('input create file path', '/');
-		if (EntryItem.validSavePath(path) && !EntryItem.pathExists(path)) {
-			EntryItem.create(path);
-		}
+		APP.dialog.build()
+			.message('input create file path')
+			.input('/')
+			.on((path) => {
+				if (EntryItem.validSavePath(path) && !EntryItem.pathExists(path)) {
+					EntryItem.create(path);
+				}
+			})
+			.prompt();
 	}
 }
 

@@ -25,6 +25,7 @@ class Shell extends Log {
 			url: url,
 			type: 'POST',
 			dataType: 'json',
+			timeout: 1000,
 			success: (res) => {
 				console.log('respond', url);
 				callback(res);
