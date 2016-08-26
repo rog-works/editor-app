@@ -3,6 +3,7 @@
 class Application {
 	constructor () {
 		this.ws = null;
+		this.observer = null;
 		this.tool = null;
 		this.console = null;
 		this.editor = null;
@@ -10,10 +11,6 @@ class Application {
 		this.shell = null;
 		this.weblog = null;
 		this.dialog = null;
-		this.observer = {
-			icon: ko.observable('fa-home'),
-			tags: {}
-		};
 		this.size = ko.observable({ width: 360, height: 640 });
 	}
 
@@ -27,6 +24,7 @@ class Application {
 		try {
 			console.log('On load started');
 			this.ws = new WS();
+			this.observer = Observer.init();
 			this.tool = Tool.init();
 			this.console = Console.init();
 			this.editor = Editor.init();
@@ -48,30 +46,6 @@ class Application {
 		// XXX handling for window event
 		window.onresize = (e) => { return self.resize(e); };
 		document.onkeydown = (e) => { return self.keydown(e); };
-	}
-	
-	observeOn (tag, message) {
-		if (!(tag in this.observer.tags)) {
-			this.observer.tags[tag] = 0;
-		}
-		
-		if (tag === 'connect') {
-			const prev = this.ovserver.tags[tag];
-			const next = prev;
-			if (message.startsWith('begin')) {
-				next += 1;
-			} else {
-				next = Math.max(0, next - 1);
-			}
-			this.observer.tags[tag] = next;
-			
-			if (next === 0 && prev > 0) {
-				this.observer.icon('fa-home');
-			} else if (next > 0 && prev === 0) {
-				this.observer.icon('fa-refresh fa-spin');
-			}
-		}
-		console.log('observe on', tag, message, this.observer.tags[tag]);
 	}
 
 	test () {

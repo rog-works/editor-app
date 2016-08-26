@@ -6,6 +6,7 @@ class Editor extends Page {
 	constructor () {
 		super();
 		this.path = '#';
+		this.icon = ko.observsble('fa-pencil');
 	}
 
 	static init (id = 'page-editor') {
@@ -16,10 +17,12 @@ class Editor extends Page {
 	}
 
 	load (path = '#', content = '') {
+		const self = this;
 		const ext = path.substr(path.lastIndexOf('.') + 1);
 		const config = this._configure(ext);
 		const editor = this._editor();
 		const session = editor.getSession();
+		editor.on('change', () => { self.changed(); });
 		session.setValue(content);
 		session.setTabSize(config.tabs);
 		session.setUseSoftTabs(config.softTabs);
@@ -54,6 +57,12 @@ class Editor extends Page {
 		const entry = APP.entry.at(this.path);
 		if (entry !== null) {
 			entry.update(this._content());
+		}
+	}
+
+	changed () {
+		if (this.icon() === 'fa-pencil') {
+			this.icon('fa-code-fork');
 		}
 	}
 

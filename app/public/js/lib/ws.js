@@ -21,7 +21,7 @@ class WS {
 			socket.onmessage = (msg) => { self._onMessage(msg); };
 			socket.onopen = () => { self._onOpen(); };
 			socket.onclose = () => { self._onClose(); };
-			console.log('Connected web socket.', self.uri);
+			console.log('Connected WS.', self.uri);
 			return socket;
 		} catch (error) {
 			console.error(error.message, error.stack);
@@ -37,7 +37,7 @@ class WS {
 				return false;
 			}
 		}
-		console.error('Disconnected web socket.', this.uri);
+		console.error('Disconnected WS.', this.uri);
 		return true;
 	}
 
@@ -48,7 +48,7 @@ class WS {
 	}
 
 	listen (tag, ...args) {
-		console.log('Listen web socket event', tag, args);
+		console.log('On WS', tag, args);
 		for (let handler of this.handlers[tag]) {
 			if (!handler(...args)) {
 				break;
