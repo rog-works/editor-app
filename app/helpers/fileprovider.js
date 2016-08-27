@@ -13,19 +13,18 @@ class FileProvider {
 	 * @throws no such file or directory
 	 */
 	static entries (directory, nameOnly = true) {
-		if (directory.endsWith('/')) {
-			directory = directory.substr(0, directory.length - 1);
-		}
 		const options = {
-			ignore: ['**/node_modules/**']
-			// nosort: true
+			ignore: [
+				directory,
+				'**/node_modules/**'
+			],
+			nosort: true,
+			mark: true
 		};
-		let entries = glob.sync(directory + '/**', options).filter((self) => {
-			return self !== directory;
-		});
+		let entries = glob.sync(Path.join(directory, '**'), options);
 		entries.sort(FileProvider.sort);
 		if (nameOnly) {
-			return entries.map((self) => {
+			entries = entries.map((self) => {
 				return self.substr(directory.length);
 			});
 		}
@@ -50,7 +49,7 @@ class FileProvider {
 	 * @throws no such file or directory
 	 */
 	static create (path, content) {
-		let dir = Path.dirname(path);
+		const dir = Path.dirname(path);
 		if (!FileProvider.exists(dir)) {
 			FileProvider.mkdir(dir);
 		}
@@ -87,19 +86,20 @@ class FileProvider {
 	}
 	
 	/**
-	 * Checking for path is file
+	 * Checking for path is file. Expect without ends with path separator
 	 * @param string path Entry path
 	 * @return bool Entry is file 'true'
 	 * @throws no such file or directory
 	 */
 	static isFile (path) {
-		try {
-			let stat = fs.statSync(path);
-			return stat.isFile();
-		} catch (error) {
-			console.error(error);
-			return false;
-		}
+		return !path.endsWith('/');
+		// XXX slowest
+		// try {
+		// 	return fs.statSync(path).isFile();
+		// } catch (error) {
+		// 	console.error(error);
+		// 	return false;
+		// }
 	}
 	
 	/**
@@ -121,9 +121,9 @@ class FileProvider {
 	 * @param string path Directory path
 	 */
 	static mkdir (path) {
-		let dirs = path.split('/');
+		const dirs = path.split('/');
 		let curr = '';
-		for (let dir of dirs) {
+		for (const dir of dirs) {
 			curr += '/' + dir;
 			if (!FileProvider.exists(curr)) {
 				fs.mkdirSync(curr);
@@ -139,10 +139,10 @@ class FileProvider {
 	 */
 	static sort (a, b) {
 		if (FileProvider.isFile(a)) {
-		    a = Path.dirname(a) + '/z_' + Path.basename(a);
+			a = Path.dirname(a) + '/z_' + Path.basename(a);
 		}
 		if (FileProvider.isFile(b)) {
-		    b = Path.dirname(b) + '/z_' + Path.basename(b);
+			b = Path.dirname(b) + '/z_' + Path.basename(b);
 		}
 		return a > b ? 1 : -1;
 	}

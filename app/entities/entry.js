@@ -3,10 +3,6 @@
 const FileProvider = require('../helpers/fileprovider');
 const Path = require('path');
 
-/** type defines */
-const TYPE_FILE = 'file';
-const TYPE_DIRECTORY = 'directory';
-
 /** XXX root directory */
 const ROOT_DIRECTORY = '/opt/app';
 
@@ -14,15 +10,13 @@ class Entry {
 	/**
 	 * Create instance
 	 * @param string realPath real path
-	 * @param strring type type
+	 * @param strring isFile is file type
 	 * @param string content content
 	 */
-	constructor (realPath, type, content) {
+	constructor (realPath, isFile, content) {
 		const relPath = Entry._toRelativePath(realPath);
-		this.name = Path.basename(realPath);
 		this.path = relPath;
-		this.dir = Path.dirname(relPath);
-		this.type = type;
+		this.isFile = isFile;
 		this.content = content;
 	}
 
@@ -31,7 +25,7 @@ class Entry {
 	 * @return string[] keys
 	 */
 	static keys () {
-		return ['name', 'path', 'dir', 'type', 'content'];
+		return ['path', 'isFile', 'content'];
 	}
 
 	/**
@@ -44,8 +38,8 @@ class Entry {
 			const realDirPath = Entry._toRealPath(relDirPath);
 			return FileProvider.entries(realDirPath, false).map((self) => {
 				const relPath = Entry._toRelativePath(self);
-				const type = Entry._getType(self);
-				return new Entry(self, type, '');
+				const isFile = Entry._isFile(self);
+				return new Entry(self, isFile, '');
 			});
 		} catch (error) {
 			console.error(error);
@@ -61,10 +55,10 @@ class Entry {
 	static at (relPath) {
 		try {
 			const realPath = Entry._toRealPath(relPath);
-			const type = Entry._getType(realPath);
-			if (type === TYPE_FILE) {
+			const isFile = Entry._isFile(realPath);
+			if (isFile) {
 				const content = FileProvider.at(realPath);
-				return new Entry(realPath, type, content);
+				return new Entry(realPath, isFile, content);
 			} else {
 				// XXX
 				return Entry.entries(relPath);
@@ -84,7 +78,7 @@ class Entry {
 		try {
 			const realPath = Entry._toRealPath(relPath);
 			FileProvider.create(realPath, '');
-			return new Entry(realPath, TYPE_FILE, '');
+			return new Entry(realPath, true, '');
 		} catch (error) {
 			console.error(error);
 			return null;
@@ -101,7 +95,7 @@ class Entry {
 		try {
 			const realPath = Entry._toRealPath(relPath);
 			FileProvider.update(realPath, content);
-			return new Entry(realPath, TYPE_FILE, content);
+			return new Entry(realPath, true, content);
 		} catch (error) {
 			console.error(error);
 			return null;
@@ -138,17 +132,16 @@ class Entry {
 			return false;
 		}
 	}
-	
-	
+
 	/**
-	 * Get entry type
+	 * Check entry is file
 	 * @param string realPath Entity real path
-	 * @return string entry type of 'file' or 'directory'
+	 * @return string entry is file of true
 	 */
-	static _getType (realPath) {
-		return FileProvider.isFile(realPath) ? TYPE_FILE : TYPE_DIRECTORY;
+	static _isFile (realPath) {
+		return FileProvider.isFile(realPath);
 	}
-	
+
 	/**
 	 * Relative path to real path
 	 * @param string relPath Entry relative path
@@ -157,7 +150,7 @@ class Entry {
 	static _toRealPath (relPath) {
 		return ROOT_DIRECTORY + relPath;
 	}
-	
+
 	/**
 	 * Real path to Relative path
 	 * @param string realPath Entry real path

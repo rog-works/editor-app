@@ -1,7 +1,5 @@
 'use strict';
 
-
-
 class Editor extends Page {
 	constructor () {
 		super();
@@ -70,7 +68,7 @@ class Editor extends Page {
 			entry.update(
 				this._content(),
 				(entity) => { this._transition(this.STATE_SYNCRONIZED); },
-				(err) => { this._transition(this.ICON_STATE_MODIFIED); }
+				(err) => { this._transition(this.STATE_MODIFIED); }
 			);
 		}
 	}

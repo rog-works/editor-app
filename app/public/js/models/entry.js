@@ -51,12 +51,16 @@ class Entry extends Page {
 
 class EntryItem {
 	constructor (entity) {
-		const depth = Math.max(1, entity.path.split('/').length - 1);
-		this.type = entity.type;
-		this.path = entity.path;
-		this.dir = entity.dir;
-		this.name = ko.observable(entity.name);
-		this.icon = ko.observable(EntryItem.toIcon(this.type));
+		const path = entity.path.replace(/\/$/, '');
+		const route = path.substr(1).split('/');
+		const depth = Math.max(1, route.length);
+		const name = route.pop();
+		const dir = '/' + route.join('/');
+		this.isFile = entity.isFile;
+		this.path = path;
+		this.dir = dir;
+		this.name = ko.observable(name);
+		this.icon = ko.observable(EntryItem.toIcon(this.isFile ? 'file' : 'directory'));
 		this.closes = 0;
 		this.display = {
 			active: ko.observable(false),
@@ -74,7 +78,7 @@ class EntryItem {
 			url: url,
 			type: 'GET',
 			dataType: 'json',
-			timeout: 2000,
+			timeout: 1000,
 			success: (res) => {
 				console.log('respond', url);
 				callback(res);
@@ -169,7 +173,7 @@ class EntryItem {
 	}
 
 	static toEntry(entity) {
-		if (entity.type === 'file') {
+		if (entity.isFile) {
 			return new EntryFile(entity);
 		} else {
 			return new EntryDirectory(entity);
@@ -201,7 +205,6 @@ class EntryItem {
 		const classes = {
 			file: '',
 			directory: 'fa-folder-open',
-			// XXX
 			directoryClose:  'fa-folder',
 			add: 'fa-plus'
 		};
@@ -212,11 +215,11 @@ class EntryItem {
 class EntryAdd extends EntryItem {
 	constructor () {
 		super({
-			type: 'add',
+			isFile: false,
 			path: '',
-			name: '',
-			dir: ''
+			content: ''
 		});
+		this.icon(EntryItem.toIcon('add'));
 	}
 
 	click () {

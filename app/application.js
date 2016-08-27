@@ -31,6 +31,7 @@ class Application {
 	}
 
 	depended () {
+		this.app.use(require('compression')());
 		this.app.use(Express.static(PUBLIC_ROOT_PATH));
 		this.app.use(require('body-parser').urlencoded({ extended: false }));
 		this.app.use(this._log());
