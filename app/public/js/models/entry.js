@@ -3,7 +3,11 @@
 class Entry extends Page {
 	constructor () {
 		super();
+		this.STATE_RUN = 'run';
+		this.ICON_STATE_RUN = 'fa-sitemap';
+
 		this.entries = ko.observableArray([]);
+		this.icon[this.ICON_STATE_RUN] = ko.observable(true);
 	}
 
 	static init (id = 'page-entry') {
@@ -15,6 +19,7 @@ class Entry extends Page {
 
 	load (dir = '/') {
 		const url = '/?dir=' + encodeURIComponent(dir);
+		this._transition(this.STATE_LOADING);
 		EntryItem.send(url, {}, (entities) => {
 			this.entries.removeAll();
 			entities.map((entity) => {
@@ -23,6 +28,7 @@ class Entry extends Page {
 				this.entries.push(entry);
 			});
 			this.entries.push(new EntryAdd());
+			this._transition(this.STATE_RUN);
 		});
 	}
 
@@ -33,6 +39,13 @@ class Entry extends Page {
 			}
 		}
 		return null;
+	}
+
+	_transition (state) {
+		super._transition(state);
+		if (state === this.STATE_RUN) {
+			this.icon[this.ICON_STATE_RUN](true);
+		}
 	}
 }
 
@@ -61,21 +74,18 @@ class EntryItem {
 			url: url,
 			type: 'GET',
 			dataType: 'json',
-			timeout: 1000,
+			timeout: 2000,
 			success: (res) => {
-				APP.observer.connect('finished');
 				console.log('respond', url);
 				callback(res);
 			},
 			error: (res, err) => {
-				APP.observer.connect('finished');
 				console.error('error', url, err, res.status, res.statusText, res.responseText);
 				if (error !== null) {
-					error(res, err);
+					error(err);
 				}
 			}
 		};
-		APP.observer.connect('started');
 		console.log('request', url);
 		$.ajax($.extend(_data, data));
 	}
@@ -87,20 +97,17 @@ class EntryItem {
 		});
 	}
 
-	update (content, callback) {
+	update (content, callback, error) {
 		const url = '/' + encodeURIComponent(this.path);
 		EntryItem.send(
 			url,
 			{type: 'PUT', data: {content: content}},
 			callback,
-			(res, err) => {
-				// XXX
-				APP.dialog.build()
-					.message(`failed update! ${this.path}`)
-					.nortice();
+			(err) => {
 				if (err === 'timeout') {
 					// this.backup(this.path, content);
 				}
+				error(err);
 			}
 		);
 	}

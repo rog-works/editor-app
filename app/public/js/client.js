@@ -3,8 +3,6 @@
 class Application {
 	constructor () {
 		this.ws = null;
-		this.observer = null;
-		this.tool = null;
 		this.console = null;
 		this.editor = null;
 		this.entry = null;
@@ -12,16 +10,6 @@ class Application {
 		this.weblog = null;
 		this.dialog = null;
 		this.size = ko.observable({ width: 360, height: 640 });
-	}
-	
-	pages () {
-		return [
-			this.entry,
-			this.editor,
-			this.shell,
-			this.weblog,
-			this.console
-		];
 	}
 
 	static init () {
@@ -34,8 +22,6 @@ class Application {
 		try {
 			console.log('On load started');
 			this.ws = new WS();
-			this.observer = Observer.init();
-			this.tool = Tool.init();
 			this.console = Console.init();
 			this.editor = Editor.init();
 			this.entry = Entry.init();
@@ -52,7 +38,8 @@ class Application {
 	
 	_after () {
 		const self = this;
-		this.resize();
+		self.activate('entry');
+		self.resize();
 		// XXX handling for window event
 		window.onresize = (e) => { return self.resize(e); };
 		document.onkeydown = (e) => { return self.keydown(e); };
@@ -72,7 +59,7 @@ class Application {
 		const w = window.innerWidth;
 		const h = window.innerHeight;
 		this.size({ width: w, height: h });
-		this.pages().forEach((page) => {
+		this._pages().forEach((page) => {
 			page.resize(w - 32, h);
 		});
 		this.dialog.resize(w, h);
@@ -82,6 +69,27 @@ class Application {
 
 	keydown (e) {
 		return this.editor.keydown(e);
+	}
+
+	activate (page) {
+		this._pages().forEach((page) => {
+			if (page.display.active()) {
+				page.selected(false);
+			}
+		});
+		if (page in this) {
+			this[page].selected(true);
+		}
+	}
+
+	_pages () {
+		return [
+			this.entry,
+			this.editor,
+			this.shell,
+			this.weblog,
+			this.console
+		];
 	}
 }
 

@@ -1,19 +1,28 @@
 'use strict';
 
-const KEY_CODE_S = 83;
+
 
 class Editor extends Page {
 	constructor () {
 		super();
+		// XXX
+		this.KEY_CODE_S = 83;
+		this.STATE_SYNCRONIZED = 'syncronized';
+		this.STATE_MODIFIED = 'modified';
+		this.ICON_STATE_SYNCRONIZED = 'fa-pencil';
+		this.ICON_STATE_MODIFIED = 'fa-check-circle';
+
 		this.path = '#';
-		this.icon['fa-pencil'] = ko.observable(true);
-		this.icon['fa-code-fork'] = ko.observable(false);
+		this.state = this.STATE_SYNCRONIZED;
+		this.icon[this.ICON_STATE_SYNCRONIZED] = ko.observable(true);
+		this.icon[this.ICON_STATE_MODIFIED] = ko.observable(false);
 	}
 
 	static init (id = 'page-editor') {
-		let self = new Editor();
+		const self = new Editor();
 		// ko.applyBindings(self, document.getElementById(id));
 		self.load();
+		self._editor().on('change', () => { self.changed(); });
 		return self;
 	}
 
@@ -23,12 +32,13 @@ class Editor extends Page {
 		const config = this._configure(ext);
 		const editor = this._editor();
 		const session = editor.getSession();
-		editor.on('change', () => { self.changed(); });
+		self._transition(this.STATE_LOADING);
+		self.path = path;
 		session.setValue(content);
 		session.setTabSize(config.tabs);
 		session.setUseSoftTabs(config.softTabs);
 		session.setMode(this._toMode(config.mode));
-		this.path = path;
+		self._transition(this.STATE_SYNCRONIZED);
 	}
 	
 	resize (width, height) {
@@ -38,15 +48,14 @@ class Editor extends Page {
 	
 	focus () {
 		// XXX
-		APP.tool.activate('editor');
+		APP.activate('editor');
 		this._editor().focus();
 	}
 
 	keydown (e) {
-		// XXX depands on tool...
-		if (APP.tool.page() === 'editor') {
+		if (this.display.active()) {
 			// handling ctrl + s
-			if ((e.ctrlKey || e.metaKey) && e.keyCode === KEY_CODE_S) {
+			if ((e.ctrlKey || e.metaKey) && e.keyCode === this.KEY_CODE_S) {
 				this.save();
 				return false;
 			}
@@ -57,21 +66,28 @@ class Editor extends Page {
 	save () {
 		const entry = APP.entry.at(this.path);
 		if (entry !== null) {
-			this.icon['fa-pencil'](false);
-			this.icon['fa-reflesh'](true);
-			this.icon['fa-spin'](true);
-			entry.update(this._content(), (entity) => {
-				this.icon['fa-pencil'](true);
-				this.icon['fa-reflesh'](false);
-				this.icon['fa-spin'](false);
-			});
+			this._transition(this.STATE_LOADING);
+			entry.update(
+				this._content(),
+				(entity) => { this._transition(this.STATE_SYNCRONIZED); },
+				(err) => { this._transition(this.ICON_STATE_MODIFIED); }
+			);
 		}
 	}
 
 	changed () {
-		if (this.icon['fa-pencil']()) {
-			this.icon['fa-pencil'](false);
-			this.icon['fa-code-fork'](true);
+		if (this.state === this.STATE_SYNCRONIZED) {
+			this._transition(this.STATE_MODIFIED);
+		}
+	}
+
+	_transition (state) {
+		super._transition(state);
+		this.state = state;
+		if (state === this.STATE_MODIFIED) {
+			this.icon[this.ICON_STATE_MODIFIED](true);
+		} else if (state === this.STATE_SYNCRONIZED) {
+			this.icon[this.ICON_STATE_SYNCRONIZED](true);
 		}
 	}
 
