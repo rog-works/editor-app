@@ -6,7 +6,8 @@ class Editor extends Page {
 	constructor () {
 		super();
 		this.path = '#';
-		this.icon = ko.observsble('fa-pencil');
+		this.icon['fa-pencil'] = ko.observable(true);
+		this.icon['fa-code-fork'] = ko.observable(false);
 	}
 
 	static init (id = 'page-editor') {
@@ -56,13 +57,21 @@ class Editor extends Page {
 	save () {
 		const entry = APP.entry.at(this.path);
 		if (entry !== null) {
-			entry.update(this._content());
+			this.icon['fa-pencil'](false);
+			this.icon['fa-reflesh'](true);
+			this.icon['fa-spin'](true);
+			entry.update(this._content(), (entity) => {
+				this.icon['fa-pencil'](true);
+				this.icon['fa-reflesh'](false);
+				this.icon['fa-spin'](false);
+			});
 		}
 	}
 
 	changed () {
-		if (this.icon() === 'fa-pencil') {
-			this.icon('fa-code-fork');
+		if (this.icon['fa-pencil']()) {
+			this.icon['fa-pencil'](false);
+			this.icon['fa-code-fork'](true);
 		}
 	}
 

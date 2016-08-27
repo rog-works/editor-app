@@ -65,8 +65,8 @@
 				<div class="bc1 wh1 table" data-bind="css: { active: tool.page() === 'entry' }, click: tool.activate.bind($data.tool, 'entry')">
 					<i class="cell center fa fa-sitemap"></i>
 				</div>
-				<div class="bc1 wh1 table" data-bind="css: { active: tool.page() === 'editor' }, click: tool.activate.bind($data.tool, 'editor')">
-					<i class="cell center fa fa-pencil"></i>
+				<div class="bc1 wh1 table" data-bind="css: editor.display, click: tool.activate.bind($data.tool, 'editor')">
+					<i class="cell center fa" data-bind="css: editor.icon"></i>
 				</div>
 				<div class="bc1 wh1 table" data-bind="css: { active: tool.page() === 'shell' }, click: tool.activate.bind($data.tool, 'shell')">
 					<i class="cell center fa fa-terminal"></i>

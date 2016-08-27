@@ -13,6 +13,16 @@ class Application {
 		this.dialog = null;
 		this.size = ko.observable({ width: 360, height: 640 });
 	}
+	
+	pages () {
+		return [
+			this.entry,
+			this.editor,
+			this.shell,
+			this.weblog,
+			this.console
+		];
+	}
 
 	static init () {
 		const self = new Application();
@@ -62,13 +72,7 @@ class Application {
 		const w = window.innerWidth;
 		const h = window.innerHeight;
 		this.size({ width: w, height: h });
-		[
-			this.editor,
-			this.entry,
-			this.shell,
-			this.weblog,
-			this.console
-		].forEach((page) => {
+		this.pages().forEach((page) => {
 			page.resize(w - 32, h);
 		});
 		this.dialog.resize(w, h);

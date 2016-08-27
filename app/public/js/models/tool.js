@@ -13,5 +13,13 @@ class Tool {
 
 	activate (page) {
 		this.page(page);
+		APP.pages().forEach((page) => {
+			if (page.display.active()) {
+				page.selected(false);
+			}
+		});
+		if (page in APP) {
+			APP[page].selected(true);
+		}
 	}
 }

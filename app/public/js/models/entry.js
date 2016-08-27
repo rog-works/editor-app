@@ -87,12 +87,12 @@ class EntryItem {
 		});
 	}
 
-	update (content) {
+	update (content, callback) {
 		const url = '/' + encodeURIComponent(this.path);
 		EntryItem.send(
 			url,
 			{type: 'PUT', data: {content: content}},
-			(entity) => {},
+			callback,
 			(res, err) => {
 				// XXX
 				APP.dialog.build()
