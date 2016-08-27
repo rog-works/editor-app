@@ -8,10 +8,21 @@ class Page {
 		// 	height: height
 		// });
 		this.size = ko.observable({ width: width });
+		this.display = {
+			'active': ko.observable(false)
+		};
+		this.icon = {
+			'fa-reflesh': ko.observable(false),
+			'fa-spin': ko.observable(false)
+		};
 	}
 	
 	resize (width, height) {
 		// XXX
 		this.size({width: width});
+	}
+	
+	selected (activate) {
+		this.display.active = activate;
 	}
 }

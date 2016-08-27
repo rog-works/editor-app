@@ -20,6 +20,7 @@ class Shell extends Log {
 	}
 	
 	static send (path, data, callback) {
+		try {
 		const url = `/shell${path}`;
 		let _data = {
 			url: url,
@@ -27,15 +28,21 @@ class Shell extends Log {
 			dataType: 'json',
 			timeout: 1000,
 			success: (res) => {
+				APP.observer.connect('finished');
 				console.log('respond', url);
 				callback(res);
 			},
 			error: (res, err) => {
+				APP.observer.connect('finished');
 				console.error(err, res.status, res.statusText, res.responseText);
 			}
 		};
+		APP.observer.connect('started');
 		console.log('request', url, data);
 		$.ajax($.extend(_data, data));
+		} catch (e) {
+			console.error(e);
+		}
 	}
 
 	click (self, e) {

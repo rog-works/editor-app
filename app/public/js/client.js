@@ -3,6 +3,7 @@
 class Application {
 	constructor () {
 		this.ws = null;
+		this.observer = null;
 		this.tool = null;
 		this.console = null;
 		this.editor = null;
@@ -11,6 +12,16 @@ class Application {
 		this.weblog = null;
 		this.dialog = null;
 		this.size = ko.observable({ width: 360, height: 640 });
+	}
+	
+	pages () {
+		return [
+			this.entry,
+			this.editor,
+			this.shell,
+			this.weblog,
+			this.console
+		];
 	}
 
 	static init () {
@@ -23,6 +34,7 @@ class Application {
 		try {
 			console.log('On load started');
 			this.ws = new WS();
+			this.observer = Observer.init();
 			this.tool = Tool.init();
 			this.console = Console.init();
 			this.editor = Editor.init();
@@ -60,13 +72,7 @@ class Application {
 		const w = window.innerWidth;
 		const h = window.innerHeight;
 		this.size({ width: w, height: h });
-		[
-			this.editor,
-			this.entry,
-			this.shell,
-			this.weblog,
-			this.console
-		].forEach((page) => {
+		this.pages().forEach((page) => {
 			page.resize(w - 32, h);
 		});
 		this.dialog.resize(w, h);

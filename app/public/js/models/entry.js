@@ -63,16 +63,19 @@ class EntryItem {
 			dataType: 'json',
 			timeout: 1000,
 			success: (res) => {
+				APP.observer.connect('finished');
 				console.log('respond', url);
 				callback(res);
 			},
 			error: (res, err) => {
+				APP.observer.connect('finished');
 				console.error('error', url, err, res.status, res.statusText, res.responseText);
 				if (error !== null) {
 					error(res, err);
 				}
 			}
 		};
+		APP.observer.connect('started');
 		console.log('request', url);
 		$.ajax($.extend(_data, data));
 	}
@@ -84,18 +87,17 @@ class EntryItem {
 		});
 	}
 
-	update (content) {
+	update (content, callback) {
 		const url = '/' + encodeURIComponent(this.path);
 		EntryItem.send(
 			url,
 			{type: 'PUT', data: {content: content}},
-			(entity) => {
+			callback,
+			(res, err) => {
 				// XXX
 				APP.dialog.build()
-					.message(`${this.path} entry updated!`)
+					.message(`failed update! ${this.path}`)
 					.nortice();
-			},
-			(res, err) => {
 				if (err === 'timeout') {
 					// this.backup(this.path, content);
 				}
