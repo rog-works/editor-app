@@ -45,27 +45,33 @@ class Shell extends Log {
 		// XXX
 		return APP.shell._exec();
 	}
- 
- 	_parse (query) {
- 		let dir = this.dir();
- 		const matches = query.match(/^cd ([\d\w\-\/_.~]+);?(.*)$/);
- 		if (matches) {
- 			if (matches.length > 1) {
- 				if (matches[1].indexOf('~') === 0) {
- 					dir = '/' + matches[1].substr(1);
- 				} else {
- 					dir = dir + '/' + matches[1];
- 				}
+
+	keydown (e) {
+		if (this.display.active()) {
+			
+		}
+	}
+
+	_parse (query) {
+		let dir = this.dir();
+		const matches = query.match(/^cd ([\d\w\-\/_.~]+);?(.*)$/);
+		if (matches) {
+			if (matches.length > 1) {
+				if (matches[1].indexOf('~') === 0) {
+					dir = '/' + matches[1].substr(1);
+				} else {
+					dir = dir + '/' + matches[1];
+				}
 				// XXX
 				dir = dir.replace('//', '/');
- 			}
- 			if (matches.length > 2) {
- 				query = matches[2].trim();
- 			}
- 		}
- 		return [dir, query];
- 	}
- 
+			}
+			if (matches.length > 2) {
+				query = matches[2].trim();
+			}
+		}
+		return [dir, query];
+	}
+
 	_exec () {
 		const [dir, query] = this._parse(this.query());
 		if (query.length === 0) {

@@ -14,7 +14,7 @@ class Weblog extends Log {
 		return self;
 	}
 
-	on (msg) {
+	_log (msg) {
 		return this.line(this._parseLine(msg));
 	}
 
@@ -30,7 +30,7 @@ class Weblog extends Log {
 
 	_onMessage ([tag, data]) {
 		if (tag === 'editor.access-log') {
-			return this.on(data);
+			return this._log(data);
 		}
 		return true;
 	}

@@ -1,7 +1,8 @@
 'use strict';
 
-class Application {
+class Application extends Node {
 	constructor () {
+		super();
 		this.ws = null;
 		this.console = null;
 		this.editor = null;
@@ -9,16 +10,19 @@ class Application {
 		this.shell = null;
 		this.weblog = null;
 		this.dialog = null;
-		this.size = ko.observable({ width: 360, height: 640 });
+		this.size = {
+			width: ko.observable(360),
+			height: ko.observable(640)
+		};
 	}
 
 	static init () {
 		const self = new Application();
-		window.onload = () => { self.load(); };
+		window.onload = () => { self._load(); };
 		return self;
 	}
 
-	load(id = 'main') {
+	_load(id = 'main') {
 		try {
 			console.log('On load started');
 			this.ws = new WS();
@@ -38,48 +42,18 @@ class Application {
 	
 	_after () {
 		const self = this;
-		self.activate('entry');
-		self.resize();
+		self.on('reload', self.reload);
+		self.on('focus', self.focus);
+		self.on('prompt', self.prompt);
+		self.on('confirm', self.confirm);
+		for (const page of self._pages()) {
+			self.addNode(page);
+		}
+		self.focus('entry');
+		self._resize();
 		// XXX handling for window event
-		window.onresize = (e) => { return self.resize(e); };
-		document.onkeydown = (e) => { return self.keydown(e); };
-	}
-
-	test () {
-		try {
-			this.dialog.build()
-				.on((result) => { console.log(result); })
-				.prompt();
-		} catch (error) {
-			console.error(error.message, error.stack);
-		}
-	}
-
-	resize (e) {
-		const w = window.innerWidth;
-		const h = window.innerHeight;
-		this.size({ width: w, height: h });
-		this._pages().forEach((page) => {
-			page.resize(w - 32, h);
-		});
-		this.dialog.resize(w, h);
-		console.log('On resize', w, h);
-		return true;
-	}
-
-	keydown (e) {
-		return this.editor.keydown(e);
-	}
-
-	activate (page) {
-		this._pages().forEach((page) => {
-			if (page.display.active()) {
-				page.selected(false);
-			}
-		});
-		if (page in this) {
-			this[page].selected(true);
-		}
+		window.onresize = (e) => { return self._resize(e); };
+		document.onkeydown = (e) => { return self._keydown(e); };
 	}
 
 	_pages () {
@@ -90,6 +64,52 @@ class Application {
 			this.weblog,
 			this.console
 		];
+	}
+
+	_resize (e) {
+		const w = window.innerWidth;
+		const h = window.innerHeight;
+		this.size.width(w)
+		this.size.height(h);
+		for(const page of this._pages()) {
+			page.resize(w - 32, h);
+		}
+		this.dialog.resize(w, h);
+		console.log('On resize', w, h);
+		return true;
+	}
+
+	_keydown (e) {
+		return this.editor.keydown(e);
+	}
+
+	focus (pageName) {
+		for(const page of this._pages()) {
+			if (page.display.active()) {
+				page.selected(false);
+				break;
+			}
+		}
+		if (pageName in this) {
+			this[pageName].selected(true);
+		}
+		return false;
+	}
+
+	reload (path, content) {
+		this.editor.load(path, content);
+		this.editor.focus();
+		return false;
+	}
+
+	confirm (message, callback) {
+		this.dialog.build().message(message).on(callback).confirm();
+		return false;
+	}
+
+	prompt (message, input, callback) {
+		this.dialog.build().message(message).input(input).on(callback).prompt();
+		return false;
 	}
 }
 

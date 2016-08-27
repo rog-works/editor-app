@@ -11,14 +11,14 @@ class Log extends Page {
 	}
 
 	put (log) {
-		return this._on(log, false);
+		return this._push(log, false);
 	}
 
 	line (log) {
-		return this._on(log, true);
+		return this._push(log, true);
 	}
 
-	_on (log, separated) {
+	_push (log, separated) {
 		// console.log(log, separated);
 		this.logs.push(new LogLine(log, this.coloring(log), separated));
 		return true;

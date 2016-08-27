@@ -8,6 +8,10 @@ class Entry extends Page {
 
 		this.entries = ko.observableArray([]);
 		this.icon[this.ICON_STATE_RUN] = ko.observable(true);
+		this.on('created', this.created);
+		this.on('deleted', this.deleted);
+		this.on('deactivate', this.deactivate);
+		this.on('expanded', this.expanded);
 	}
 
 	static init (id = 'page-entry') {
@@ -22,12 +26,14 @@ class Entry extends Page {
 		this._transition(this.STATE_LOADING);
 		EntryItem.send(url, {}, (entities) => {
 			this.entries.removeAll();
-			entities.map((entity) => {
+			const entries = entities.map((entity) => {
 				return EntryItem.toEntry(entity);
-			}).forEach((entry) => {
-				this.entries.push(entry);
 			});
+			for (const entry of entries) {
+				this.entries.push(entry);
+			}
 			this.entries.push(new EntryAdd());
+			this.addNodes(this.entries());
 			this._transition(this.STATE_RUN);
 		});
 	}
@@ -41,6 +47,42 @@ class Entry extends Page {
 		return null;
 	}
 
+	created (entry) {
+		this.entries.push(entry);
+		console.log('Created entry', entry);
+		return false;
+	}
+
+	deleted (entry) {
+		const removed = this.entries.remove((self) => {
+			return self.path === entry.path;
+		});
+		console.log('Deleted entry', removed);
+		return false;
+	}
+
+	deactivate () {
+		for (const entry of this.entries()) {
+			if (entry.display.active()) {
+				entry.display.active(false);
+				break;
+			}
+		}
+	}
+
+	expanded (dir, opened) {
+		for (const entry of this.entries()) {
+			if (entry.dir.startsWith(dir)) {
+				if (opened && entry.closes > 0) {
+					entry.closes -= 1;
+				} else if (!opened) {
+					entry.closes += 1;
+				}
+				entry.display.close(entry.closes > 0);
+			}
+		}
+	}
+
 	_transition (state) {
 		super._transition(state);
 		if (state === this.STATE_RUN) {
@@ -49,8 +91,9 @@ class Entry extends Page {
 	}
 }
 
-class EntryItem {
+class EntryItem extends Node {
 	constructor (entity) {
+		super();
 		const path = entity.path.replace(/\/$/, '');
 		const route = path.substr(1).split('/');
 		const depth = Math.max(1, route.length);
@@ -94,10 +137,9 @@ class EntryItem {
 		$.ajax($.extend(_data, data));
 	}
 
-	static create (path) {
+	create (path) {
 		EntryItem.send('/', {type: 'POST', data: {path: path}}, (entity) => {
-			const entry = EntryItem.toEntry(entity);
-			APP.entry.entries.push(entry);
+			this.fire('created', EntryItem.toEntry(entity));
 		});
 	}
 
@@ -117,43 +159,33 @@ class EntryItem {
 	}
 
 	rename () {
-		// XXX
-		APP.dialog.build()
-			.message('Change file path')
-			.input(this.path)
-			.on((to) => {
-				if (!EntryItem.validSavePath(to) || EntryItem.pathExists(to)) {
-					return;
-				}
-				const encodePath = encodeURIComponent(this.path);
-				const encodeTo = encodeURIComponent(to);
-				const url = `/${encodePath}/rename?to=${encodeTo}`;
-				EntryItem.send(url, {type: 'PUT'}, (toPath) => {
-					this.path = toPath;
-				});
-			})
-			.prompt();
+		this.fire('prompt', 'Change file path', this.path, (to) => {
+			if (!EntryItem.validSavePath(to) || EntryItem.pathExists(to)) {
+				return;
+			}
+			const encodePath = encodeURIComponent(this.path);
+			const encodeTo = encodeURIComponent(to);
+			const url = `/${encodePath}/rename?to=${encodeTo}`;
+			EntryItem.send(url, {type: 'PUT'}, (toPath) => {
+				this.path = toPath;
+				// XXX
+				this.name(toPath.join('/').pop());
+			});
+		});
 	}
 
 	delete () {
-		// XXX
-		APP.dialog.build()
-			.message(`'${this.path}' deleted?`)
-			.on((ok) => {
-				if (!ok) {
-					console.log('delete cancel');
-					return;
-				}
-				const prev = this.path;
-				const url = '/' + encodeURIComponent(prev);
-				EntryItem.send(url, {type: 'DELETE'}, (deleted) => {
-					const removed = APP.entry.entries.remove((self) => {
-						return self.path === prev;
-					});
-					console.log(removed);
-				});
-			})
-			.confirm();
+		this.fire('confirm', `'${this.path}' deleted?`, (ok) => {
+			if (!ok) {
+				console.log('Delete canceled');
+				return;
+			}
+			const prev = this.path;
+			const url = '/' + encodeURIComponent(prev);
+			EntryItem.send(url, {type: 'DELETE'}, (deleted) => {
+				this.fire('deleted', this);
+			});
+		});
 	}
 
 	backup (content) {
@@ -182,17 +214,18 @@ class EntryItem {
 
 	static validSavePath (path) {
 		if (typeof path !== 'string' || path.length === 0) {
-			console.log('invalid argument');
+			console.log('Save canceled');
 			return false;
 		}
 		if (/[^\d\w\-\/_.]+/.test(path)) {
-			console.log('not allowed path characters');
+			console.log('Not allowed path characters');
 			return false;
 		}
 		return true;
 	}
 
 	static pathExists (path) {
+		// XXX depends on entry
 		for (const entry of APP.entry.entries()) {
 			if (entry.path === path) {
 				return true;
@@ -212,29 +245,6 @@ class EntryItem {
 	}
 }
 
-class EntryAdd extends EntryItem {
-	constructor () {
-		super({
-			isFile: false,
-			path: '',
-			content: ''
-		});
-		this.icon(EntryItem.toIcon('add'));
-	}
-
-	click () {
-		APP.dialog.build()
-			.message('input create file path')
-			.input('/')
-			.on((path) => {
-				if (EntryItem.validSavePath(path) && !EntryItem.pathExists(path)) {
-					EntryItem.create(path);
-				}
-			})
-			.prompt();
-	}
-}
-
 class EntryFile extends EntryItem {
 	constructor (entity) {
 		super(entity);
@@ -248,18 +258,12 @@ class EntryFile extends EntryItem {
 		const url = '/' + encodeURIComponent(path);
 		EntryItem.send(url, {}, (entity) => {
 			this._activate();
-			APP.editor.load(entity.path, entity.content);
-			APP.editor.focus();
+			this.fire('reload', entity.path, entity.content);
 		});
 	}
 
 	_activate () {
-		for (const entry of APP.entry.entries()) {
-			if (entry.display.active()) {
-				entry.display.active(false);
-				break;
-			}
-		}
+		this.fire('deactivate');
 		this.display.active(true);
 	}
 }
@@ -267,26 +271,32 @@ class EntryFile extends EntryItem {
 class EntryDirectory extends EntryItem {
 	constructor (entity) {
 		super(entity);
-		this.expanded = true;
+		this.opened = true;
 	}
 
 	click () {
-		this.expanded = !this.expanded;
-		const nextIcon = EntryItem.toIcon(this.expanded ? 'directory' : 'directoryClose');
+		this.opened = !this.opened;
+		const nextIcon = EntryItem.toIcon(this.opened ? 'directory' : 'directoryClose');
 		this.icon(nextIcon);
-		this._toggle(this.path, this.expanded);
+		this.fire('expanded', this.path, this.opened);
+	}
+}
+
+class EntryAdd extends EntryItem {
+	constructor () {
+		super({
+			isFile: false,
+			path: '',
+			content: ''
+		});
+		this.icon(EntryItem.toIcon('add'));
 	}
 
-	_toggle (dir, expanded) {
-		for (const entry of APP.entry.entries()) {
-			if (entry.dir.startsWith(dir)) {
-				if (expanded && entry.closes > 0) {
-					entry.closes -= 1;
-				} else if (!expanded) {
-					entry.closes += 1;
-				}
-				entry.display.close(entry.closes > 0);
+	click () {
+		this.fire('prompt', 'Input create file path', '/', (path) => {
+			if (EntryItem.validSavePath(path) && !EntryItem.pathExists(path)) {
+				this.create(path);
 			}
-		}
+		});
 	}
 }

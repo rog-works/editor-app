@@ -19,19 +19,19 @@ class Console extends Log {
 		const self = this;
 		console.log = (...args) => {
 			_log.apply(console, args);
-			self.on('LOG', ...args);
+			self._log('LOG', ...args);
 		};
 		console.warn = (...args) => {
 			_warn.apply(console, args);
-			self.on('WRN', ...args);
+			self._log('WRN', ...args);
 		};
 		console.error = (...args) => {
 			_error.apply(console, args);
-			self.on('ERR', ...args);
+			self._log('ERR', ...args);
 		};
 	}
 
-	on (tag, ...args) {
+	_log (tag, ...args) {
 		args.unshift(tag);
 		this.line(args.join(' '));
 	}

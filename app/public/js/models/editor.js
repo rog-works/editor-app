@@ -3,8 +3,8 @@
 class Editor extends Page {
 	constructor () {
 		super();
-		// XXX
 		this.KEY_CODE_S = 83;
+		this.KEY_CODE_INVALIDS = [82, 87]; // R and W
 		this.STATE_SYNCRONIZED = 'syncronized';
 		this.STATE_MODIFIED = 'modified';
 		this.ICON_STATE_SYNCRONIZED = 'fa-pencil';
@@ -45,23 +45,28 @@ class Editor extends Page {
 	}
 	
 	focus () {
-		// XXX
-		APP.activate('editor');
+		this.fire('focus', 'editor');
 		this._editor().focus();
 	}
 
 	keydown (e) {
 		if (this.display.active()) {
-			// handling ctrl + s
-			if ((e.ctrlKey || e.metaKey) && e.keyCode === this.KEY_CODE_S) {
-				this.save();
-				return false;
+			if (e.ctrlKey || e.metaKey) {
+				// handling ctrl + s
+				if (e.keyCode === this.KEY_CODE_S) {
+					this.save();
+					return false;
+				// XXX
+				} else if (this.KEY_CODE_INVALIDS.indexOf(e.keyCode) !== -1) {
+					return false;
+				}
 			}
 		}
 		return true;
 	}
 
 	save () {
+		// XXX depends on entry
 		const entry = APP.entry.at(this.path);
 		if (entry !== null) {
 			this._transition(this.STATE_LOADING);

@@ -9,11 +9,7 @@
 		<link rel="stylesheet" chatset="utf8" href="css/style.css">
 	</head>
 	<body class="bc1 fc1">
-		<div id="main" class="fit" data-bind="style: size">
-			<!-- editor -->
-			<div class="bc2 left fill-h" data-bind="css: { close: editor.display.active() === false }, style: editor.size">
-				<div id="editor" class="fill"></div>
-			</div>
+		<div id="main" data-bind="style: size">
 			<!-- entry -->
 			<div class="bc2 left fill-h close" data-bind="css: { close: entry.display.active() === false }, style: entry.size">
 				<div class="fill scroll-y hide-scroll" data-bind="foreach: entry.entries">
@@ -25,6 +21,10 @@
 						<a class="h0 cell middle" data-bind="text: $data.name, click: $data.click"></a>
 					</div>
 				</div>
+			</div>
+			<!-- editor -->
+			<div class="bc2 left fill-h" data-bind="css: { close: editor.display.active() === false }, style: editor.size">
+				<div id="editor" class="fill"></div>
 			</div>
 			<!-- shell -->
 			<div class="bc2 left fill-h close" data-bind="css: { close: shell.display.active() === false }, style: shell.size">
@@ -62,19 +62,19 @@
 			</div>
 			<!-- tool -->
 			<div class="right w1 fill-h scroll-y hide-scroll">
-				<div class="bc1 wh1 table" data-bind="css: entry.display, click: activate.bind($data, 'entry')">
+				<div class="bc1 wh1 table" data-bind="css: entry.display, click: focus.bind($data, 'entry')">
 					<i class="cell center fa fa-sitemap" data-bind="css: entry.icon"></i>
 				</div>
-				<div class="bc1 wh1 table" data-bind="css: editor.display, click: activate.bind($data, 'editor')">
+				<div class="bc1 wh1 table" data-bind="css: editor.display, click: focus.bind($data, 'editor')">
 					<i class="cell center fa fa-pencil" data-bind="css: editor.icon"></i>
 				</div>
-				<div class="bc1 wh1 table" data-bind="css: shell.display, click: activate.bind($data, 'shell')">
+				<div class="bc1 wh1 table" data-bind="css: shell.display, click: focus.bind($data, 'shell')">
 					<i class="cell center fa fa-terminal" data-bind="css: shell.icon"></i>
 				</div>
-				<div class="bc1 wh1 table" data-bind="css: weblog.display, click: activate.bind($data, 'weblog')">
+				<div class="bc1 wh1 table" data-bind="css: weblog.display, click: focus.bind($data, 'weblog')">
 					<i class="cell center fa fa-commenting" data-bind="css: weblog.icon"></i>
 				</div>
-				<div class="bc1 wh1 table" data-bind="css: console.display, click: activate.bind($data, 'console')">
+				<div class="bc1 wh1 table" data-bind="css: console.display, click: focus.bind($data, 'console')">
 					<i class="cell center fa fa-info" data-bind="css: console.icon"></i>
 				</div>
 			</div>
@@ -105,7 +105,7 @@
 		<script type="text/javascript" chatset="utf8" src="vendors/jquery-2.2.1.min.js"></script>
 		<script type="text/javascript" chatset="utf8" src="http://cdnjs.cloudflare.com/ajax/libs/knockout/2.3.0/knockout-min.js"></script>
 		<script type="text/javascript" chatset="utf8" src="js/lib/ws.js"></script>
-		<script type="text/javascript" chatset="utf8" src="js/models/page.js"></script>
+		<script type="text/javascript" chatset="utf8" src="js/models/node.js"></script>
 		<script type="text/javascript" chatset="utf8" src="js/models/log.js"></script>
 		<script type="text/javascript" chatset="utf8" src="js/models/editor.js"></script>
 		<script type="text/javascript" chatset="utf8" src="js/models/entry.js"></script>
