@@ -39,7 +39,7 @@ class Shell extends Log {
 		$.ajax($.extend(_data, data));
 	}
 
-	keydown (e) {console.log('down', e.keyCode);
+	keydown (e) {
 		if (e.ctrlKey && e.shiftKey) {
 			if (e.keyCode === this.KEY_CODE_L_UPPER) {
 				this.clear();
@@ -49,10 +49,10 @@ class Shell extends Log {
 		return true;
 	}
 
-	keyup (e) {console.log('press', e.keyCode);
+	keyup (e) {
 		if (e.keyCode === this.KEY_CODE_ENTER) {
 			this._exec();
-			//return false;
+			return false;
 		}
 		return true;
 	}
