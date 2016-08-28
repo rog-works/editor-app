@@ -50,16 +50,14 @@ class Editor extends Page {
 	}
 
 	keydown (e) {
-		if (this.display.active()) {
-			if (e.ctrlKey || e.metaKey) {
-				// handling ctrl + s
-				if (e.keyCode === this.KEY_CODE_S) {
-					this.save();
-					return false;
-				// XXX
-				} else if (this.KEY_CODE_INVALIDS.indexOf(e.keyCode) !== -1) {
-					return false;
-				}
+		if (e.ctrlKey || e.metaKey) {
+			// handling ctrl + s
+			if (e.keyCode === this.KEY_CODE_S) {
+				this.save();
+				return false;
+			// XXX
+			} else if (this.KEY_CODE_INVALIDS.indexOf(e.keyCode) !== -1) {
+				return false;
 			}
 		}
 		return true;

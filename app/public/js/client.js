@@ -53,7 +53,9 @@ class Application extends Node {
 		self._resize();
 		// XXX handling for window event
 		window.onresize = (e) => { return self._resize(e); };
-		document.onkeydown = (e) => { return self._keydown(e); };
+		document.onkeydown = (e) => { return self._onkey('down', e); };
+		document.onkeyup = (e) => { return self._onkey('up', e); };
+		document.onkeypress = (e) => { return self._onkey('press', e); };
 	}
 
 	_pages () {
@@ -79,8 +81,13 @@ class Application extends Node {
 		return true;
 	}
 
-	_keydown (e) {
-		return this.editor.keydown(e);
+	_onkey (tag, e) {
+		for (const page of this._pages()) {
+			if (page.display.active()) {
+				return page[`key${tag}`](e);
+			}
+		}
+		return true;
 	}
 
 	focus (pageName) {

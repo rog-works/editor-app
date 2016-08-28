@@ -1,10 +1,11 @@
 'use strict';
 
-const KEY_CODE_ENTER = 13;
-
 class Shell extends Log {
 	constructor () {
 		super();
+		this.KEY_CODE_ENTER = 13;
+		this.KEY_CODE_L_UPPER = 76;
+
 		this.dir = ko.observable('/');
 		this.query = ko.observable('');
 		this.css = ko.observable('');
@@ -38,18 +39,22 @@ class Shell extends Log {
 		$.ajax($.extend(_data, data));
 	}
 
-	click (self, e) {
-		if (e.keyCode !== KEY_CODE_ENTER) {
-			return true;
+	keydown (e) {console.log('down', e.keyCode);
+		if (e.ctrlKey && e.shiftKey) {
+			if (e.keyCode === this.KEY_CODE_L_UPPER) {
+				this.clear();
+				return false;
+			}
 		}
-		// XXX
-		return APP.shell._exec();
+		return true;
 	}
 
-	keydown (e) {
-		if (this.display.active()) {
-			
+	keyup (e) {console.log('press', e.keyCode);
+		if (e.keyCode === this.KEY_CODE_ENTER) {
+			this._exec();
+			//return false;
 		}
+		return true;
 	}
 
 	_parse (query) {

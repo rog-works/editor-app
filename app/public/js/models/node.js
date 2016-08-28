@@ -67,6 +67,10 @@ class Page extends Node {
 		this.size.height(height);
 	}
 	
+	keydown (e) { return true; }
+	keyup (e) { return true; }
+	keypress (e) { return true; }
+	
 	selected (activate) {
 		this.display.active(activate);
 	}

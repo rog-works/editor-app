@@ -30,7 +30,7 @@
 			<div class="bc2 left fill-h close" data-bind="css: { close: shell.display.active() === false }, style: shell.size">
 				<div class="fill-w h1 table">
 					<span class="fc2 wh1 cell middle" data-bind="text: '[~' + shell.dir() + ']$'"></span>
-					<input type="text" class="bc2 fc2 fill-w h1 cell middle less" placeholder="input command" list="shell-history" data-bind="value: shell.query, css: shell.css, valueUpdate: 'keypress', event: { keypress: shell.click }">
+					<input type="text" class="bc2 fc2 fill-w h1 cell middle less" placeholder="input command" list="shell-history" data-bind="value: shell.query, css: shell.css">
 					<i class="wh1 cell center fa fa-remove" data-bind="click: shell.clear.bind($data.shell)"></i>
 					<datalist id="shell-history" data-bind="foreach: shell.history">
 						<option data-bind="value: $data">
