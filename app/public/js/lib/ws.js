@@ -21,7 +21,7 @@ class WS {
 			socket.onmessage = (msg) => { self._onMessage(msg); };
 			socket.onopen = () => { self._onOpen(); };
 			socket.onclose = () => { self._onClose(); };
-			console.log('Connected WS.', self.uri);
+			console.log('Connected WS', self.uri);
 			return socket;
 		} catch (error) {
 			console.error(error.message, error.stack);
@@ -37,7 +37,7 @@ class WS {
 				return false;
 			}
 		}
-		console.error('Disconnected WS.', this.uri);
+		console.error('Disconnected WS', this.uri);
 		return true;
 	}
 
