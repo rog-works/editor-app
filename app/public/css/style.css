@@ -181,6 +181,10 @@ a.fc1:active {
 .bc3.right-line { border-right: solid 1px #666; }
 .bc4.right-line { border-right: solid 1px #888; }
 
+.bc1.frame {
+	border: solid 1px #222;
+}
+
 /* deprecated */
 .hide-overflow {
 	overflow: hidden;

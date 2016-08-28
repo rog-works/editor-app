@@ -25,6 +25,7 @@ class Application extends Node {
 	_load(id = 'main') {
 		try {
 			console.log('On load started');
+			this._before();
 			this.ws = new WS();
 			this.console = Console.init();
 			this.editor = Editor.init();
@@ -39,23 +40,30 @@ class Application extends Node {
 			console.error(error.message, error.stack);
 		}
 	}
-	
+
+	_before () {
+		// extend ko
+		KoPlugin.bind();
+	}
+
 	_after () {
-		const self = this;
-		self.on('reload', self.reload);
-		self.on('focus', self.focus);
-		self.on('prompt', self.prompt);
-		self.on('confirm', self.confirm);
-		for (const page of self._pages()) {
-			self.addNode(page);
+		// bind events
+		this.on('updateEntry', this.updateEntry);
+		this.on('afterReload', this.afterReload);
+		this.on('shownCreate', this.shownCreate);
+		this.on('shownRename', this.shownRename);
+		this.on('shownDelete', this.shownDelete);
+
+		// bind pages
+		for (const page of this._pages()) {
+			this.addNode(page);
 		}
-		self.focus('entry');
-		self._resize();
-		// XXX handling for window event
-		window.onresize = (e) => { return self._resize(e); };
-		document.onkeydown = (e) => { return self._onkey('down', e); };
-		document.onkeyup = (e) => { return self._onkey('up', e); };
-		document.onkeypress = (e) => { return self._onkey('press', e); };
+
+		// first view on entry
+		this.focus('entry');
+
+		// force resize
+		this.resize();
 	}
 
 	_pages () {
@@ -68,7 +76,7 @@ class Application extends Node {
 		];
 	}
 
-	_resize (e) {
+	resize (self, e) {
 		const w = window.innerWidth;
 		const h = window.innerHeight;
 		this.size.width(w)
@@ -81,42 +89,52 @@ class Application extends Node {
 		return true;
 	}
 
-	_onkey (tag, e) {
-		for (const page of this._pages()) {
-			if (page.display.active()) {
-				return page[`key${tag}`](e);
-			}
-		}
-		return true;
-	}
-
 	focus (pageName) {
 		for(const page of this._pages()) {
 			if (page.display.active()) {
-				page.selected(false);
+				page.activate(false);
 				break;
 			}
 		}
 		if (pageName in this) {
-			this[pageName].selected(true);
+			this[pageName].activate(true);
 		}
 		return false;
 	}
 
-	reload (path, content) {
+	afterReload (path, content) {
 		this.editor.load(path, content);
 		this.editor.focus();
+		this.focus('editor');
 		return false;
 	}
 
-	confirm (message, callback) {
+	updateEntry (path, content, callback) {
+		this.entry.update(path, content, callback);
+		return false;
+	}
+
+	shownCreate (callback) {
+		this._showPrompt('Input create file path', '/', callback);
+		return false;
+	}
+
+	shownRename (path, callback) {
+		this._showPrompt('Change file path', path, callback);
+		return false;
+	}
+
+	shownDelete (path, callback) {
+		this._showConfirm(`'${path}' deleted?`, callback);
+		return false;
+	}
+
+	_showConfirm (message, callback) {
 		this.dialog.build().message(message).on(callback).confirm();
-		return false;
 	}
 
-	prompt (message, input, callback) {
+	_showPrompt (message, input, callback) {
 		this.dialog.build().message(message).input(input).on(callback).prompt();
-		return false;
 	}
 }
 

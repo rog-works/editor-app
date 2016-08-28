@@ -1,6 +1,6 @@
 'use strict';
 
-class Shell extends Log {
+class Shell extends Page {
 	constructor () {
 		super();
 		this.KEY_CODE_ENTER = 13;
@@ -10,6 +10,8 @@ class Shell extends Log {
 		this.query = ko.observable('');
 		this.css = ko.observable('');
 		this.history = ko.observableArray([]);
+		this.logs = ko.observableArray([]);
+		this.logger = new Logger(this);
 	}
 
 	static init (id = 'page-shell') {
@@ -19,7 +21,7 @@ class Shell extends Log {
 		// ko.applyBindings(self, document.getElementById(id));
 		return self;
 	}
-	
+
 	static send (path, data, callback) {
 		const url = `/shell${path}`;
 		let _data = {
@@ -39,20 +41,19 @@ class Shell extends Log {
 		$.ajax($.extend(_data, data));
 	}
 
-	keydown (e) {
-		if (e.ctrlKey && e.shiftKey) {
-			if (e.keyCode === this.KEY_CODE_L_UPPER) {
-				this.clear();
-				return false;
-			}
-		}
-		return true;
+	clear () {
+		this.logs.removeAll();
 	}
 
-	keyup (e) {
+	keyup (self, e) {
 		if (e.keyCode === this.KEY_CODE_ENTER) {
 			this._exec();
 			return false;
+		} else if (e.keyCode === this.KEY_CODE_L_UPPER) {
+			if (e.ctrlKey && e.shiftKey) {
+				this.clear();
+				return false;
+			}
 		}
 		return true;
 	}
@@ -78,22 +79,23 @@ class Shell extends Log {
 	}
 
 	_exec () {
-		const [dir, query] = this._parse(this.query());
+		const orgQuery = this.query();
+		const [dir, query] = this._parse(orgQuery);
 		if (query.length === 0) {
 			if (this.dir() !== dir) {
 				this.dir(dir);
 				this.query('');
-				this.line(`$ ${this.query()}`);
+				this.logger.line(`$ ${orgQuery}`);
 			}
 			return true;
 		}
 		this.dir(dir);
 		this.query('');
-		this.line(`$ ${query}`);
+		this.logger.line(`$ ${orgQuery}`);
 		const url = '?dir=' + encodeURIComponent(this.dir());
 		Shell.send(url, {data: {query: query}}, (res) => {
-			if (this.history.indexOf(query) === -1) {
-				this.history.push(query);
+			if (this.history.indexOf(orgQuery) === -1) {
+				this.history.push(orgQuery);
 			}
 		});
 		return false;
@@ -101,21 +103,21 @@ class Shell extends Log {
 
 	_onMessage ([tag, data]) {
 		if (tag === 'editor.shell-log') {
-			return this.put(data.message);
+			return this.logger.put(data.message);
 		}
 		return true;
 	}
 
-	coloring (log) {
-		if (/^\tmodified:/.test(log) ||
-			/^\tnew file:/.test(log) ||
-			/^\+/.test(log)) {
+	coloring (line) {
+		if (/^\tmodified:/.test(line) ||
+			/^\tnew file:/.test(line) ||
+			/^\+/.test(line)) {
 			return 'fc1-p';
-		} else if (/^\tdeleted:/.test(log) ||
-					/^\-/.test(log)) {
+		} else if (/^\tdeleted:/.test(line) ||
+					/^\-/.test(line)) {
 			return 'fc1-e';
 		} else {
-			return super.coloring(log);
+			return 'fc1';
 		}
 	}
 }

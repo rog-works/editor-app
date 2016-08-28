@@ -12,6 +12,7 @@ class Entry extends Page {
 		this.on('deleted', this.deleted);
 		this.on('deactivate', this.deactivate);
 		this.on('expanded', this.expanded);
+		this.on('validation', this.validation);
 	}
 
 	static init (id = 'page-entry') {
@@ -45,6 +46,19 @@ class Entry extends Page {
 			}
 		}
 		return null;
+	}
+
+	update (path, content, callback) {
+		const entry = this.at(path);
+		if (entry !== null) {
+			entry.update(
+				content,
+				(entity) => { callback(null); },
+				(err) => { callback(err); }
+			);
+		} else {
+			callback('Entry not found', path);
+		}
 	}
 
 	created (entry) {
@@ -81,6 +95,19 @@ class Entry extends Page {
 				entry.display.close(entry.closes > 0);
 			}
 		}
+	}
+
+	validation (path, callback) {
+		if (!EntryItem.validSavePath(path)) {
+			console.warn('Invalid save path', path);
+			return true;
+		}
+		if(this.at(path) !== null) {
+			console.warn('Already path exists', path);
+			return true;
+		}
+		callback();
+		return false;
 	}
 
 	_transition (state) {
@@ -159,23 +186,22 @@ class EntryItem extends Node {
 	}
 
 	rename () {
-		this.fire('prompt', 'Change file path', this.path, (to) => {
-			if (!EntryItem.validSavePath(to) || EntryItem.pathExists(to)) {
-				return;
-			}
-			const encodePath = encodeURIComponent(this.path);
-			const encodeTo = encodeURIComponent(to);
-			const url = `/${encodePath}/rename?to=${encodeTo}`;
-			EntryItem.send(url, {type: 'PUT'}, (toPath) => {
-				this.path = toPath;
-				// XXX
-				this.name(toPath.join('/').pop());
+		this.fire('shownRename', this.path, (to) => {
+			this.fire('validation', to, () => {
+				const encodePath = encodeURIComponent(this.path);
+				const encodeTo = encodeURIComponent(to);
+				const url = `/${encodePath}/rename?to=${encodeTo}`;
+				EntryItem.send(url, {type: 'PUT'}, (toPath) => {
+					this.path = toPath;
+					// XXX
+					this.name(toPath.split('/').pop());
+				});
 			});
 		});
 	}
 
 	delete () {
-		this.fire('confirm', `'${this.path}' deleted?`, (ok) => {
+		this.fire('shownDelete', this.path, (ok) => {
 			if (!ok) {
 				console.log('Delete canceled');
 				return;
@@ -214,24 +240,14 @@ class EntryItem extends Node {
 
 	static validSavePath (path) {
 		if (typeof path !== 'string' || path.length === 0) {
-			console.log('Save canceled');
+			console.log('Invalid save path', path);
 			return false;
 		}
 		if (/[^\d\w\-\/_.]+/.test(path)) {
-			console.log('Not allowed path characters');
+			console.log('Not allowed path characters', path);
 			return false;
 		}
 		return true;
-	}
-
-	static pathExists (path) {
-		// XXX depends on entry
-		for (const entry of APP.entry.entries()) {
-			if (entry.path === path) {
-				return true;
-			}
-		}
-		return false;
 	}
 
 	static toIcon (type) {
@@ -258,7 +274,7 @@ class EntryFile extends EntryItem {
 		const url = '/' + encodeURIComponent(path);
 		EntryItem.send(url, {}, (entity) => {
 			this._activate();
-			this.fire('reload', entity.path, entity.content);
+			this.fire('afterReload', entity.path, entity.content);
 		});
 	}
 
@@ -293,10 +309,10 @@ class EntryAdd extends EntryItem {
 	}
 
 	click () {
-		this.fire('prompt', 'Input create file path', '/', (path) => {
-			if (EntryItem.validSavePath(path) && !EntryItem.pathExists(path)) {
+		this.fire('shownCreate', (path) => {
+			this.fire('validation', path, () => {
 				this.create(path);
-			}
+			});
 		});
 	}
 }

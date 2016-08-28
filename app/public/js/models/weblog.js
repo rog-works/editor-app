@@ -1,9 +1,11 @@
 'use strict';
 
-class Weblog extends Log {
+class Weblog extends Page {
 	constructor () {
 		super();
 		this.socket = null;
+		this.logs = ko.observableArray([]);
+		this.logger = new Logger(this);
 	}
 
 	static init (id = 'page-weblog') {
@@ -14,8 +16,19 @@ class Weblog extends Log {
 		return self;
 	}
 
+	clear () {
+		this.logs.removeAll();
+	}
+
+	_onMessage ([tag, data]) {
+		if (tag === 'editor.access-log') {
+			return this._log(data);
+		}
+		return true;
+	}
+
 	_log (msg) {
-		return this.line(this._parseLine(msg));
+		return this.logger.line(this._parseLine(msg));
 	}
 
 	_parseLine (msg) {
@@ -26,13 +39,6 @@ class Weblog extends Log {
 			delimiter = ' ';
 		}
 		return line;
-	}
-
-	_onMessage ([tag, data]) {
-		if (tag === 'editor.access-log') {
-			return this._log(data);
-		}
-		return true;
 	}
 }
 

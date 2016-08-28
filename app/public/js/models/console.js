@@ -1,18 +1,24 @@
 'use strict';
 
-class Console extends Log {
+class Console extends Page {
 	constructor () {
 		super();
+		this.logs = ko.observableArray([]);
+		this.logger = new Logger(this);
 	}
 
 	static init (id = 'page-console') {
 		const self = new Console();
 		// ko.applyBindings(self, document.getElementById(id));
-		self.bind();
+		self._bind();
 		return self;
 	}
 
-	bind () {
+	clear () {
+		this.logs.removeAll();
+	}
+
+	_bind () {
 		const _log = console.log;
 		const _warn = console.warn;
 		const _error = console.error;
@@ -33,16 +39,16 @@ class Console extends Log {
 
 	_log (tag, ...args) {
 		args.unshift(tag);
-		this.line(args.join(' '));
+		this.logger.line(args.join(' '));
 	}
 	
-	coloring (log) {
-		if (/^ERR/.test(log)) {
+	coloring (line) {
+		if (/^ERR/.test(line)) {
 			return 'bc1-e';
-		} else if (/^WRN/.test(log)) {
+		} else if (/^WRN/.test(line)) {
 			return 'bc1-w';
 		} else {
-			return super.coloring(log);
+			return 'fc1';
 		}
 	}
 }

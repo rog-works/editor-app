@@ -45,11 +45,10 @@ class Editor extends Page {
 	}
 	
 	focus () {
-		this.fire('focus', 'editor');
 		this._editor().focus();
 	}
 
-	keydown (e) {
+	keydown (self, e) {
 		if (e.ctrlKey || e.metaKey) {
 			// handling ctrl + s
 			if (e.keyCode === this.KEY_CODE_S) {
@@ -64,16 +63,15 @@ class Editor extends Page {
 	}
 
 	save () {
-		// XXX depends on entry
-		const entry = APP.entry.at(this.path);
-		if (entry !== null) {
-			this._transition(this.STATE_LOADING);
-			entry.update(
-				this._content(),
-				(entity) => { this._transition(this.STATE_SYNCRONIZED); },
-				(err) => { this._transition(this.STATE_MODIFIED); }
-			);
-		}
+		this._transition(this.STATE_LOADING);
+		this.fire('updateEntry', this.path, this._content(), (err) => {
+			if (err === null) {
+				this._transition(this.STATE_SYNCRONIZED);
+			} else {
+				console.error(err);
+				this._transition(this.STATE_MODIFIED);
+			}
+		});
 	}
 
 	changed () {
