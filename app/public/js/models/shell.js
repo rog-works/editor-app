@@ -16,8 +16,6 @@ class Shell extends Page {
 
 	static init (id = 'page-shell') {
 		const self = new Shell();
-		// XXX depends on APP...
-		APP.ws.on('message', (msg) => { return self._onMessage(msg); });
 		// ko.applyBindings(self, document.getElementById(id));
 		return self;
 	}
@@ -101,7 +99,7 @@ class Shell extends Page {
 		return false;
 	}
 
-	_onMessage ([tag, data]) {
+	message ([tag, data]) {
 		if (tag === 'editor.shell-log') {
 			return this.logger.put(data.message);
 		}

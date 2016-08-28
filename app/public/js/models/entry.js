@@ -11,8 +11,8 @@ class Entry extends Page {
 		this.on('created', this.created);
 		this.on('deleted', this.deleted);
 		this.on('deactivate', this.deactivate);
-		this.on('expanded', this.expanded);
-		this.on('validation', this.validation);
+		this.on('expand', this.expand);
+		this.on('validate', this.validate);
 	}
 
 	static init (id = 'page-entry') {
@@ -84,7 +84,7 @@ class Entry extends Page {
 		}
 	}
 
-	expanded (dir, opened) {
+	expand (dir, opened) {
 		for (const entry of this.entries()) {
 			if (entry.dir.startsWith(dir)) {
 				if (opened && entry.closes > 0) {
@@ -97,7 +97,7 @@ class Entry extends Page {
 		}
 	}
 
-	validation (path, callback) {
+	validate (path, callback) {
 		if (!EntryItem.validSavePath(path)) {
 			console.warn('Invalid save path', path);
 			return true;
@@ -187,7 +187,7 @@ class EntryItem extends Node {
 
 	rename () {
 		this.fire('shownRename', this.path, (to) => {
-			this.fire('validation', to, () => {
+			this.fire('validate', to, () => {
 				const encodePath = encodeURIComponent(this.path);
 				const encodeTo = encodeURIComponent(to);
 				const url = `/${encodePath}/rename?to=${encodeTo}`;
@@ -294,7 +294,7 @@ class EntryDirectory extends EntryItem {
 		this.opened = !this.opened;
 		const nextIcon = EntryItem.toIcon(this.opened ? 'directory' : 'directoryClose');
 		this.icon(nextIcon);
-		this.fire('expanded', this.path, this.opened);
+		this.fire('expand', this.path, this.opened);
 	}
 }
 
@@ -310,7 +310,7 @@ class EntryAdd extends EntryItem {
 
 	click () {
 		this.fire('shownCreate', (path) => {
-			this.fire('validation', path, () => {
+			this.fire('validate', path, () => {
 				this.create(path);
 			});
 		});

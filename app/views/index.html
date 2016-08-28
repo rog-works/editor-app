@@ -36,7 +36,7 @@
 						<option data-bind="value: $data">
 					</datalist>
 				</div>
-				<div class="fill-w h90 scroll hide-scroll" data-bind="foreach: logs">
+				<div class="fill-w h90 scroll hide-scroll" data-bind="foreach: logs, wsEvent: { message: message }">
 					<pre class="font-s75 space-less" data-bind="text: $data.log, css: $data.css, click: $data.expand"></pre>
 				</div>
 			</div>
@@ -46,7 +46,7 @@
 					<span class="fill-w h1"></span>
 					<i class="wh1 cell center fa fa-remove" data-bind="click: clear"></i>
 				</div>
-				<div class="fill-w h90 scroll hide-scroll" data-bind="foreach: logs">
+				<div class="fill-w h90 scroll hide-scroll" data-bind="foreach: logs, wsEvent: { message: message }">
 					<pre class="font-s75 space-less" data-bind="text: $data.log, css: $data.css, click: $data.expand"></pre>
 				</div>
 			</div>

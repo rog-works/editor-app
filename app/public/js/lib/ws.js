@@ -4,7 +4,7 @@ const RETRY_MAX = 5;
 
 class WS {
 	constructor (uri = 'ws://localhost:18082') {
-	    const self = this;
+		const self = this;
 		this.uri = uri;
 		this.handlers = {
 			message: [],
@@ -17,7 +17,7 @@ class WS {
 	
 	static connect (self) {
 		try {
-			let socket = new WebSocket(self.uri);
+			const socket = new WebSocket(self.uri);
 			socket.onmessage = (msg) => { self._onMessage(msg); };
 			socket.onopen = () => { self._onOpen(); };
 			socket.onclose = () => { self._onClose(); };
@@ -31,7 +31,7 @@ class WS {
 
 	_retry () {
 		for (let count = 0; count < RETRY_MAX; count += 1) {
-			let socket = WS.connect(this);
+			const socket = WS.connect(this);
 			if (socket !== null) {
 				this.socket = socket;
 				return false;
@@ -49,7 +49,7 @@ class WS {
 
 	listen (tag, ...args) {
 		console.log('On WS', tag, args);
-		for (let handler of this.handlers[tag]) {
+		for (const handler of this.handlers[tag]) {
 			if (!handler(...args)) {
 				break;
 			}
