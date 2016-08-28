@@ -43,10 +43,10 @@ class Shell extends Page {
 		this.logs.removeAll();
 	}
 
-	keypress (self, e) {
+	keyup (self, e) {
 		if (e.keyCode === this.KEY_CODE_ENTER) {
 			this._exec();
-			// return false;
+			return false;
 		} else if (e.keyCode === this.KEY_CODE_L_UPPER) {
 			if (e.ctrlKey && e.shiftKey) {
 				this.clear();
