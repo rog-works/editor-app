@@ -2,6 +2,7 @@
 
 const FileProvider = require('../helpers/fileprovider');
 const Path = require('path');
+const Promise = require('promise');
 
 /** XXX root directory */
 const ROOT_DIRECTORY = '/opt/app';
@@ -34,39 +35,39 @@ class Entry {
 	 * @return Entry[] entries
 	 */
 	static entries (relDirPath = '') {
-		try {
+		return new Promise((resolve, reject) => {
 			const realDirPath = Entry._toRealPath(relDirPath);
-			return FileProvider.entries(realDirPath, false).map((self) => {
-				const relPath = Entry._toRelativePath(self);
-				const isFile = Entry._isFile(self);
-				return new Entry(self, isFile, '');
-			});
-		} catch (error) {
-			console.error(error);
-			return [];
-		}
+			FileProvider.entries(realDirPath, false)
+				.then((entries) => {
+					resolve(entries.map((self) => {
+						const relPath = Entry._toRelativePath(self);
+						const isFile = Entry._isFile(self);
+						return new Entry(self, isFile, '');
+					}));
+				})
+				.catch(reject);
+		});
 	}
 
 	/**
 	 * Find at entry
 	 * @param string relPath Entry relative path from '/opt/app'
-	 * @return Entry/Entry[]/null Return of Entry is file. or Entries is directory
+	 * @return Entry Return of Entry
 	 */
 	static at (relPath) {
-		try {
+		return new Promise((resolve, reject) => {
 			const realPath = Entry._toRealPath(relPath);
 			const isFile = Entry._isFile(realPath);
 			if (isFile) {
-				const content = FileProvider.at(realPath);
-				return new Entry(realPath, isFile, content);
+				FileProvider.at(realPath)
+					.then((content) => {
+						resolve(new Entry(realPath, isFile, content));
+					})
+					.catch(reject);
 			} else {
-				// XXX
-				return Entry.entries(relPath);
+				resolve(new Entry(realPath, isFile, ''));
 			}
-		} catch (error) {
-			console.error(error);
-			return null;
-		}
+		});
 	}
 
 	/**
@@ -75,14 +76,10 @@ class Entry {
 	 * @return Entry/null Entry or null
 	 */
 	static create (relPath) {
-		try {
+		return new Promise((resolve, reject) => {
 			const realPath = Entry._toRealPath(relPath);
-			FileProvider.create(realPath, '');
-			return new Entry(realPath, true, '');
-		} catch (error) {
-			console.error(error);
-			return null;
-		}
+			FileProvider.create(realPath).then(resolve).catch(reject);
+		});
 	}
 
 	/**
@@ -92,14 +89,10 @@ class Entry {
 	 * @return Entry/null Entry or null
 	 */
 	static update (relPath, content) {
-		try {
+		return new Promise((resolve, reject) => {
 			const realPath = Entry._toRealPath(relPath);
-			FileProvider.update(realPath, content);
-			return new Entry(realPath, true, content);
-		} catch (error) {
-			console.error(error);
-			return null;
-		}
+			FileProvider.update(realPath, content).then(resolve).catch(reject);
+		});
 	}
 
 	/**
@@ -109,13 +102,9 @@ class Entry {
 	 * @return string/null Rename path or null
 	 */
 	static rename (relPath, relToPath) {
-		try {
-			FileProvider.rename(Entry._toRealPath(relPath), Entry._toRealPath(relToPath));
-			return relToPath;
-		} catch (error) {
-			console.error(error);
-			return null;
-		}
+		return new Promise((resolve, reject) => {
+			FileProvider.rename(Entry._toRealPath(relPath), Entry._toRealPath(relToPath)).then(resolve).catch(reject);
+		});
 	}
 
 	/**
@@ -124,13 +113,9 @@ class Entry {
 	 * @return boolean Destroy result
 	 */
 	static destroy (relPath) {
-		try {
-			FileProvider.remove(Entry._toRealPath(relPath));
-			return true;
-		} catch (error) {
-			console.error(error);
-			return false;
-		}
+		return new Promise((resolve, reject) => {
+			FileProvider.remove(Entry._toRealPath(relPath)).then(resolve).catch(reject);
+		});
 	}
 
 	/**

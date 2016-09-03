@@ -12,27 +12,27 @@ class EntryController extends Controller {
 	}
 
 	index (dir = '') {
-		this.view(Entity.entries(dir));
+		this.asyncView(Entity.entries(dir));
 	}
 
 	show (path) {
-		this.view(Entity.at(path));
+		this.asyncView(Entity.at(path));
 	}
 
 	create (path) {
-		this.view(Entity.create(path));
+		this.asyncView(Entity.create(path));
 	}
 
 	update (path, content) {
-		this.view(Entity.update(path, content));
+		this.asyncView(Entity.update(path, content));
 	}
 
 	destroy (path) {
-		this.view(Entity.destroy(path));
+		this.asyncView(Entity.destroy(path));
 	}
 
 	rename (path, to) {
-		this.view(Entity.rename(path, to));
+		this.asyncView(Entity.rename(path, to));
 	}
 
 	keys () {

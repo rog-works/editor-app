@@ -53,7 +53,7 @@ class Entry extends Page {
 		if (entry !== null) {
 			entry.update(
 				content,
-				(entity) => { callback(null); },
+				(updated) => { callback(null); },
 				(err) => { callback(err); }
 			);
 		} else {
@@ -165,7 +165,12 @@ class EntryItem extends Node {
 	}
 
 	create (path) {
-		EntryItem.send('/', {type: 'POST', data: {path: path}}, (entity) => {
+		EntryItem.send('/', {type: 'POST', data: {path: path}}, (created) => {
+			const entity = {
+				path: path,
+				isFile: true,
+				content: ''
+			};
 			this.fire('created', EntryItem.toEntry(entity));
 		});
 	}
@@ -191,10 +196,10 @@ class EntryItem extends Node {
 				const encodePath = encodeURIComponent(this.path);
 				const encodeTo = encodeURIComponent(to);
 				const url = `/${encodePath}/rename?to=${encodeTo}`;
-				EntryItem.send(url, {type: 'PUT'}, (toPath) => {
-					this.path = toPath;
+				EntryItem.send(url, {type: 'PUT'}, (renamed) => {
+					this.path = to;
 					// XXX
-					this.name(toPath.split('/').pop());
+					this.name(to.split('/').pop());
 				});
 			});
 		});
@@ -206,7 +211,8 @@ class EntryItem extends Node {
 				console.log('Delete canceled');
 				return;
 			}
-			const prev = this.path;
+			// XXX
+			const prev = this.path + (!this.isFile ? '/' : '');
 			const url = '/' + encodeURIComponent(prev);
 			EntryItem.send(url, {type: 'DELETE'}, (deleted) => {
 				this.fire('deleted', this);
@@ -301,8 +307,8 @@ class EntryDirectory extends EntryItem {
 class EntryAdd extends EntryItem {
 	constructor () {
 		super({
-			isFile: false,
 			path: '',
+			isFile: false,
 			content: ''
 		});
 		this.icon(EntryItem.toIcon('add'));

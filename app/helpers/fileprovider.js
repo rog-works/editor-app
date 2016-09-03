@@ -1,8 +1,10 @@
 'use strict';
 
-let fs = require('fs');
-let Path = require('path');
-let glob = require('glob');
+const fs = require('fs');
+const Path = require('path');
+const glob = require('glob');
+const Promise = require('promise');
+const exec = require('child_process').exec;
 
 class FileProvider {
 	/**
@@ -13,22 +15,29 @@ class FileProvider {
 	 * @throws no such file or directory
 	 */
 	static entries (directory, nameOnly = true) {
-		const options = {
-			ignore: [
-				directory,
-				'**/node_modules/**'
-			],
-			nosort: true,
-			mark: true
-		};
-		let entries = glob.sync(Path.join(directory, '**'), options);
-		entries.sort(FileProvider.sort);
-		if (nameOnly) {
-			entries = entries.map((self) => {
-				return self.substr(directory.length);
+		return new Promise((resolve, reject) => {
+			const options = {
+				ignore: [
+					directory,
+					'**/node_modules/**'
+				],
+				nosort: true,
+				mark: true
+			};
+			glob.glob(Path.join(directory, '**'), options, (error, entries) => {
+				if (error !== null) {
+					reject(error);
+				} else {
+					entries.sort(FileProvider.sort);
+					if (nameOnly) {
+						entries = entries.map((self) => {
+							return self.substr(directory.length);
+						});
+					}
+					resolve(entries);
+				}
 			});
-		}
-		return entries;
+		});
 	}
 	
 	/**
@@ -39,7 +48,15 @@ class FileProvider {
 	 * @throws illegal operation on a directory, read
 	 */
 	static at (path) {
-		return fs.readFileSync(path, 'utf8');
+		return new Promise((resolve, reject) => {
+				fs.readFile(path, 'utf8', (error, entry) => {
+				if (error !== null) {
+					reject(error);
+				} else {
+					resolve(entry);
+				}
+			});
+		});
 	}
 	
 	/**
@@ -48,12 +65,19 @@ class FileProvider {
 	 * @param string content File content
 	 * @throws no such file or directory
 	 */
-	static create (path, content) {
-		const dir = Path.dirname(path);
-		if (!FileProvider.exists(dir)) {
-			FileProvider.mkdir(dir);
-		}
-		fs.writeFileSync(path, content, 'utf8');
+	static create (path, content = '') {
+		return new Promise((resolve, reject) => {
+			const dir = Path.dirname(path);
+			FileProvider.mkdir(dir).then(() => {
+				fs.writeFile(path, content, 'utf8', (error) => {
+					if (error !== null) {
+						reject(error);
+					} else {
+						resolve(true);
+					}
+				});
+			});
+		});
 	}
 	
 	/**
@@ -63,7 +87,15 @@ class FileProvider {
 	 * @throws no such file or directory
 	 */
 	static update (path, content) {
-		fs.writeFileSync(path, content, 'utf8');
+		return new Promise((resolve, reject) => {
+			fs.writeFile(path, content, 'utf8', (error) => {
+				if (error !== null) {
+					reject(error);
+				} else {
+					resolve(true);
+				}
+			});
+		});
 	}
 	
 	/**
@@ -73,7 +105,15 @@ class FileProvider {
 	 * @throws no such file or directory
 	 */
 	static rename (path, to) {
-		fs.rename(path, to);
+		return new Promise((resolve, reject) => {
+			fs.rename(path, to, (error) => {
+				if (error !== null) {
+					reject(error);
+				} else {
+					resolve(true);
+				}
+			});
+		});
 	}
 	
 	/**
@@ -82,7 +122,20 @@ class FileProvider {
 	 * @throws no such file or directory
 	 */
 	static remove (path) {
-		fs.unlink(path);
+		return new Promise((resolve, reject) => {
+			// XXX
+			let func = 'unlink';
+			if (!FileProvider.isFile(path)) {
+				func = 'rmdir';
+			}
+			fs[func](path, (error) => {
+				if (error !== null) {
+					reject(error);
+				} else {
+					resolve(true);
+				}
+			});
+		});
 	}
 	
 	/**
@@ -108,12 +161,15 @@ class FileProvider {
 	 * @return bool existing to true
 	 */
 	static exists (path) {
-		try {
-			fs.statSync(path);
-			return true;
-		} catch (error) {
-			return false;
-		}
+		return new Promise((resolve, reject) => {
+			fs.stat(path, (error, stats) => {
+				if (error !== null) {
+					reject(error);
+				} else {
+					resolve(true);
+				}
+			});
+		});
 	}
 	
 	/**
@@ -121,14 +177,16 @@ class FileProvider {
 	 * @param string path Directory path
 	 */
 	static mkdir (path) {
-		const dirs = path.split('/');
-		let curr = '';
-		for (const dir of dirs) {
-			curr += '/' + dir;
-			if (!FileProvider.exists(curr)) {
-				fs.mkdirSync(curr);
-			}
-		}
+		return new Promise((resolve, reject) => {
+			// XXX
+			exec(`mkdir -p ${path}`, (error) => {
+				if (error !== null) {
+					reject(error);
+				} else {
+					resolve(true);
+				}
+			});
+		});
 	}
 	
 	/**
