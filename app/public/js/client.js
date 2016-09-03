@@ -49,6 +49,7 @@ class Application extends Node {
 	_after () {
 		// bind events
 		this.on('updateEntry', this.updateEntry);
+		this.on('beforeReload', this.beforeReload);
 		this.on('afterReload', this.afterReload);
 		this.on('shownCreate', this.shownCreate);
 		this.on('shownRename', this.shownRename);
@@ -100,6 +101,10 @@ class Application extends Node {
 			this[pageName].activate(true);
 		}
 		return false;
+	}
+
+	beforeReload (path) {
+		this.editor.beforeLoad(path);
 	}
 
 	afterReload (path, content) {

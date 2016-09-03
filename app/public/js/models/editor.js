@@ -80,6 +80,10 @@ class Editor extends Page {
 		}
 	}
 
+	beforeLoad (path) {
+		this._transition(this.STATE_LOADING);
+	}
+
 	_transition (state) {
 		super._transition(state);
 		this.state = state;

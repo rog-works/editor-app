@@ -277,6 +277,7 @@ class EntryFile extends EntryItem {
 	}
 
 	_load (path = '/') {
+		this.fire('beforeReload', path);
 		const url = '/' + encodeURIComponent(path);
 		EntryItem.send(url, {}, (entity) => {
 			this._activate();
