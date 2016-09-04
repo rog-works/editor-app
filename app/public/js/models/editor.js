@@ -64,14 +64,11 @@ class Editor extends Page {
 
 	save () {
 		this._transition(this.STATE_LOADING);
-		this.fire('updateEntry', this.path, this._content(), (err) => {
-			if (err === null) {
-				this._transition(this.STATE_SYNCRONIZED);
-			} else {
-				console.error(err);
-				this._transition(this.STATE_MODIFIED);
-			}
-		});
+		this.fire('updateEntry', this.path, this._content());
+	}
+
+	saved (updated) {
+		this._transition(updated ? this.STATE_SYNCRONIZED : this.STATE_MODIFIED);
 	}
 
 	changed () {

@@ -51,9 +51,9 @@ class Application extends Node {
 		this.on('updateEntry', this.updateEntry);
 		this.on('beforeReload', this.beforeReload);
 		this.on('afterReload', this.afterReload);
-		this.on('shownCreate', this.shownCreate);
-		this.on('shownRename', this.shownRename);
-		this.on('shownDelete', this.shownDelete);
+		this.on('shownCreate', this.shownCreateAsync);
+		this.on('shownRename', this.shownRenameAsync);
+		this.on('shownDelete', this.shownDeleteAsync);
 
 		// bind pages
 		for (const page of this._pages()) {
@@ -114,32 +114,38 @@ class Application extends Node {
 		return false;
 	}
 
-	updateEntry (path, content, callback) {
-		this.entry.update(path, content, callback);
+	updateEntry (path, content) {
+		const entry = this.entry.at(path);
+		if (entry !== null) {
+			entry.update(content)
+				.then((updated) => {
+					this.editor.saved(updated);
+				})
+				.catch((error) => {
+					this.editor.saved(false);
+				});
+		}
 		return false;
 	}
 
-	shownCreate (callback) {
-		this._showPrompt('Input create file path', '/', callback);
-		return false;
+	shownCreateAsync () {
+		return this._showPromptAsync('Input create file path', '/');
 	}
 
-	shownRename (path, callback) {
-		this._showPrompt('Change file path', path, callback);
-		return false;
+	shownRenameAsync (path) {
+		return this._showPromptAsync('Change file path', path);
 	}
 
-	shownDelete (path, callback) {
-		this._showConfirm(`'${path}' deleted?`, callback);
-		return false;
+	shownDeleteAsync (path) {
+		return this._showConfirmAsync(`'${path}' deleted?`);
 	}
 
-	_showConfirm (message, callback) {
-		this.dialog.build().message(message).on(callback).confirm();
+	_showConfirmAsync (message) {
+		return this.dialog.build().message(message).confirm();
 	}
 
-	_showPrompt (message, input, callback) {
-		this.dialog.build().message(message).input(input).on(callback).prompt();
+	_showPromptAsync (message, input) {
+		return this.dialog.build().message(message).input(input).prompt();
 	}
 }
 

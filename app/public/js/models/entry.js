@@ -12,7 +12,6 @@ class Entry extends Page {
 		this.on('deleted', this.deleted);
 		this.on('deactivate', this.deactivate);
 		this.on('expand', this.expand);
-		this.on('validate', this.validate);
 	}
 
 	static init (id = 'page-entry') {
@@ -25,18 +24,19 @@ class Entry extends Page {
 	load (dir = '/') {
 		const url = '/?dir=' + encodeURIComponent(dir);
 		this._transition(this.STATE_LOADING);
-		EntryItem.send(url, {}, (entities) => {
-			this.entries.removeAll();
-			const entries = entities.map((entity) => {
-				return EntryItem.toEntry(entity);
+		EntryItem.send(url)
+			.then((entities) => {
+				this.entries.removeAll();
+				const entries = entities.map((entity) => {
+					return EntryItem.toEntry(entity);
+				});
+				for (const entry of entries) {
+					this.entries.push(entry);
+				}
+				this.entries.push(new EntryAdd());
+				this.addNodes(this.entries());
+				this._transition(this.STATE_RUN);
 			});
-			for (const entry of entries) {
-				this.entries.push(entry);
-			}
-			this.entries.push(new EntryAdd());
-			this.addNodes(this.entries());
-			this._transition(this.STATE_RUN);
-		});
 	}
 
 	at (path) {
@@ -48,21 +48,9 @@ class Entry extends Page {
 		return null;
 	}
 
-	update (path, content, callback) {
-		const entry = this.at(path);
-		if (entry !== null) {
-			entry.update(
-				content,
-				(updated) => { callback(null); },
-				(err) => { callback(err); }
-			);
-		} else {
-			callback('Entry not found', path);
-		}
-	}
-
 	created (entry) {
 		this.entries.push(entry);
+		this.addNode(entry);
 		console.log('Created entry', entry);
 		return false;
 	}
@@ -97,19 +85,6 @@ class Entry extends Page {
 		}
 	}
 
-	validate (path, callback) {
-		if (!EntryItem.validSavePath(path)) {
-			console.warn('Invalid save path', path);
-			return true;
-		}
-		if(this.at(path) !== null) {
-			console.warn('Already path exists', path);
-			return true;
-		}
-		callback();
-		return false;
-	}
-
 	_transition (state) {
 		super._transition(state);
 		if (state === this.STATE_RUN) {
@@ -126,8 +101,9 @@ class EntryItem extends Node {
 		const depth = Math.max(1, route.length);
 		const name = route.pop();
 		const dir = '/' + route.join('/');
-		this.isFile = entity.isFile;
 		this.path = path;
+		this.isFile = entity.isFile;
+		this.content = '';
 		this.dir = dir;
 		this.name = ko.observable(name);
 		this.icon = ko.observable(EntryItem.toIcon(this.isFile ? 'file' : 'directory'));
@@ -142,82 +118,84 @@ class EntryItem extends Node {
 		};
 	}
 
-	static send (path, data, callback, error = null) {
-		const url = `/entry${path}`;
-		const _data = {
-			url: url,
-			type: 'GET',
-			dataType: 'json',
-			timeout: 1000,
-			success: (res) => {
-				console.log('respond', url);
-				callback(res);
-			},
-			error: (res, err) => {
-				console.error('error', url, err, res.status, res.statusText, res.responseText);
-				if (error !== null) {
-					error(err);
+	static send (path, exData = {}) {
+		return new Promise((resolve, reject = null) => {
+			const url = `/entry${path}`;
+			const base = {
+				url: url,
+				type: 'GET',
+				dataType: 'json',
+				timeout: 1000,
+				success: (res) => {
+					console.log('Respond', data.type, data.url);
+					resolve(res);
+				},
+				error: (res, err) => {
+					console.error('Failed request', data.type, data.url, err, res.status, res.statusText, res.responseText);
+					if (reject !== null) {
+						reject(err);
+					}
 				}
-			}
-		};
-		console.log('request', url);
-		$.ajax($.extend(_data, data));
+			};
+			const data = $.extend(base, exData);
+			console.log('Request', data.type, data.url);
+			$.ajax(data);
+		});
 	}
 
 	create (path) {
-		EntryItem.send('/', {type: 'POST', data: {path: path}}, (created) => {
-			const entity = {
-				path: path,
-				isFile: true,
-				content: ''
-			};
-			this.fire('created', EntryItem.toEntry(entity));
-		});
+		return EntryItem.send('/', {type: 'POST', data: {path: path}})
+			.then((created) => {
+				const entity = {
+					path: path,
+					isFile: true,
+					content: ''
+				};
+				this.fire('created', EntryItem.toEntry(entity));
+			});
 	}
 
-	update (content, callback, error) {
+	update (content) {
 		const url = '/' + encodeURIComponent(this.path);
-		EntryItem.send(
-			url,
-			{type: 'PUT', data: {content: content}},
-			callback,
-			(err) => {
-				if (err === 'timeout') {
-					// this.backup(this.path, content);
-				}
-				error(err);
-			}
-		);
+		return EntryItem.send(url, {type: 'PUT', data: {content: content}})
+			.catch((err) => {
+				this.content = content;
+			});
 	}
 
 	rename () {
-		this.fire('shownRename', this.path, (to) => {
-			this.fire('validate', to, () => {
+		this.fireAsync('shownRename', this.path)
+			.then((to) => {
+				if (!EntryItem.validSavePath(to)) {
+					return;
+				}
 				const encodePath = encodeURIComponent(this.path);
 				const encodeTo = encodeURIComponent(to);
 				const url = `/${encodePath}/rename?to=${encodeTo}`;
-				EntryItem.send(url, {type: 'PUT'}, (renamed) => {
-					this.path = to;
-					// XXX
-					this.name(to.split('/').pop());
-				});
+				EntryItem.send(url, {type: 'PUT'})
+					.then((renamed) => {
+						this.path = to;
+						// XXX
+						this.name(to.split('/').pop());
+					});
 			});
-		});
 	}
 
 	delete () {
-		this.fire('shownDelete', this.path, (ok) => {
-			if (!ok) {
-				console.log('Delete canceled');
-				return;
-			}
-			// XXX
-			const prev = this.path + (!this.isFile ? '/' : '');
-			const url = '/' + encodeURIComponent(prev);
-			EntryItem.send(url, {type: 'DELETE'}, (deleted) => {
-				this.fire('deleted', this);
+		this.fireAsync('shownDelete', this.path)
+			.then((ok) => {
+				if (!ok) {
+					console.log('Delete canceled');
+					return;
+				}
+				// XXX
+				const prev = this.path + (!this.isFile ? '/' : '');
+				const url = '/' + encodeURIComponent(prev);
+				EntryItem.send(url, {type: 'DELETE'})
+					.then((deleted) => {
+						this.fire('deleted', this);
+					});
 			});
-		});
 	}
 
 	backup (content) {
@@ -246,11 +224,11 @@ class EntryItem extends Node {
 
 	static validSavePath (path) {
 		if (typeof path !== 'string' || path.length === 0) {
-			console.log('Invalid save path', path);
+			console.warn('Invalid save path', path);
 			return false;
 		}
 		if (/[^\d\w\-\/_.]+/.test(path)) {
-			console.log('Not allowed path characters', path);
+			console.warn('Not allowed path characters', path);
 			return false;
 		}
 		return true;
@@ -259,6 +237,7 @@ class EntryItem extends Node {
 	static toIcon (type) {
 		const classes = {
 			file: '',
+			fileOpen: 'fa-download',
 			directory: 'fa-folder-open',
 			directoryClose:  'fa-folder',
 			add: 'fa-plus'
@@ -279,10 +258,18 @@ class EntryFile extends EntryItem {
 	_load (path = '/') {
 		this.fire('beforeReload', path);
 		const url = '/' + encodeURIComponent(path);
-		EntryItem.send(url, {}, (entity) => {
+		if (this.content === '') {
+			EntryItem.send(url)
+				.then((entity) => {
+					this.content = entity.content;
+					this._activate();
+					this.fire('afterReload', entity.path, entity.content);
+					this.icon( EntryItem.toIcon('fileOpen'));
+				});
+		} else {
 			this._activate();
-			this.fire('afterReload', entity.path, entity.content);
-		});
+			this.fire('afterReload', this.path, this.content);
+		}
 	}
 
 	_activate () {
@@ -316,10 +303,11 @@ class EntryAdd extends EntryItem {
 	}
 
 	click () {
-		this.fire('shownCreate', (path) => {
-			this.fire('validate', path, () => {
-				this.create(path);
+		this.fireAsync('shownCreate')
+			.then((path) => {
+				if (EntryItem.validSavePath(path)) {
+					this.create(path);
+				};
 			});
-		});
 	}
 }

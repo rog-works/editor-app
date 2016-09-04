@@ -23,9 +23,9 @@ class Node {
 		this.handlers[tag].unshift(callback);
 	}
 
-	fire (tag, ...e) {
+	fire (tag, ...args) {
 		if (this.parent !== null) {
-			this.parent._bubble(tag, ...e);
+			this.parent._bubble(tag, ...args);
 		}
 	}
 
@@ -41,6 +41,34 @@ class Node {
 		if (this.parent !== null) {
 			this.parent._bubble(tag, ...args);
 		}
+	}
+
+	fireAsync (tag, ...args) {
+		if (this.parent !== null) {
+			const promises = this.parent._bubbleAsync(tag, ...args);
+			return promises.length > 1 ? Promise.all(promises) : promises[0];
+		}
+		throw new Error('Parent not found');
+	}
+
+	_bubbleAsync (tag, ...args) {
+		const promises = [];
+		if (tag in this.handlers) {
+			for (const callback of this.handlers[tag]) {
+				const promise = callback.apply(this, args);
+				if (promise instanceof Promise) {
+					promises.push(promise);
+				} else if (!promise) {
+					break;
+				}
+			}
+		}
+		if (this.parent !== null) {
+			this.parent._bubbleAsync(tag, ...args).forEach((self) => {
+				promises.push(self);
+			});
+		}
+		return promises;
 	}
 }
 

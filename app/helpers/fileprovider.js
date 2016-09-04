@@ -50,10 +50,10 @@ class FileProvider {
 	static at (path) {
 		return new Promise((resolve, reject) => {
 				fs.readFile(path, 'utf8', (error, entry) => {
-				if (error !== null) {
-					reject(error);
-				} else {
+				if (error === null) {
 					resolve(entry);
+				} else {
+					reject(error);
 				}
 			});
 		});
@@ -70,10 +70,10 @@ class FileProvider {
 			const dir = Path.dirname(path);
 			FileProvider.mkdir(dir).then(() => {
 				fs.writeFile(path, content, 'utf8', (error) => {
-					if (error !== null) {
-						reject(error);
-					} else {
+					if (error === null) {
 						resolve(true);
+					} else {
+						reject(error);
 					}
 				});
 			});
@@ -89,10 +89,10 @@ class FileProvider {
 	static update (path, content) {
 		return new Promise((resolve, reject) => {
 			fs.writeFile(path, content, 'utf8', (error) => {
-				if (error !== null) {
-					reject(error);
-				} else {
+				if (error === null) {
 					resolve(true);
+				} else {
+					reject(error);
 				}
 			});
 		});
@@ -107,10 +107,10 @@ class FileProvider {
 	static rename (path, to) {
 		return new Promise((resolve, reject) => {
 			fs.rename(path, to, (error) => {
-				if (error !== null) {
-					reject(error);
-				} else {
+				if (error === null) {
 					resolve(true);
+				} else {
+					reject(error);
 				}
 			});
 		});
@@ -129,10 +129,10 @@ class FileProvider {
 				func = 'rmdir';
 			}
 			fs[func](path, (error) => {
-				if (error !== null) {
-					reject(error);
-				} else {
+				if (error === null) {
 					resolve(true);
+				} else {
+					reject(error);
 				}
 			});
 		});
@@ -163,10 +163,10 @@ class FileProvider {
 	static exists (path) {
 		return new Promise((resolve, reject) => {
 			fs.stat(path, (error, stats) => {
-				if (error !== null) {
-					reject(error);
-				} else {
+				if (error === null) {
 					resolve(true);
+				} else {
+					reject(error);
 				}
 			});
 		});
@@ -180,10 +180,10 @@ class FileProvider {
 		return new Promise((resolve, reject) => {
 			// XXX
 			exec(`mkdir -p ${path}`, (error) => {
-				if (error !== null) {
-					reject(error);
-				} else {
+				if (error === null) {
 					resolve(true);
+				} else {
+					reject(error);
 				}
 			});
 		});

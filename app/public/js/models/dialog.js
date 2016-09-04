@@ -2,12 +2,13 @@
 
 class Dialog {
 	constructor () {
-		this.callback = null;
 		this.title = ko.observable('');
 		this.message = ko.observable('');
 		this.input = ko.observable('');
 		this.confirmed = ko.observable(true);
 		this.prompted = ko.observable(false);
+		this.resolve = null;
+		this.reject = null;
 		this.pos = {
 			// XXX
 			'margin-top': ko.observable(32)
@@ -31,24 +32,28 @@ class Dialog {
 		return new DialogBuilder(this);
 	}
 
-	show (type, title, message, input, callback) {
-		this.callback = callback;
+	show (type, title, message, input) {
+		const self = this;
 		this.title(title);
 		this.message(message);
 		this.input(input);
 		this.confirmed(type !== 'nortice');
 		this.prompted(type === 'prompt');
 		this.display.close(false);
+		return new Promise((resolve, reject) => {
+			this.resolve = resolve;
+			this.reject = reject;
+		});
 	}
 
 	ok () {
 		this.display.close(true);
-		this.callback(this.prompted() ? this.input() : true);
+		this.resolve(this.prompted() ? this.input() : true);
 	}
 
 	cancel () {
 		this.display.close(true);
-		this.callback(false);
+		this.resolve(false);
 	}
 
 	resize (width, height) {
@@ -63,7 +68,6 @@ class DialogBuilder {
 		this._title = '';
 		this._message = '';
 		this._input = '';
-		this._callback = () => { console.log('Callback not found'); };
 	}
 
 	message (message) {
@@ -81,20 +85,15 @@ class DialogBuilder {
 		return this;
 	}
 
-	on (callback) {
-		this._callback = callback;
-		return this;
-	}
-
 	confirm () {
-		this.owner.show('confirm', this._title || 'Confirm', this._message, this._input, this._callback);
+		return this.owner.show('confirm', this._title || 'Confirm', this._message, this._input);
 	}
 
 	nortice () {
-		this.owner.show('nortice', this._title || 'Nortice', this._message, this._input, this._callback);
+		return this.owner.show('nortice', this._title || 'Nortice', this._message, this._input);
 	}
 
 	prompt () {
-		this.owner.show('prompt', this._title || 'Prompt', this._message, this._input, this._callback);
+		return this.owner.show('prompt', this._title || 'Prompt', this._message, this._input);
 	}
 }

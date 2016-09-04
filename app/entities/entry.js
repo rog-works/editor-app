@@ -32,90 +32,78 @@ class Entry {
 	/**
 	 * Get all entries from '/opt/app'
 	 * @param string relDirPath Target directory relative path from '/opt/app'
-	 * @return Entry[] entries
+	 * @return Promise Return the Promise instance
 	 */
 	static entries (relDirPath = '') {
-		return new Promise((resolve, reject) => {
-			const realDirPath = Entry._toRealPath(relDirPath);
-			FileProvider.entries(realDirPath, false)
-				.then((entries) => {
-					resolve(entries.map((self) => {
-						const relPath = Entry._toRelativePath(self);
-						const isFile = Entry._isFile(self);
-						return new Entry(self, isFile, '');
-					}));
-				})
-				.catch(reject);
-		});
+		const realDirPath = Entry._toRealPath(relDirPath);
+		return FileProvider.entries(realDirPath, false)
+			.then((entries) => {
+				return entries.map((self) => {
+					const relPath = Entry._toRelativePath(self);
+					const isFile = Entry._isFile(self);
+					return new Entry(self, isFile, '');
+				});
+			});
 	}
 
 	/**
 	 * Find at entry
 	 * @param string relPath Entry relative path from '/opt/app'
-	 * @return Entry Return of Entry
+	 * @return Promise Return the Promise instance
 	 */
 	static at (relPath) {
-		return new Promise((resolve, reject) => {
-			const realPath = Entry._toRealPath(relPath);
-			const isFile = Entry._isFile(realPath);
-			if (isFile) {
-				FileProvider.at(realPath)
-					.then((content) => {
-						resolve(new Entry(realPath, isFile, content));
-					})
-					.catch(reject);
-			} else {
+		const realPath = Entry._toRealPath(relPath);
+		const isFile = Entry._isFile(realPath);
+		if (isFile) {
+			return FileProvider.at(realPath)
+				.then((content) => {
+					return new Entry(realPath, isFile, content);
+				});
+		} else {
+			return new Promise((resolve, reject) => {
 				resolve(new Entry(realPath, isFile, ''));
-			}
-		});
+			});
+		}
 	}
 
 	/**
 	 * Create by path
 	 * @param string relPath Entry relative path from '/opt/app'
-	 * @return Entry/null Entry or null
+	 * @return Promise Return the Promise instance
 	 */
 	static create (relPath) {
-		return new Promise((resolve, reject) => {
-			const realPath = Entry._toRealPath(relPath);
-			FileProvider.create(realPath).then(resolve).catch(reject);
-		});
+		const realPath = Entry._toRealPath(relPath);
+		return FileProvider.create(realPath);
 	}
 
 	/**
 	 * Update by path and content body
 	 * @param string relPath Entry relative path from '/opt/app'
 	 * @param string content Entry content body
-	 * @return Entry/null Entry or null
+	 * @return Promise Return the Promise instance
 	 */
 	static update (relPath, content) {
-		return new Promise((resolve, reject) => {
-			const realPath = Entry._toRealPath(relPath);
-			FileProvider.update(realPath, content).then(resolve).catch(reject);
-		});
+		const realPath = Entry._toRealPath(relPath);
+		return FileProvider.update(realPath, content);
 	}
 
 	/**
 	 * Rename by path and to path
 	 * @param string relPath Entry relative path from '/opt/app'
 	 * @param string relToPath Entry to relative path
-	 * @return string/null Rename path or null
+	 * @return Promise Return the Promise instance
 	 */
 	static rename (relPath, relToPath) {
-		return new Promise((resolve, reject) => {
-			FileProvider.rename(Entry._toRealPath(relPath), Entry._toRealPath(relToPath)).then(resolve).catch(reject);
-		});
+		return FileProvider.rename(Entry._toRealPath(relPath), Entry._toRealPath(relToPath));
 	}
 
 	/**
 	 * Destroy by path
 	 * @param string relPath Entry relative path from '/opt/app'
-	 * @return boolean Destroy result
+	 * @return Promise Return the Promise instance
 	 */
 	static destroy (relPath) {
-		return new Promise((resolve, reject) => {
-			FileProvider.remove(Entry._toRealPath(relPath)).then(resolve).catch(reject);
-		});
+		return FileProvider.remove(Entry._toRealPath(relPath));
 	}
 
 	/**

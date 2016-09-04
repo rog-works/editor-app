@@ -20,23 +20,29 @@ class Shell extends Page {
 		return self;
 	}
 
-	static send (path, data, callback) {
-		const url = `/shell${path}`;
-		let _data = {
-			url: url,
-			type: 'POST',
-			dataType: 'json',
-			timeout: 1000,
-			success: (res) => {
-				console.log('respond', url);
-				callback(res);
-			},
-			error: (res, err) => {
-				console.error(err, res.status, res.statusText, res.responseText);
-			}
-		};
-		console.log('request', url, data);
-		$.ajax($.extend(_data, data));
+	static send (path, exData = {}) {
+		return new Promise((resolve, reject = null) => {
+			const url = `/shell${path}`;
+			const base = {
+				url: url,
+				type: 'POST',
+				dataType: 'json',
+				timeout: 1000,
+				success: (res) => {
+					console.log('Respond', data.type, data.url);
+					resolve(res);
+				},
+				error: (res, err) => {
+					console.error('Failed request', data.type, data.url, err, res.status, res.statusText, res.responseText);
+					if (reject !== null) {
+						reject(err);
+					}
+				}
+			};
+			const data = $.extend(base, exData);
+			console.log('Request', data.type, data.url);
+			$.ajax(data);
+		});
 	}
 
 	clear () {
@@ -91,11 +97,12 @@ class Shell extends Page {
 		this.query('');
 		this.logger.line(`$ ${orgQuery}`);
 		const url = '?dir=' + encodeURIComponent(this.dir());
-		Shell.send(url, {data: {query: query}}, (res) => {
-			if (this.history.indexOf(orgQuery) === -1) {
-				this.history.push(orgQuery);
-			}
-		});
+		Shell.send(url, {data: {query: query}})
+			.then((res) => {
+				if (this.history.indexOf(orgQuery) === -1) {
+					this.history.push(orgQuery);
+				}
+			});
 		return false;
 	}
 
