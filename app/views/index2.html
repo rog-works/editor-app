@@ -1,0 +1,134 @@
+<DOCTYPE html>
+<html lang="ja">
+	<head>
+		<title>Editor</title>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0">
+		<link rel="stylesheet" chatset="utf8" href="http://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.6.3/css/font-awesome.min.css">
+		<link rel="stylesheet" chatset="utf8" href="vendors/normalize.css">
+		<link rel="stylesheet" chatset="utf8" href="css/style.css">
+	</head>
+	<body class="bc1 fc1">
+		<div id="main" data-bind="style: size, windowEvent: { resize: resize }">
+			<!-- entry -->
+			<div class="bc2 left fill-h close" data-bind="css: { close: entry.display.active() === false }, style: entry.size">
+				<div class="fill scroll-y hide-scroll" data-bind="foreach: entry.entries">
+					<div class="bc2 fill-w h0 table bottom-line" data-bind="css: $data.display">
+						<i class="wh0 cell center fa" data-bind="css: $data.icon"></i>
+						<i class="fc4 wh0 cell center fa" data-bind="css: { 'fa-caret-left': $data.edit.close, 'fa-caret-right': $data.edit.close() === false }, click: $data.allow"></i>
+						<i class="wh0 cell center fa fa-pencil" data-bind="css: $data.edit, click: $data.rename"></i>
+						<i class="wh0 cell center fa fa-remove" data-bind="css: $data.edit, click: $data.delete"></i>
+						<a class="h0 cell middle" data-bind="text: $data.name, click: $data.click"></a>
+					</div>
+				</div>
+			</div>
+			<!-- editor -->
+			<div class="bc2 left fill-h" data-bind="css: { close: editor.display.active() === false }, style: editor.size">
+				<div id="editor" class="fill" data-bind="event: { keydown: editor.keydown.bind($data.editor) }"></div>
+			</div>
+			<!-- shell -->
+			<div class="bc2 left fill-h close" data-bind="css: { close: shell.display.active() === false }, style: shell.size">
+				<div class="fill-w h1 table">
+					<span class="fc2 wh1 cell middle" data-bind="text: '[~' + shell.dir() + ']$'"></span>
+					<input type="text" class="bc2 fc2 fill-w h1 cell middle less" placeholder="input command" list="shell-history" data-bind="value: shell.query, css: shell.css, event: { keyup: shell.keyup.bind($data.shell) }">
+					<i class="wh1 cell center fa fa-remove" data-bind="click: shell.clear.bind($data.shell)"></i>
+					<datalist id="shell-history" data-bind="foreach: shell.history">
+						<option data-bind="value: $data">
+					</datalist>
+				</div>
+				<div class="fill-w h90 scroll hide-scroll" data-bind="foreach: shell.logs, wsEvent: { message: shell.message.bind($data.shell) }">
+					<pre class="font-s75 space-less" data-bind="text: $data.log, css: $data.css, click: $data.expand"></pre>
+				</div>
+			</div>
+			<!-- weblog -->
+			<div class="bc2 left fill-h close" data-bind="css: { close: weblog.display.active() === false }, style: weblog.size">
+				<div class="fill-w h1 table">
+					<span class="fill-w h1"></span>
+					<i class="wh1 cell center fa fa-remove" data-bind="click: weblog.clear.bind($data.weblog)"></i>
+				</div>
+				<div class="fill-w h90 scroll hide-scroll" data-bind="foreach: weblog.logs, wsEvent: { message: weblog.message.bind($data.weblog) }">
+					<pre class="font-s75 space-less" data-bind="text: $data.log, css: $data.css, click: $data.expand"></pre>
+				</div>
+			</div>
+			<!-- console -->
+			<div class="bc2 left fill-h close" data-bind="css: { close: console.display.active() === false }, style: console.size">
+				<div class="fill-w h1 table">
+					<span class="fill-w h1"></span>
+					<i class="wh1 cell center fa fa-remove" id="console-clear" data-bind="click: console.clear.bind($data.console)"></i>
+				</div>
+				<div class="fill-w h90 scroll hide-scroll" data-bind="foreach: console.logs">
+					<pre class="font-s75 space-less" data-bind="text: $data.log, css: $data.css, click: $data.expand"></pre>
+				</div>
+			</div>
+			<!-- binary -->
+			<div class="bc2 left fill-h close">
+				<table class="fill" data-bind="foreach: binary.rows">
+					<tr class="fill-w h0" data-bind="foreach: $data.columns">
+						<td class="w10" data-bind="text: $data.position"></td>
+						<!-- <div data-bind="$foreach: $data.bytes"> -->
+							<td data-bind="text: $data.hex, css: $data.css"></td>
+						<!-- </div> -->
+						<!-- <div data-bind="$foreach: $data.bytes"> -->
+							<td data-bind="text: $data.text, css: $data.css"></td>
+						<!-- </div> -->
+					</tr>
+				</table>
+			</div>
+			<!-- toolbar -->
+			<div class="right w1 fill-h scroll-y hide-scroll">
+				<div class="bc1 wh1 table" data-bind="css: entry.display, click: focus.bind($data, 'entry')">
+					<i class="cell center fa fa-sitemap" data-bind="css: entry.icon"></i>
+				</div>
+				<div class="bc1 wh1 table" data-bind="css: editor.display, click: focus.bind($data, 'editor')">
+					<i class="cell center fa fa-pencil" data-bind="css: editor.icon"></i>
+				</div>
+				<div class="bc1 wh1 table" data-bind="css: shell.display, click: focus.bind($data, 'shell')">
+					<i class="cell center fa fa-terminal" data-bind="css: shell.icon"></i>
+				</div>
+				<div class="bc1 wh1 table" data-bind="css: weblog.display, click: focus.bind($data, 'weblog')">
+					<i class="cell center fa fa-commenting" data-bind="css: weblog.icon"></i>
+				</div>
+				<div class="bc1 wh1 table" data-bind="css: console.display, click: focus.bind($data, 'console')">
+					<i class="cell center fa fa-info" data-bind="css: console.icon"></i>
+				</div>
+			</div>
+			<!-- dialog -->
+			<div class="bc1 trans25 float close" data-bind="css: dialog.display, style: dialog.size">
+				<div class="bc1 trans100 w8 auto frame" data-bind="style: dialog.pos">
+					<div class="fill-w h1">
+						<div class="left table">
+							<i class="wh1 cell center fa fa-info-circle"></i>
+							<span class="h1 cell middle" data-bind="text: dialog.title"></span>
+						</div>
+						<div class="right table" data-bind="click: dialog.cancel.bind($data.dialog)">
+							<i class="wh1 cell center fa fa-close"></i>
+						</div>
+					</div>
+					<div class="bc2 fill-w">
+						<div class="fill-w" data-bind="text: dialog.message"></div>
+						<input type="text" placeholder="input" class="bc2 fc2 fill-w h1 less" data-bind="value: dialog.input, css: { close: dialog.prompted() === false }">
+					</div>
+					<div class="fill-w h1 table" data-bind="css: { close: dialog.confirmed() === false }">
+						<div class="bc1 fc1-e w50 h1 cell center right-line" data-bind="click: dialog.cancel.bind($data.dialog)"><i class="fa fa-close"></i>Cancel</div>
+						<div class="bc1 fc1-p w50 h1 cell center" data-bind="click: dialog.ok.bind($data.dialog)"><i class="fa fa-check"></i>OK</div>
+					</div>
+				</div>
+			</div>
+		</div>
+		<!--<script type="text/javascript" chatset="utf8" data-main="js/client.js" src="http://requirejs.org/docs/release/2.2.0/minified/require.js"></script>-->
+		<script type="text/javascript" chatset="utf8" src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.2.0/ace.js"></script>
+		<script type="text/javascript" chatset="utf8" src="vendors/jquery-2.2.1.min.js"></script>
+		<script type="text/javascript" chatset="utf8" src="http://cdnjs.cloudflare.com/ajax/libs/knockout/2.3.0/knockout-min.js"></script>
+		<script type="text/javascript" chatset="utf8" src="js/lib/ws.js"></script>
+		<script type="text/javascript" chatset="utf8" src="js/lib/koplugin.js"></script>
+		<script type="text/javascript" chatset="utf8" src="js/models/node.js"></script>
+		<script type="text/javascript" chatset="utf8" src="js/models/logger.js"></script>
+		<script type="text/javascript" chatset="utf8" src="js/models/editor.js"></script>
+		<script type="text/javascript" chatset="utf8" src="js/models/entry.js"></script>
+		<script type="text/javascript" chatset="utf8" src="js/models/weblog.js"></script>
+		<script type="text/javascript" chatset="utf8" src="js/models/shell.js"></script>
+		<script type="text/javascript" chatset="utf8" src="js/models/console.js"></script>
+		<script type="text/javascript" chatset="utf8" src="js/models/dialog.js"></script>
+		<script type="text/javascript" chatset="utf8" src="js/client.js"></script>
+	</body>
+</html>
