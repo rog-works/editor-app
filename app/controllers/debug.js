@@ -2,16 +2,18 @@
 
 const Controller = require('../components/controller');
 const Router = require('../components/router');
+const Debugger = require('../components/debugger');
 
 class IndexController extends Controller {
 	constructor () {
 		super();
 		this.server = null;
+		this.client = new Debugger();
+		this._bind();
 	}
 
-	start () {
+	_bind () {
 		const self = this;
-		this.server = require('net').createServer();
 		[
 			// emit event?
 			'connect',//todo
@@ -21,13 +23,13 @@ class IndexController extends Controller {
 			'continue',//todo
 			'disonnect',//todo
 			'frame',
-			'suspend',//xxx
-			'restartframe',//xxx
+			// 'suspend',//xxx
+			// 'restartframe',//xxx
 			// - source mapping
 			'scripts',
 			'source',
 			'backtrace',
-			'changelive',//xxx
+			// 'changelive',//xxx
 			// - break point
 			'setexceptionbreak',
 			'listbreakpoints',
@@ -43,49 +45,41 @@ class IndexController extends Controller {
 			// - utility
 			'version',
 			'gc',
-			'v8flags'
-		].forEach((key) => {
-			this.server.on(key, self[key]);
-		});
-		[
+			'v8flags',
+			// - event
 			'break',
 			'exception'
 		].forEach((key) => {
-			this.server.on(key, self[key]);
+			const camelKey = `${key[0].toUpperCase()}${key.substr(1)}`;
+			const handleKey = `on${camelKey}`;
+			if (handleKey in this) {
+				this.client.on(key, (res) => { self[handleKey](res); });
+			}
 		});
-		this.server.listen(18083);
 	}
 
 	// emit event
 
-	connect (...args) {
-		console.log(...args);
+	connect () {
+		this.client.connect();
 	}
 
-	close (...args) {
-		console.log(...args);
+	close () {
+		this.client.close();
 	}
 
 	// v8 protocols
 	// - activation
 
-	continue (...args) {
-		console.log(...args);
+	continue (action = 'next', count = 1) {
+		this.client.send('continue', {stepaction: action, stepcount: count});
 	}
 
-	disconnect (...args) {
-		console.log(...args);
+	disconnect () {
+		this.client.send('disconnect');
 	}
 
 	frame (...args) {
-		console.log(...args);
-	}
-
-	suspend (...args) {
-		console.log(...args);
-	}
-
-	restartframe (...args) {
 		console.log(...args);
 	}
 
@@ -103,30 +97,35 @@ class IndexController extends Controller {
 		console.log(...args);
 	}
 
-	changelive (...args) {
-		console.log(...args);
-	}
-
 	// - break point
 
 	setexceptionbreak (...args) {
 		console.log(...args);
 	}
 
-	listbreakpoints (...args) {
-		console.log(...args);
+	listbreakpoints () {
+		this.client.send('listbreakpoints');
 	}
 
-	clearbreakpoint (...args) {
-		console.log(...args);
+	clearbreakpoint (breakPointId) {
+		console.log('clearbreakpoint', {breakpoint: breakPointId});
 	}
 
-	changebreakpoint (...args) {
-		console.log(...args);
+	changebreakpoint (breakPointId, enabled = true) {
+		this.client.send('changebreakpoint', {breakpoint: breakPointId, enabled: enabled});
 	}
 
-	setbreakpoint (...args) {
-		console.log(...args);
+	onChangebreakpoint (res) {
+		// XXX 
+		// this.breakpoints[res.breakpoint] = res;
+	}
+
+	setbreakpoint (path, line) {
+		this.client.send('setbreakpoint', {target: path, line: line, type: 'script', enabled: true});
+	}
+
+	onSetbreakpoint (res) {
+		this.breakpoints[res.breakpoint] = res;
 	}
 
 	// - variable
