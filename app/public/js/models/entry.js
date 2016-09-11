@@ -157,10 +157,7 @@ class EntryItem extends Node {
 
 	update (content) {
 		const url = '/' + encodeURIComponent(this.path);
-		return EntryItem.send(url, {type: 'PUT', data: {content: content}})
-			.catch((err) => {
-				this.content = content;
-			});
+		return EntryItem.send(url, {type: 'PUT', data: {content: content}});
 	}
 
 	rename () {
@@ -255,6 +252,17 @@ class EntryFile extends EntryItem {
 		this._load(this.path);
 	}
 
+	update (content) {
+		return super.update(content)
+			.then((updated) => {
+				this.content = content;
+				return updated;
+			})
+			.catch((err) => {
+				this.content = content;
+			});
+	}
+
 	_load (path = '/') {
 		this.fire('beforeReload', path);
 		const url = '/' + encodeURIComponent(path);
@@ -264,7 +272,7 @@ class EntryFile extends EntryItem {
 					this.content = entity.content;
 					this._activate();
 					this.fire('afterReload', entity.path, entity.content);
-					this.icon( EntryItem.toIcon('fileOpen'));
+					this.icon(EntryItem.toIcon('fileOpen'));
 				});
 		} else {
 			this._activate();
