@@ -4,6 +4,7 @@ class Editor extends Page {
 	constructor () {
 		super();
 		this.KEY_CODE_S = 83;
+		this.KEY_CODE_F9 = 120;
 		this.KEY_CODE_INVALIDS = [82, 87]; // R and W
 		this.STATE_SYNCRONIZED = 'syncronized';
 		this.STATE_MODIFIED = 'modified';
