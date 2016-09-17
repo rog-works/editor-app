@@ -26,18 +26,17 @@ class Editor extends Page {
 	}
 
 	load (path = '#', content = '') {
-		const self = this;
 		const ext = path.substr(path.lastIndexOf('.') + 1);
 		const config = this._configure(ext);
 		const editor = this._editor();
 		const session = editor.getSession();
-		self._transition(this.STATE_LOADING);
-		self.path = path;
+		this._transition(this.STATE_LOADING);
+		this.path = path;
 		session.setValue(content);
 		session.setTabSize(config.tabs);
 		session.setUseSoftTabs(config.softTabs);
 		session.setMode(this._toMode(config.mode));
-		self._transition(this.STATE_SYNCRONIZED);
+		this._transition(this.STATE_SYNCRONIZED);
 	}
 	
 	resize (width, height) {
@@ -78,7 +77,7 @@ class Editor extends Page {
 		}
 	}
 
-	beforeLoad (path) {
+	beforeLoad () {
 		this._transition(this.STATE_LOADING);
 	}
 

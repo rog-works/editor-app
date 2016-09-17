@@ -106,14 +106,24 @@ class Application extends Node {
 		return false;
 	}
 
-	beforeReload (path) {
-		this.editor.beforeLoad(path);
+	beforeReload (isText) {
+		if (isText) {
+			this.editor.beforeLoad();
+		} else {
+			this.hex.beforeLoad();
+		}
 	}
 
-	afterReload (path, content) {
-		this.editor.load(path, content);
-		this.editor.focus();
-		this.focus('editor');
+	afterReload (path, isText, content) {
+		if (isText) {
+			this.editor.load(path, content);
+			this.editor.focus();
+			this.focus('editor');
+		} else {
+			this.hex.load(path, content);
+			this.hex.focus();
+			this.focus('hex');
+		}
 		return false;
 	}
 

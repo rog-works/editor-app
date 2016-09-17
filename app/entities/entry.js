@@ -12,13 +12,18 @@ class Entry {
 	 * Create instance
 	 * @param string realPath real path
 	 * @param strring isFile is file type
-	 * @param string content content
+	 * @param byte[] content content
 	 */
 	constructor (realPath, isFile, content) {
 		const relPath = Entry._toRelativePath(realPath);
+		const isText = Entry._isText(Path.basename(relPath));
 		this.path = relPath;
 		this.isFile = isFile;
+		this.isText = isText;
 		this.content = content;
+		if (isFile && content.length > 0 && !isText) {
+			this.content = Entry._toHex(content);
+		}
 	}
 
 	/**
@@ -26,7 +31,7 @@ class Entry {
 	 * @return string[] keys
 	 */
 	static keys () {
-		return ['path', 'isFile', 'content'];
+		return ['path', 'isFile', 'isText', 'content'];
 	}
 
 	/**
@@ -38,10 +43,10 @@ class Entry {
 		const realDirPath = Entry._toRealPath(relDirPath);
 		return FileProvider.entries(realDirPath, false)
 			.then((entries) => {
-				return entries.map((self) => {
-					const relPath = Entry._toRelativePath(self);
-					const isFile = Entry._isFile(self);
-					return new Entry(self, isFile, '');
+				return entries.map((entity) => {
+					const relPath = Entry._toRelativePath(entity);
+					const isFile = Entry._isFile(entity);
+					return new Entry(entity, isFile, '');
 				});
 			});
 	}
@@ -109,7 +114,7 @@ class Entry {
 	/**
 	 * Check entry is file
 	 * @param string realPath Entity real path
-	 * @return string entry is file of true
+	 * @return boolean entry is file of true
 	 */
 	static _isFile (realPath) {
 		return FileProvider.isFile(realPath);
@@ -131,6 +136,50 @@ class Entry {
 	 */
 	static _toRelativePath (realPath) {
 		return realPath.substr(ROOT_DIRECTORY.length);
+	}
+
+	/**
+	 * Convert bytes to hex string
+	 * @param byte[] Content bytes
+	 * @return string Hex string
+	 */
+	static _toHex (content) {
+		return Buffer(content).toString('hex');
+	}
+
+	/**
+	 * Check file type is text
+	 * @param string File name
+	 * @return boolean Text is true
+	 */
+	static _isText (name) {
+		// equal file name
+		const names = [
+			'Vagrantfile',
+			'Dokerfile'
+		];
+		if(names.indexOf(name) !== -1) {
+			return true;
+		}
+		// with extension
+		return [
+			// script
+			'.js',
+			'.php',
+			'.rb',
+			'.py',
+			'.sh',
+			// document
+			'.txt',
+			'.html',
+			'.md',
+			// data
+			'.css',
+			'.yml',
+			'.json',
+			'.conf',
+			'.log'
+		].indexOf(Path.extname(name)) !== -1;
 	}
 }
 

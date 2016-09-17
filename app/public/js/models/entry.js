@@ -103,6 +103,7 @@ class EntryItem extends Node {
 		const dir = '/' + route.join('/');
 		this.path = path;
 		this.isFile = entity.isFile;
+		this.isText = entity.isText;
 		this.content = '';
 		this.dir = dir;
 		this.name = ko.observable(name);
@@ -249,7 +250,7 @@ class EntryFile extends EntryItem {
 	}
 
 	click () {
-		this._load(this.path);
+		this._load(this.path, this.isText);
 	}
 
 	update (content) {
@@ -263,20 +264,20 @@ class EntryFile extends EntryItem {
 			});
 	}
 
-	_load (path = '/') {
-		this.fire('beforeReload', path);
+	_load (path, isText) {
+		this.fire('beforeReload', isText);
 		const url = '/' + encodeURIComponent(path);
 		if (this.content === '') {
 			EntryItem.send(url)
 				.then((entity) => {
 					this.content = entity.content;
 					this._activate();
-					this.fire('afterReload', entity.path, entity.content);
+					this.fire('afterReload', path, isText, entity.content);
 					this.icon(EntryItem.toIcon('fileOpen'));
 				});
 		} else {
 			this._activate();
-			this.fire('afterReload', this.path, this.content);
+			this.fire('afterReload', path, isText, this.content);
 		}
 	}
 

@@ -61,34 +61,25 @@
 				</div>
 			</div>
 			<!-- hex -->
-			<div class="bc2 font-s75 left fill-h close" data-bind="css: { close: hex.display.active() === false }, style: hex.size">
-				<div class="float fill-w">
-					<div class="left table hex" data-bind="foreach: hex.rows">
+			<div class="bc2 font-s75 left fill-h scroll hide-scroll close" data-bind="event: { scroll: hex.scroll.bind($data.hex) }, css: { close: hex.display.active() === false }, style: hex.size">
+				<div class="w480 relative" data-bind="style: hex.rows.position">
+					<div class="left table" data-bind="foreach: hex.rows">
 						<div class="row">
-							<div class="cell center" data-bind="text: $data.address"></div>
+							<div class="h- cell center" data-bind="text: $data.address"></div>
 						</div>
 					</div>
-					<div class="left table hex" data-bind="foreach: hex.rows">
+					<div class="left table margin-l3 hex" data-bind="foreach: hex.rows">
 						<div class="row" data-bind="foreach: $data.columns">
-							<div class="cell center" data-bind="text: $data.hex"></div>
+							<div class="h- cell center" data-bind="text: $data.hex"></div>
 						</div>
 					</div>
-					<div class="left table hex" data-bind="foreach: hex.rows">
+					<div class="left table margin-l3" data-bind="foreach: hex.rows">
 						<div class="row">
-							<div class="cell center" data-bind="foreach: $data.columns">
-								<div data-bind="text: $data.str"></div>
-							</div>
+							<div class="h- cell middle" data-bind="text: $data.text"></div>
 						</div>
 					</div>
 				</div>
-				<div class="bc3" data-bind="css: hex.realSize"></div>
-			</div>
-			<div class="bc2 left fill-h close" data-bind="css: { close: hex.display.active() === false }, style: hex.size">
-				<div class="w10 fill-h table" data-bind="foreach: hex.rows">
-					<div class="fill-w h0 row bottom-line" data-bind="foreach: $data.columns">
-						<div class="cell" data-bind="text: $data.hex, css: $data.css"></div>
-					</div>
-				</div>
+				<div class="bc3" data-bind="style: hex.rows.globalSize"></div>
 			</div>
 			<!-- toolbar -->
 			<div class="right w1 fill-h scroll-y hide-scroll">

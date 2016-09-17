@@ -10,15 +10,8 @@ class Hex extends Page {
 		this.ICON_STATE_SYNCRONIZED = 'fa-table';
 		this.ICON_STATE_MODIFIED = 'fa-check-circle';
 
-		this.realSize = {
-			width: ko.observable(this.size.width),
-			height: ko.observable(this.size.height)
-		};
 		this.path = '#';
-		this.content = '';
-		this.offset = 0;
-		this.rows = (new HexRows()).mixin(ko.observableArray([]));
-		this.addNode(this.rows);
+		this.rows = HexRows.mixin(ko.observableArray([]));
 		this.state = this.STATE_SYNCRONIZED;
 		this.icon[this.ICON_STATE_SYNCRONIZED] = ko.observable(true);
 		this.icon[this.ICON_STATE_MODIFIED] = ko.observable(false);
@@ -34,14 +27,13 @@ class Hex extends Page {
 	resize (width, height) {
 		super.resize(width, height);
 		this.rows.resize(width, height);
-		this.realSize.height = this.rows.realSize.height;
 	}
 
 	load (path = '#', content = '') {
-		self._transition(this.STATE_LOADING);
-		self.path = path;
-		self.content = content;
-		self._transition(this.STATE_SYNCRONIZED);
+		this._transition(this.STATE_LOADING);
+		this.path = path;
+		this.rows.load(content);
+		this._transition(this.STATE_SYNCRONIZED);
 	}
 
 	focus () {
@@ -62,9 +54,13 @@ class Hex extends Page {
 		return true;
 	}
 
+	scroll (self, e) {
+		this.rows.scrollY(e.target.scrollTop);
+	}
+
 	save () {
 		this._transition(this.STATE_LOADING);
-		this.fire('updateEntry', this.path, this.content);
+		this.fire('updateEntry', this.path, this.rows.hexBytes);
 	}
 
 	saved (updated) {
@@ -77,7 +73,7 @@ class Hex extends Page {
 		}
 	}
 
-	beforeLoad (path) {
+	beforeLoad () {
 		this._transition(this.STATE_LOADING);
 	}
 
@@ -92,110 +88,236 @@ class Hex extends Page {
 	}
 }
 
+class HexUtil {
+	static toAddress (value) {
+		return `00000000${value.toString(16).toUpperCase()}`.slice(-8);
+	}
+
+	static toRowPos (pos) {
+		return ~~(pos / 16);
+	}
+
+	static toPos (rowPos) {
+		return rowPos * 16;
+	}
+
+	static toHex (byte) {
+		return `00${byte.toString(16).toUpperCase()}`.slice(-2);
+	}
+
+	static toByte (hex) {
+		return parseInt(hex, 16);
+	}
+
+	static toText (hexBytes) {
+		const bytes = HexUtil.hexToBytes(hexBytes);
+		return HexUtil.byteToStr(bytes);
+	}
+
+	static hexToBytes (hexBytes) {
+		const bytes = [];
+		for (const i = 0; i < hexBytes.length; i += 2) {
+			bytes.push(HexUtil.toByte(hexBytes.substr(i, 2)));
+		}
+		return bytes;
+	}
+
+	static byteToStr (bytes) {
+		let str = '';
+		for (let i = 0; i < bytes.length; i += 1) {
+			const byte = HexUtil._readByte(bytes, i);
+			if (byte <= 0x7f) {
+				str += String.fromCharCode(byte);
+			} else if (byte <= 0xdf) {
+				let chara = ((byte & 0x1f) << 6);
+				chara += (HexUtil._readByte(i + 1) & 0x3f);
+				str += String.fromCharCode(chara);
+				i += 1;
+			} else if (i <= 0xe0) {
+				let chara = 0x800 | ((HexUtil._readByte(i + 1) & 0x1f) << 6);
+				chara += (HexUtil._readByte(i + 2) & 0x3f);
+				str += String.fromCharCode(chara);
+				i += 2;
+			} else {
+				let chara = ((byte & 0x0f) << 12);
+				chara += ((HexUtil._readByte(i + 1) & 0x3f) << 6);
+				chara += (HexUtil._readByte(i + 2) & 0x3f);
+				str += String.fromCharCode(chara);
+				i += 2;
+			}
+		}
+		return str;
+	}
+
+	static _readByte (bytes, offset) {
+		return bytes.length > offset ? bytes[offset] : 0;
+	}
+}
+
 class HexRows {
 	constructor () {
 		// XXX
-		this.FONT_SIZE_H = 18;
+		this.FONT_SIZE_H = 12;
 
-		this.pos = 0;
+		this.localPos = 0;
+		this.globalPos = 0;
 		this.hexBytes = '';
+		this.position = {
+			top:  ko.observable(0)
+		};
 		// XXX
-		this.realSize = {
+		this.size = {
 			width: 360,
 			height: 640
 		};
-	}
-	
-	mixin (self) {
-		self.pos = this.pos;
-		self.hexBytes = this.hexBytes;
-		self.load = this.load.bind(self);
-		self.clear = this.clear.bind(self);
-		self.hexAt = this.hexAt.bind(self);
-		self.resize = this.resize.bind(self);
-		self.move = this.move.bind(self);
+		// XXX
+		this.globalSize = {
+			width: ko.observable(360),
+			height: ko.observable(640)
+		};
 	}
 
-	load (hexBytes = '') {
-		this.pos = 0;
+	static mixin (obj) {
+		const self = new HexRows();
+		for (const key in self) {
+			if (self.hasOwnProperty(key)) {
+				obj[key] = self[key];
+			}
+		}
+		// XXX
+		[
+			'load',
+			'clear',
+			'hexAt',
+			'resize',
+			'scrollY',
+			'moveRow'
+		].forEach((key) => {
+			obj[key] = self[key].bind(obj);
+		});
+		return obj;
+	}
+
+	load (hexBytes) {
+		this.position.top(0);
+		this.localPos = 0;
+		this.globalPos = 0;
 		this.hexBytes = hexBytes;
-		this.move(0);
+		this.resize(this.size.width, this.size.height);
 	}
 
 	clear () {
 		this.removeAll();
 	}
 
-	hexAt (pos) {
-		if (pos >= 0 && this.hexBytes.length > pos * 2 + 1) {
-			return this.hexBytes.substr(pos * 2, 2);
+	hexAt (globalPos) {
+		const strPos = globalPos * 2;
+		if (strPos >= 0 && this.hexBytes.length > strPos + 1) {
+			return this.hexBytes.substr(strPos, 2).toUpperCase();
 		} else {
-			// FIXME
-			return 'AA';
+			return '--';
 		}
 	}
 
 	resize (width, height) {
-		const yNum = ~~(height / this.FONT_SIZE_H);
+		// resize
+		this.size.width = width;
+		this.size.height = height;
+		const globalRowNum = ~~((this.hexBytes.length + 31) / 32);
+		this.globalSize.width(width);
+		this.globalSize.height(globalRowNum * this.FONT_SIZE_H);
+
+		// reallocate
 		this.clear();
-		for (let y = 0; y < yNum; y += 1) {
-			this.push(new HexRow(this, y * 16));
+		const localRowNum = ~~(height / this.FONT_SIZE_H);
+		for (let localRowPos = 0; localRowPos < localRowNum; localRowPos += 1) {
+			this.push(new HexRow(this, localRowPos));
 		}
-		this.move(this.pos);
-		const realYNum = ~~((this.hexBytes.length + 31) / 32);
-		this.realSize.height = realYNum * this.FONT_SIZE_H;
+
+		// reindex
+		this.moveRow(HexUtil.toRowPos(this.globalPos));
 	}
 
-	move (offset) {
-		this.forEach((row) => {
-			row.move(offset);
-		});
+	scrollY (posY) {
+		const globalRowPos = HexUtil.toRowPos(posY);
+		this.position.top(posY);
+		this.moveRow(globalRowPos);
+	}
+
+	moveRow (globalRowPos) {
+		this.globalPos = HexUtil.toPos(globalRowPos);
+		for (const row of this()) {
+			row.moveRow(globalRowPos);
+		}
 	}
 }
 
-class HexRow extends Array {
-	constructor (rows, pos) {
-		super();
+class HexRow{
+	constructor (rows, localRowPos) {
 		this.rows = rows;
-		this.pos = pos;
-		this.resize();
+		this.columns = [];
+		this.localRowPos = localRowPos;
+		this.globalRowPos = this.localRowPos;
+		this.address = ko.observable(HexUtil.toAddress(this.globalRowPos));
+		this.text = ko.observable();
+		this.load();
 	}
 
-	resize () {
-		this.clear();
+	load () {
 		for (let x = 0; x < 16; x += 1) {
-			this.push(new HexColumn(this, this.pos + x));
+			const localPos = this.localRowPos * 16 + x;
+			const column = new HexColumn(this, localPos);
+			this.columns.push(column);
 		}
-		this.move(0);
-	}
-	
-	clear () {
-		while (this.length > 0) {
-			this.pop();
-		}
+		this.text(HexUtil.byteToStr(this._bytes()));
 	}
 
-	move (offset) {
-		this.forEach((column) => {
-			column.move(this.pos + offset);
-		});
+	moveRow (globalRowPos) {
+		this.globalRowPos = globalRowPos;
+		for (const column of this.columns) {
+			column.moveRow(this.globalRowPos);
+		}
+		this.address(HexUtil.toAddress(this.globalRowPos + this.localRowPos));
+		this.text(HexUtil.byteToStr(this._bytes()));
+	}
+
+	_bytes () {
+		let bytes = [];
+		for (const column of this.columns) {
+			if (!column.available()) {
+				break;
+			}
+			bytes.push(column.byte);
+		}
+		return bytes;
 	}
 }
 
 class HexColumn {
-	constructor (row, pos) {
+	constructor (row, localPos) {
 		this.rows = row.rows;
 		this.row = row;
-		this.pos = pos;
-		// FIXME
-		this.hex = ko.observable('AA');
-		this.str = ko.observable('-');
+		this.localPos = localPos;
+		this.globalPos = this.localPos;
+		this.hex = ko.observable('--');
+		this.byte = null;
 		this.css = {};
+		this.update(this.globalPos);
 	}
-	
-	move (offset) {
-		this.hex(this.rows.hexAt(this.pos + offset));
-		// FIXME
-		this.str('-');
+
+	available () {
+		return this.byte !== null;
+	}
+
+	update (globalPos) {
+		this.globalPos = globalPos;
+		const hex = this.rows.hexAt(this.globalPos);
+		const byte = hex !== '--' ? HexUtil.toByte(hex) : null;
+		this.hex(hex);
+		this.byte = byte;
+	}
+
+	moveRow (globalRowPos) {
+		this.update(HexUtil.toPos(globalRowPos) + this.localPos);
 	}
 }
