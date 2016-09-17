@@ -1,3 +1,20 @@
+/* hex styles */
+.table.hex:nth-child(1n) {
+	margin-left: 4px;
+}
+
+.table.hex .row .cell {
+	padding-left: 2px;
+}
+
+.table.hex .row .cell:nth-child(2n + 3) {
+	padding-left: 4px;
+}
+
+.table.hex .row .cell:nth-child(9) {
+	padding-left: 8px;
+}
+
 /* font styles */
 .font-s75 {
 	font-size: 75%;
@@ -50,7 +67,9 @@
 .h8 { height: 256px; }
 
 .w10 {  width: 10%; }
+.w15 {  width: 15%; }
 .w20 {  width: 20%; }
+.w25 {  width: 25%; }
 .w30 {  width: 30%; }
 .w40 {  width: 40%; }
 .w50 {  width: 50%; }

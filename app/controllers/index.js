@@ -12,9 +12,14 @@ class IndexController extends Controller {
 		this.res.sendFile('/opt/app/app/app/views/index.html');
 	}
 
+	index2 () {
+		this.res.sendFile('/opt/app/app/app/views/index2.html');
+	}
+
 	routes () {
 		return [
-			Router.get('/').on('index')
+			Router.get('/').on('index'),
+			Router.get('/2').on('index2')
 		];
 	}
 }

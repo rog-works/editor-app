@@ -9,6 +9,7 @@ class Application extends Node {
 		this.entry = null;
 		this.shell = null;
 		this.weblog = null;
+		this.hex = null;
 		this.dialog = null;
 		this.size = {
 			width: ko.observable(360),
@@ -32,6 +33,7 @@ class Application extends Node {
 			this.entry = Entry.init();
 			this.shell = Shell.init();
 			this.weblog = Weblog.init();
+			this.hex = Hex.init();
 			this.dialog = Dialog.init();
 			ko.applyBindings(this, document.getElementById(id));
 			this._after();
@@ -73,7 +75,8 @@ class Application extends Node {
 			this.editor,
 			this.shell,
 			this.weblog,
-			this.console
+			this.console,
+			this.hex
 		];
 	}
 
