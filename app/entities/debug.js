@@ -52,10 +52,10 @@ class Debug {
 	}
 
 	next (count = 1) {
-		return this.client.send('continue', {stepaction: 'next'});
+		return this.client.send('continue', {stepaction: 'next', stepcount: count});
 	}
 
-	out (count = 1) {
+	out () {
 		return this.client.send('continue', {stepaction: 'out'});
 	}
 
@@ -89,7 +89,7 @@ class Debug {
 			.then(((res) => {
 				this.breakpoints.clear();
 				res.breakpoints.forEach((resBreakPoint) => {
-					this.breakpoints.add(new breakpoint(resBreakPoint));
+					this.breakpoints.add(new Breakpoint(resBreakPoint));
 				});
 			}).bind(this));
 	}
@@ -114,7 +114,7 @@ class Debug {
 	setBreakpoint (path, line) {
 		return this.client.send('setbreakpoint', {target: path, line: line, type: 'script', enabled: true})
 			.then(((res) => {
-				this.breakpoints.add(new breakpoint(res));
+				this.breakpoints.add(new Breakpoint(res));
 			}).bind(this));
 	}
 
@@ -143,7 +143,7 @@ class Debug {
 		return this.client.send('lookup');
 	}
 
-	setvariablevalue () {
+	setVariableValue () {
 		return this.client.send('setvariablevalue');
 	}
 
@@ -202,7 +202,7 @@ class Breakpoints {
 	}
 }
 
-class breakpoint {
+class Breakpoint {
 	constructor (entity) {
 		const id = entity.number || entity.breakpoint;
 		const location = entity.actual_locations.pop();
