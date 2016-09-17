@@ -122,7 +122,26 @@ class HexUtil {
 		return bytes;
 	}
 
-	static byteToStr (bytes) {
+	static byteToStr (bytes, encode = 'UTF8') {
+		return HexUtil[`byteToStr${encode}`](bytes);
+	}
+
+	static byteToStrSJIS (bytes) {
+		let str = '';
+		for (let i = 0; i < bytes.length; i += 1) {
+			const byte = HexUtil._readByte(bytes, i);
+			if (byte <= 0x7f) {
+				str += String.fromCharCode(byte);
+			} else {
+				const chara = (HexUtil._readByte(i + 1) << 8) | byte;
+				str += String.fromCharCode(chara);
+				i += 1;
+			}
+		}
+		return str;
+	}
+
+	static byteToStrUTF8 (bytes) {
 		let str = '';
 		for (let i = 0; i < bytes.length; i += 1) {
 			const byte = HexUtil._readByte(bytes, i);
@@ -252,13 +271,13 @@ class HexRows {
 	}
 }
 
-class HexRow{
+class HexRow {
 	constructor (rows, localRowPos) {
 		this.rows = rows;
 		this.columns = [];
 		this.localRowPos = localRowPos;
 		this.globalRowPos = this.localRowPos;
-		this.address = ko.observable(HexUtil.toAddress(this.globalRowPos));
+		this.address = ko.observable(HexUtil.toAddress(HexUtil.toPos(this.globalRowPos)));
 		this.text = ko.observable();
 		this.load();
 	}
@@ -277,7 +296,7 @@ class HexRow{
 		for (const column of this.columns) {
 			column.moveRow(this.globalRowPos);
 		}
-		this.address(HexUtil.toAddress(this.globalRowPos + this.localRowPos));
+		this.address(HexUtil.toAddress(HexUtil.toPos(this.globalRowPos + this.localRowPos)));
 		this.text(HexUtil.byteToStr(this._bytes()));
 	}
 
