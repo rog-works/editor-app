@@ -268,23 +268,24 @@ class HexRows {
 		const diffRowPos = globalRowPos - HexUtil.toRowPos(this.globalPos);
 		this.globalPos = HexUtil.toPos(globalRowPos);
 
-		// if (diffRowPos !== 0) {console.log('000, ' + diffRowPos)
-		// 	// sorted rows
-		// 	for (const row of this()) {
-		// 		row.localRowPos = (row.localRowPos + this.rows.length + diffRowPos) % this.rows.length;
-		// 	}
-		// 	// const sign = diffRowPos > 0 ? 1 : -1;
-		// 	// for (let i = 0; i < Math.abs(diffRowPos); i += 1) {
-		// 	// 	if (sign === 1) {
-		// 	// 		this.rows.push(this.rows.shift());
-		// 	// 	} else {
-		// 	// 		this.rows.unshift(this.rows.pop());
-		// 	// 	}
-		// 	// }
-		// 	this.sort((a, b) => {
-		// 		return a.localRowPos - b.localRowPos;
-		// 	});
-		// }
+		if (diffRowPos !== 0) {console.log('000, ' + diffRowPos)
+			// sorted rows
+			const rows = this();
+			for (const row of rows) {
+				row.localRowPos = (row.localRowPos + rows.length - diffRowPos) % rows.length;
+			}
+			// const sign = diffRowPos > 0 ? 1 : -1;
+			// for (let i = 0; i < Math.abs(diffRowPos); i += 1) {
+			// 	if (sign === 1) {
+			// 		this.push(this.shift());
+			// 	} else {
+			// 		this.unshift(this.pop());
+			// 	}
+			// }
+			this.sort((a, b) => {
+				return a.localRowPos - b.localRowPos;
+			});
+		}
 
 		// reindex
 		for (const row of this()) {
@@ -306,8 +307,7 @@ class HexRow {
 
 	load () {
 		for (let x = 0; x < 16; x += 1) {
-			const localPos = this.localRowPos * 16 + x;
-			const column = new HexColumn(this, localPos);
+			const column = new HexColumn(this, x);
 			this.columns.push(column);
 		}
 		this.text(HexUtil.byteToStr(this._bytes()));
@@ -316,7 +316,7 @@ class HexRow {
 	moveRow (globalRowPos) {
 		this.globalRowPos = globalRowPos;
 		for (const column of this.columns) {
-			column.moveRow(this.globalRowPos);
+			column.moveRow(this.globalRowPos + this.localRowPos);
 		}
 		this.address(HexUtil.toAddress(HexUtil.toPos(this.globalRowPos + this.localRowPos)));
 		this.text(HexUtil.byteToStr(this._bytes()));
@@ -359,6 +359,7 @@ class HexColumn {
 	}
 
 	moveRow (globalRowPos) {
-		this.update(HexUtil.toPos(globalRowPos) + this.localPos);
+		const globalPos = HexUtil.toPos(globalRowPos) + this.localPos;
+		this.update(globalPos);
 	}
 }
