@@ -268,20 +268,12 @@ class HexRows {
 		const diffRowPos = globalRowPos - HexUtil.toRowPos(this.globalPos);
 		this.globalPos = HexUtil.toPos(globalRowPos);
 
+		// sorted rows
 		if (diffRowPos !== 0) {
-			// sorted rows
 			const rows = this();
 			for (const row of rows) {
 				row.localRowPos = (row.localRowPos + rows.length - diffRowPos) % rows.length;
 			}
-			// const sign = diffRowPos > 0 ? 1 : -1;
-			// for (let i = 0; i < Math.abs(diffRowPos); i += 1) {
-			// 	if (sign === 1) {
-			// 		this.push(this.shift());
-			// 	} else {
-			// 		this.unshift(this.pop());
-			// 	}
-			// }
 			this.sort((a, b) => {
 				return a.localRowPos - b.localRowPos;
 			});
