@@ -11,9 +11,12 @@ class Hex extends Page {
 
 		this.path = '#';
 		this.rows = HexRows.mixin(ko.observableArray([]));
+		this.editor = new HexEditor();
 		this.state = this.STATE_SYNCRONIZED;
 		this.icon[this.ICON_STATE_SYNCRONIZED] = ko.observable(true);
 		this.icon[this.ICON_STATE_MODIFIED] = ko.observable(false);
+		// XXX
+		this.load(this.rows);
 	}
 
 	static init () {
@@ -23,15 +26,16 @@ class Hex extends Page {
 		return self;
 	}
 
-	resize (width, height) {
-		super.resize(width, height);
-		this.rows.resize(width, height);
+	// FIXME
+	cursor () {
+		return this.editor.localCursor;
 	}
 
 	load (path = '#', content = '') {
 		this._transition(this.STATE_LOADING);
 		this.path = path;
 		this.rows.load(content);
+		this.editor.load(this.rows);
 		this._transition(this.STATE_SYNCRONIZED);
 	}
 
@@ -39,19 +43,39 @@ class Hex extends Page {
 		// this._editor().focus();
 	}
 
+	resize (width, height) {
+		super.resize(width, height);
+		this.rows.resize(width, height);
+	}
+
 	keydown (self, e) {
-		if (e.ctrlKey || e.metaKey) {
-			// handling ctrl + s
-			if (e.keyCode === this.KEY_CODE_S) {
-				this.save();
-				return false;
-			}
+		console.log('on keydown');
+		if (!this.editor.onKeydown(e.keyCode)) {
+			this.rows.changed();
+			return false;
+		} else {
+			return true;
 		}
-		return true;
+	}
+
+	copy (self, e) {
+		console.log('on copy');
+		return this.editor.onCopy(e.originalEvent.clipboardData);
+	}
+
+	cut (self, e) {
+		console.log('on cut');
+		return this.editor.onCut(e.originalEvent.clipboardData);
+	}
+
+	paste (self, e) {
+		console.log('on paste');
+		return this.editor.onPaste(e.originalEvent.clipboardData);
 	}
 
 	scroll (self, e) {
 		this.rows.scrollY(e.target.scrollTop);
+		return true;
 	}
 
 	save () {
@@ -81,6 +105,365 @@ class Hex extends Page {
 		} else if (state === this.STATE_SYNCRONIZED) {
 			this.icon[this.ICON_STATE_SYNCRONIZED](true);
 		}
+	}
+}
+
+class UndoBuffer {
+	constructor (tag, before, after, apply, restore) {
+		this.tag = tag;
+		this.before = before;
+		this.after = after;
+		this.apply = apply;
+		this.restore = restore;
+	}
+}
+
+class Undo extends Array {
+	constructor () {
+		super();
+		this.curr = 0;
+	}
+
+	add (tag, before, after) {
+		return new Promise((resolve, reject) => {
+			const removes = this.length - this.curr - 1;
+			for (let i = 0; i < removes; i += 1) {
+				this.pop();
+			}
+			this.push(new UndoBuffer(tag, before, after, resolve, reject));
+		});
+	}
+
+	clear () {
+		while (this.length > 0) {
+			this.pop();
+		}
+		this.curr = 0;
+	}
+
+	undo () {
+		this.curr = Math.min(Math.max(this.curr - 1, 0), this.length - 1);
+		const undo = this._at(this.curr);
+		if (undo !== null) {
+			undo.restore(undo.tag, undo.before, undo.after);
+		}
+	}
+
+	redo () {
+		this.curr = Math.min(Math.max(this.curr + 1, 0), this.length - 1);
+		const undo = this._at(this.curr);
+		if (undo !== null) {
+			undo.apply(undo.tag, undo.before, undo.after);
+		}
+	}
+
+	hasUndo () {
+		return this.curr > 0;
+	}
+
+	hasRedo () {
+		return this.curr < this.length;
+	}
+
+	_at (index) {
+		if (index < this.length) {
+			return this[index];
+		}
+		return null;
+	}
+}
+
+class HexEditor {
+	constructor () {
+		// keypress
+		this.KEY_CODE_0 = 48;
+		this.KEY_CODE_1 = 49;
+		this.KEY_CODE_2 = 50;
+		this.KEY_CODE_3 = 51;
+		this.KEY_CODE_4 = 52;
+		this.KEY_CODE_5 = 53;
+		this.KEY_CODE_6 = 54;
+		this.KEY_CODE_7 = 55;
+		this.KEY_CODE_8 = 56;
+		this.KEY_CODE_9 = 57;
+		this.KEY_CODE_A = 65;
+		this.KEY_CODE_B = 66;
+		this.KEY_CODE_C = 67;
+		this.KEY_CODE_D = 68;
+		this.KEY_CODE_E = 69;
+		this.KEY_CODE_F = 70;
+		// keyup/down
+		// - move cursor
+		this.KEY_CODE_LEFT = 37;
+		this.KEY_CODE_UP = 38;
+		this.KEY_CODE_RIGHT = 39;
+		this.KEY_CODE_DOWN = 40;
+		// - copy/cut/paste
+		this.KEY_CODE_COPY = 67;
+		this.KEY_CODE_CUT = 88;
+		this.KEY_CODE_PASTE = 86;
+		// - delete
+		this.KEY_CODE_DELETE = 46;
+		this.KEY_CODE_BACKSPACE = 8;
+		// - toggle update/insert
+		this.KEY_CODE_INSERT = 45;
+		// - undo/redo
+		this.KEY_CODE_UNDO = 90;
+		this.KEY_CODE_REDO = 89;
+		// - save
+		this.KEY_CODE_SAVE = 83;
+
+		this.rows = null;
+		this.mode = 'update';
+		this.cursor = 0;
+		this.localCursor = 0;
+		this.selectBefore = 0;
+		this.selectEnd = 0;
+		this.undo = new Undo();
+	}
+
+	load (rows) {
+		// XXX
+		this.rows = rows;
+		this.mode = 'update';
+		this.cursor = 0;
+		this.unselect();
+		this.undo.clear();
+	}
+
+	unselect () {
+		this.selectBefore = 0;
+		this.selectEnd = 0;
+	}
+
+	onCopy (clipboard) {
+		if (this.isSelected()) {
+			this._toClipboard(clipboard, this._selectedHexValues());
+			return false;
+		} else {
+			return true;
+		}
+	}
+
+	onCut (clipboard) {
+		if (this.isSelected()) {
+			this._toClipboard(clipboard, this._selectedHexValues());
+			this.bulkDelete(this.selectBefore, this.selectEnd - this.selectBefore);
+			this.unselect();
+			return false;
+		} else {
+			return true;
+		}
+	}
+
+	onPaste (clipboard) {
+		if (this.isSelected()) {
+			this.bulkDelete(this.selectBefore, this.selectEnd - this.selectBefore);
+			this.unselect();
+		}
+		this.blukInsert(this.cursor, this._fromClipboard(clipboard));
+		return false;
+	}
+
+	onKeydown (keyCode, isCtrl) {
+		switch (keyCode) {
+			case this.KEY_CODE_0:
+			case this.KEY_CODE_1:
+			case this.KEY_CODE_2:
+			case this.KEY_CODE_3:
+			case this.KEY_CODE_4:
+			case this.KEY_CODE_5:
+			case this.KEY_CODE_6:
+			case this.KEY_CODE_7:
+			case this.KEY_CODE_8:
+			case this.KEY_CODE_9:
+			case this.KEY_CODE_A:
+			case this.KEY_CODE_B:
+			case this.KEY_CODE_C:
+			case this.KEY_CODE_D:
+			case this.KEY_CODE_E:
+			case this.KEY_CODE_F:
+				return this._onKeypressUpdate(keyCode);
+			case this.KEY_CODE_LEFT:
+			case this.KEY_CODE_UP:
+			case this.KEY_CODE_RIGHT:
+			case this.KEY_CODE_DOWN:
+				return this._onKeydownArrow(keyCode);
+			case this.KEY_CODE_DELETE:
+			case this.KEY_CODE_BACKSPACE:
+				return this._onKeydownDelete(keyCode);
+			case this.KEY_CODE_INSERT:
+				return this._onKeydownInsert();
+			case this.KEY_CODE_UNDO:
+				return isCtrl && this._onKeydownUndo();
+			case this.KEY_CODE_REDO:
+				return isCtrl && this._onKeydownRedo();
+			case this.KEY_CODE_SAVE:
+				return isCtrl && this._onKeydownSave();
+		}
+		return true;
+	}
+
+	_onKeypressUpdate (keyCode) {
+		const allows = [
+			this.KEY_CODE_0,
+			this.KEY_CODE_1,
+			this.KEY_CODE_2,
+			this.KEY_CODE_3,
+			this.KEY_CODE_4,
+			this.KEY_CODE_5,
+			this.KEY_CODE_6,
+			this.KEY_CODE_7,
+			this.KEY_CODE_8,
+			this.KEY_CODE_9,
+			this.KEY_CODE_A,
+			this.KEY_CODE_B,
+			this.KEY_CODE_C,
+			this.KEY_CODE_D,
+			this.KEY_CODE_E,
+			this.KEY_CODE_F
+		];
+		const value = allows.indexOf(keyCode);
+		this.upsert(this.cursor, value.toString(16).toUpperCase());
+		return false;
+	}
+
+	_onKeydownArrow (keyCode) {
+		const allows = {
+			[this.KEY_CODE_LEFT]: -1,
+			[this.KEY_CODE_UP]: -16,
+			[this.KEY_CODE_RIGHT]: 1,
+			[this.KEY_CODE_DOWN]: 16
+		};
+		this.moveCursor(this.cursor + allows[keyCode]);
+		return false;
+	}
+
+	_onKeydownDelete (keyCode) {
+		if (this.isSelected()) {
+			this.bulkDelete(this.selectBefore, this.selectEnd - this.selectBefore);
+		} else {
+			this.delete(this.cursor, keyCode === this.KEY_CODE_BACKSPACE);
+		}
+		return false;
+	}
+
+	_onKeydownUndo () {
+		this.undo.undo();
+		return false;
+	}
+
+	_onKeydownRedo () {
+		this.undo.redo();
+		return false;
+	}
+
+	_onKeydownSave () {
+		this.save();
+		return false;
+	}
+
+	_onKeydownInsert () {
+		this.toggleMode();
+		return false;
+	}
+
+	moveCursor (cursor) {
+		this.cursor = Math.min(Math.max(cursor, 0), this.rows.hexBytes.length);
+		this.localCursor = this.cursor - this.rows.globalPos;
+	}
+
+	upsert (cursor, hex) {
+		if (this.isInsert()) {
+			this.insert(cursor, hex);
+		} else {
+			this.update(cursor, hex);
+		}
+	}
+
+	update (cursor, hex) {
+		if (this.isInside(cursor)) {
+			const before = ~~(cursor / 2) * 2;
+			const head = this.rows.hexBytes.substr(0, before);
+			const tail = this.rows.hexBytes.substr(before + 2);
+			const high = (cursor % 2) === 0 ? hex : this.rows.hexBytes.substr(before, 1);
+			const low = (cursor % 2) === 0 ? '0' : hex;
+			this.rows.hexBytes = head + high + low + tail;
+			this.moveCursor(cursor + 1);
+		} else {
+			console.warn('Unreachable index', HexUtil.toAddress(cursor));
+		}
+	}
+
+	insert (cursor, hex) {
+		this.bulkInsert(cursor, `${hex}0`);
+		this.moveCursor(cursor + 1);
+	}
+
+	bulkInsert (cursor, hexValues) {
+		if (cursor <= 0) {
+			this.rows.hexBytes = hexValues + this.rows.hexBytes;
+		} else if (this.rows.hexBytes.length <= cursor) {
+			this.rows.hexBytes = this.rows.hexBytes + hexValues;
+		} else {
+			const head = this.rows.hexBytes.substr(0, cursor);
+			const tail = this.rows.hexBytes.substr(cursor);
+			this.rows.hexBytes = head + hexValues + tail;
+		}
+		this.moveCursor(cursor + hexValues.length);
+	}
+
+	delete (cursor, toBack = false) {
+		this.bulkDelete(toBack ? cursor - 2 : cursor, 2);
+	}
+
+	bulkDelete (before, length) {
+		if (!this.isInside(before)) {
+			console.warn('Unreachable index', HexUtil.toAddress(before), HexUtil.toAddress(before + length));
+			return;
+		}
+		const head = this.rows.hexBytes.substr(0, before);
+		const tail = this.rows.hexBytes.substr(before + length);
+		this.rows.hexBytes = head + tail;
+		this.moveCursor(before);
+	}
+
+	toggleMode () {
+		this.mode = this.mode === 'update' ? 'insert' : 'update';
+	}
+
+	isSelected () {
+		return this.isInside(this.selectBefore) && this.isInside(this.selectEnd) && this.selectBefore < this.selectEnd;
+	}
+
+	isInsert () {
+		const tail = this.rows.hexBytes.length <= this.cursor;
+		const even = this.mode === 'insert' && (this.cursor % 1) === 0;
+		return tail || even;
+	}
+
+	isInside (cursor) {
+		return cursor >= 0 && this.rows.hexBytes.length > cursor;
+	}
+
+	_selectedHexValues () {
+		return this._getHexValues(this.selectBefore, this.selectEnd - this.selectBefore);
+	}
+
+	_getHexValues (before, length) {
+		if (this.isInside(before)) {
+			console.warn('Unreachable index', HexUtil.toAddress(before), HexUtil.toAddress(before + length));
+			return '';
+		}
+		return this.rows.hexBytes.substr(before, length);
+	}
+
+	_toClipboard (clipboard, hexValues) {
+		clipboard.setData('text/plain', hexValues);
+	}
+
+	_fromClipboard (clipboard) {
+		return clipboard.getData('text/plain');
 	}
 }
 
@@ -206,6 +589,7 @@ class HexRows {
 			'clear',
 			'hexAt',
 			'resize',
+			'changed',
 			'scrollY',
 			'moveRow'
 		].forEach((key) => {
@@ -251,6 +635,10 @@ class HexRows {
 		}
 
 		// reindex
+		this.moveRow(HexUtil.toRowPos(this.globalPos));
+	}
+
+	changed () {
 		this.moveRow(HexUtil.toRowPos(this.globalPos));
 	}
 
@@ -351,5 +739,9 @@ class HexColumn {
 	moveRow (globalRowPos) {
 		const globalPos = HexUtil.toPos(globalRowPos) + this.localPos;
 		this.update(globalPos);
+	}
+
+	localPos2 () {
+		return this.row.localPos + this.localPos;
 	}
 }
