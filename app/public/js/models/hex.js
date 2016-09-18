@@ -4,7 +4,6 @@ class Hex extends Page {
 	constructor () {
 		super();
 		this.KEY_CODE_S = 83;
-		this.KEY_CODE_INVALIDS = [82, 87]; // R and W
 		this.STATE_SYNCRONIZED = 'syncronized';
 		this.STATE_MODIFIED = 'modified';
 		this.ICON_STATE_SYNCRONIZED = 'fa-table';
@@ -45,9 +44,6 @@ class Hex extends Page {
 			// handling ctrl + s
 			if (e.keyCode === this.KEY_CODE_S) {
 				this.save();
-				return false;
-			// XXX
-			} else if (this.KEY_CODE_INVALIDS.indexOf(e.keyCode) !== -1) {
 				return false;
 			}
 		}
