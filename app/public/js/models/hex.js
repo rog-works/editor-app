@@ -258,7 +258,7 @@ class HexRows {
 		this.moveRow(HexUtil.toRowPos(this.globalPos));
 	}
 
-	scrollY (posY) {console.log('on scroll ' + posY)
+	scrollY (posY) {
 		const globalRowPos = HexUtil.toRowPos(posY);
 		this.position.top(posY);
 		this.moveRow(globalRowPos);
@@ -268,7 +268,7 @@ class HexRows {
 		const diffRowPos = globalRowPos - HexUtil.toRowPos(this.globalPos);
 		this.globalPos = HexUtil.toPos(globalRowPos);
 
-		if (diffRowPos !== 0) {console.log('000, ' + diffRowPos)
+		if (diffRowPos !== 0) {
 			// sorted rows
 			const rows = this();
 			for (const row of rows) {
@@ -354,8 +354,10 @@ class HexColumn {
 		this.globalPos = globalPos;
 		const hex = this.rows.hexAt(this.globalPos);
 		const byte = hex !== '--' ? HexUtil.toByte(hex) : null;
-		this.hex(hex);
-		this.byte = byte;
+		if (this.hex() !== hex) {
+			this.hex(hex);
+			this.byte = byte;
+		}
 	}
 
 	moveRow (globalRowPos) {
