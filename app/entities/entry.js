@@ -21,9 +21,14 @@ class Entry {
 		this.isFile = isFile;
 		this.isText = isText;
 		this.content = content;
-		if (isFile && content.length > 0 && !isText) {
-			this.content = Entry._toHex(content);
+		if (isFile && content.length > 0) {
+			if (isText) {
+				this.content = content.toString('utf8');
+			} else {
+				this.content = Entry._toHex(content);
+			}
 		}
+
 	}
 
 	/**
