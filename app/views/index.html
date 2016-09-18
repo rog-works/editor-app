@@ -61,16 +61,17 @@
 				</div>
 			</div>
 			<!-- hex -->
-			<div class="bc2 font-s75 left fill-h scroll hide-scroll close" data-bind="event: { scroll: hex.scroll.bind($data.hex) }, css: { close: hex.display.active() === false }, style: hex.size">
+			<div class="bc2 font-s75 left fill-h scroll hide-scroll close" data-bind="click: hex.click, event: { scroll: hex.scroll.bind($data.hex) }, css: { close: hex.display.active() === false }, style: hex.size">
 				<div class="w480 relative" data-bind="style: hex.rows.position">
+					<input id="dummy" type="text" style="width: 0px; height: 0px; opacity: 1" data-bind="event: { keydown: hex.keydown.bind($data.hex), copy: hex.copy.bind($data.hex), cut: hex.cut.bind($data.hex), paste: hex.paste.bind($data.hex) }">
 					<div class="bc3 left table" data-bind="foreach: hex.rows">
 						<div class="row">
 							<div class="h- cell center" data-bind="text: $data.address"></div>
 						</div>
 					</div>
-					<div class="bc3 left table margin-l3 deco-less hex" tabindex="1" data-bind="foreach: hex.rows, event: { keydown: hex.keydown.bind($data.hex), copy: hex.copy.bind($data.hex), cut: hex.cut.bind($data.hex), paste: hex.paste.bind($data.hex) }">
+					<div class="bc3 left table margin-l3 hex" data-bind="foreach: hex.rows">
 						<div class="row" data-bind="foreach: $data.columns">
-							<div class="h- cell center" data-bind="text: $data.hex, css: { cursor: hex.cursor === $data.localPos2 }"></div>
+							<div class="h- cell center" data-bind="text: $data.hex, css: { cursor: hex.editorLocalCursor === $data.localPos2 }"></div>
 						</div>
 					</div>
 					<div class="bc3 left table margin-l3" data-bind="foreach: hex.rows">

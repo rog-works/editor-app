@@ -17,6 +17,22 @@ class Hex extends Page {
 		this.icon[this.ICON_STATE_MODIFIED] = ko.observable(false);
 		// XXX
 		this.load(this.rows);
+		this.focused = ko.observable(false);
+	}
+
+	click () {
+		console.log('on click');
+		$('#dummy').focus();
+	}
+	
+	focusin () {
+		console.log('on focusin');
+		$('.hex').click();
+		console.log('click', $('.hex').length);
+	}
+	
+	focusout () {
+		console.log('on focusout');
 	}
 
 	static init () {
@@ -49,8 +65,8 @@ class Hex extends Page {
 	}
 
 	keydown (self, e) {
-		console.log('on keydown');
-		if (!this.editor.onKeydown(e.keyCode)) {
+		console.log('on keydown', e.keyCode);
+		if (!this.editor.onKeydown(e.keyCode)) {console.log('to changed');
 			this.rows.changed();
 			return false;
 		} else {
