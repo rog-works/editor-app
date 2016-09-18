@@ -1,5 +1,9 @@
 /* hex styles */
 
+.cursor::before {
+	content: "|";
+}
+
 /* paddinng for each 1byte */
 .table.hex .row .cell {
 	padding-left: 2px;

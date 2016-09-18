@@ -68,9 +68,9 @@
 							<div class="h- cell center" data-bind="text: $data.address"></div>
 						</div>
 					</div>
-					<div class="bc3 left table margin-l3 hex" data-bind="foreach: hex.rows">
+					<div class="bc3 left table margin-l3 deco-less hex" tabindex="1" data-bind="foreach: hex.rows, event: { keydown: hex.keydown.bind($data.hex), copy: hex.copy.bind($data.hex), cut: hex.cut.bind($data.hex), paste: hex.paste.bind($data.hex) }">
 						<div class="row" data-bind="foreach: $data.columns">
-							<div class="h- cell center" data-bind="text: $data.hex"></div>
+							<div class="h- cell center" data-bind="text: $data.hex, css: { cursor: hex.cursor === $data.localPos2 }"></div>
 						</div>
 					</div>
 					<div class="bc3 left table margin-l3" data-bind="foreach: hex.rows">
