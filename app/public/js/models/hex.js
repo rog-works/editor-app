@@ -126,6 +126,7 @@ class HexUtil {
 		return HexUtil[`byteToStr${encode}`](bytes);
 	}
 
+	// FIXME
 	static byteToStrSJIS (bytes) {
 		let str = '';
 		for (let i = 0; i < bytes.length; i += 1) {
@@ -257,14 +258,35 @@ class HexRows {
 		this.moveRow(HexUtil.toRowPos(this.globalPos));
 	}
 
-	scrollY (posY) {
+	scrollY (posY) {console.log('on scroll ' + posY)
 		const globalRowPos = HexUtil.toRowPos(posY);
 		this.position.top(posY);
 		this.moveRow(globalRowPos);
 	}
 
 	moveRow (globalRowPos) {
+		const diffRowPos = globalRowPos - HexUtil.toRowPos(this.globalPos);
 		this.globalPos = HexUtil.toPos(globalRowPos);
+
+		// if (diffRowPos !== 0) {console.log('000, ' + diffRowPos)
+		// 	// sorted rows
+		// 	for (const row of this()) {
+		// 		row.localRowPos = (row.localRowPos + this.rows.length + diffRowPos) % this.rows.length;
+		// 	}
+		// 	// const sign = diffRowPos > 0 ? 1 : -1;
+		// 	// for (let i = 0; i < Math.abs(diffRowPos); i += 1) {
+		// 	// 	if (sign === 1) {
+		// 	// 		this.rows.push(this.rows.shift());
+		// 	// 	} else {
+		// 	// 		this.rows.unshift(this.rows.pop());
+		// 	// 	}
+		// 	// }
+		// 	this.sort((a, b) => {
+		// 		return a.localRowPos - b.localRowPos;
+		// 	});
+		// }
+
+		// reindex
 		for (const row of this()) {
 			row.moveRow(globalRowPos);
 		}
