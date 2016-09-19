@@ -71,7 +71,7 @@
 					</div>
 					<div class="left table margin-l3 hex" data-bind="foreach: hex.rows">
 						<div class="row" data-bind="foreach: $data.columns">
-							<div class="fc1 bc2 h- cell center bottom-line" data-bind="attr: { pos: $data.localIndex }, text: $data.hex, css: { 'fc1-p': $data.localIndex() === $root.hex.editor.localCursor() }"></div>
+							<div class="fc1 bc2 h- cell center bottom-line" data-bind="attr: { pos: $data.localPos }, text: $data.hex, css: { 'fc1-p': $data.localPos() === $root.hex.editor.localCursor() }"></div>
 						</div>
 					</div>
 					<div class="left table margin-l3" data-bind="foreach: hex.rows">
@@ -132,7 +132,9 @@
 		<script type="text/javascript" chatset="utf8" src="http://cdnjs.cloudflare.com/ajax/libs/knockout/2.3.0/knockout-min.js"></script>
 		<script type="text/javascript" chatset="utf8" src="js/lib/ws.js"></script>
 		<script type="text/javascript" chatset="utf8" src="js/lib/koplugin.js"></script>
+		<script type="text/javascript" chatset="utf8" src="js/lib/stream.js"></script>
 		<script type="text/javascript" chatset="utf8" src="js/lib/undo.js"></script>
+		<script type="text/javascript" chatset="utf8" src="js/lib/hexeditor.js"></script>
 		<script type="text/javascript" chatset="utf8" src="js/models/node.js"></script>
 		<script type="text/javascript" chatset="utf8" src="js/models/logger.js"></script>
 		<script type="text/javascript" chatset="utf8" src="js/models/editor.js"></script>
