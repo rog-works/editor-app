@@ -37,7 +37,7 @@ class Hex extends Page {
 	}
 
 	focus () {
-		console.log('on focus', this.focused());
+		console.log('On focus', this.focused());
 		this.focused(true);
 	}
 
@@ -47,7 +47,7 @@ class Hex extends Page {
 	}
 
 	keydown (self, e) {
-		console.log('on keydown', e.keyCode);
+		console.log('On keydown', e.keyCode, e.ctrlKey, e.shiftKey);
 		if (!this.editor.onKeydown(e.keyCode, e.ctrlKey, e.shiftKey)) {
 			this.rows.changed();
 			return false;
@@ -57,17 +57,17 @@ class Hex extends Page {
 	}
 
 	copy (self, e) {
-		console.log('on copy');
+		console.log('On copy');
 		return this.editor.onCopy(e.originalEvent.clipboardData);
 	}
 
 	cut (self, e) {
-		console.log('on cut');
+		console.log('On cut');
 		return this.editor.onCut(e.originalEvent.clipboardData);
 	}
 
 	paste (self, e) {
-		console.log('on paste');
+		console.log('On paste');
 		return this.editor.onPaste(e.originalEvent.clipboardData);
 	}
 

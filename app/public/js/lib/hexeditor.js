@@ -237,6 +237,7 @@ class HexEditor {
 	_onKeydownDelete (keyCode) {
 		if (this.isSelected()) {
 			this.bulkDelete(this._selectBefore, this._selectEnd - this._selectBefore);
+			this.unselect();
 		} else {
 			this.delete(this.cursor(), keyCode === this.KEY_CODE_BACKSPACE);
 		}
@@ -244,12 +245,18 @@ class HexEditor {
 	}
 
 	_onKeydownUndo () {
-		this._undo.undo();
+		if (this._undo.canUndo) {
+			console.log('Undo');
+			this._undo.undo();
+		}
 		return false;
 	}
 
 	_onKeydownRedo () {
-		this._undo.redo();
+		if (this._undo.canRedo) {
+			console.log('Redo');
+			this._undo.redo();
+		}
 		return false;
 	}
 
@@ -278,10 +285,21 @@ class HexEditor {
 		}
 		const before = ~~(cursor / 2) * 2;
 		const inserted = (cursor % 2) === 0;
-		const high = inserted ? hex : this._stream.read(before, 1);
+		const beforeValues = this_stream.read(before, 2);
+		const high = inserted ? hex : hexValues[0];
 		const low = inserted ? '0' : hex;
-		this._stream.write(high + low, before);
+		const afterValues = high + low;
+		this._stream.write(afterValues, before);
 		this.moveCursor(cursor + 1);
+		this.undo.add('update', beforeValues, afterValues)
+			.then((tag, beforeValues, afterValues) => {
+				this._stream.write(beforeValues, before);
+			})
+			.catch((tag, beforeValues, afterValues) => {
+				if (tag === 'update') {
+					this._stream.write(afterValues, before);
+				}
+			});
 	}
 
 	insert (cursor, hex) {

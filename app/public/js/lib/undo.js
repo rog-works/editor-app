@@ -15,6 +15,7 @@ class Undo extends Array {
 	}
 
 	add (tag, before, after) {
+		this.curr += 1;
 		return new Promise((resolve, reject) => {
 			const removes = this.length - this.curr - 1;
 			for (let i = 0; i < removes; i += 1) {
@@ -33,7 +34,7 @@ class Undo extends Array {
 
 	undo () {
 		if (this.canUndo) {
-			this._at(this.curr--).restore();
+			this._at(--this.curr).restore();
 		}
 	}
 
