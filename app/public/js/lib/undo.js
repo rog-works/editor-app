@@ -1,64 +1,75 @@
 'use strict';
 
 class Undo extends Array {
-	constructor () {
+	constructor (limit = 100) {
 		super();
-		this.curr = 0;
+		this._head = 0;
+		this._curr = 0;
+		this._peak = 0;
+		for (let i = 0; i < limit; i += 1) {
+			this.push(null);
+		}
 	}
 
 	get canUndo () {
-		return this.curr > 0;
+		return this._curr < this._peak;
 	}
 
 	get canRedo () {
-		return this.curr < this.length;
+		return this._curr > 0;
 	}
 
 	add (tag, before, after) {
-		this.curr += 1;
-		return new Promise((resolve, reject) => {
-			const removes = this.length - this.curr - 1;
-			for (let i = 0; i < removes; i += 1) {
-				this.pop();
-			}
-			this.push(new UndoBuffer(tag, before, after, resolve, reject));
-		});
+		const buffer = new UndoBuffer(tag, before, after);
+		this[this._head] = buffer;
+		this._head = (this._head + 1) % this.length;
+		this._peak = this._curr > 0 ? this._curr : Math.min(this._peak + 1, this.length);
+		this._curr = 0;
+		return buffer;
 	}
 
 	clear () {
-		while (this.length > 0) {
-			this.pop();
-		}
-		this.curr = 0;
+		this._curr = 0;
+		this._peak = 0;
 	}
 
 	undo () {
 		if (this.canUndo) {
-			this._at(--this.curr).restore();
+			this._at(++this._curr).restore();
 		}
 	}
 
 	redo () {
 		if (this.canRedo) {
-			this._at(this.curr++).apply();
+			this._at(this._curr--).apply();
 		}
 	}
 
 	_at (index) {
-		if (index < this.length) {
-			return this[index];
-		}
-		return null;
+		return this[(this._head + this.length - index) % this.length];
 	}
 }
 
 class UndoBuffer {
-	constructor (tag, before, after, apply, restore) {
-		this.apply = () => {
-			apply(tag, before, after);
-		};
+	constructor (tag, before = null, after = null) {
+		 this.tag = tag;
+		 this.before = before;
+		 this.after = after;
+		 this.restore = null;
+		 this.apply = null;
+	}
+
+	undo (restore) {
 		this.restore = () => {
-			restore(tag, before, after);
+			restore(this.tag, this.before, this.after);
 		};
+		return this;
+	}
+
+	redo (apply) {
+		this.apply = () => {
+			apply(this.tag, this.before, this.after);
+		};
+		return this;
 	}
 }

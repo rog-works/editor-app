@@ -29,8 +29,8 @@ class HexEditor {
 		this.KEY_CODE_COPY = 67;
 		this.KEY_CODE_CUT = 88;
 		this.KEY_CODE_PASTE = 86;
-		// - delete
-		this.KEY_CODE_DELETE = 46;
+		// - remove
+		this.KEY_CODE_REMOVE = 46;
 		this.KEY_CODE_BACKSPACE = 8;
 		// - toggle update/insert
 		this.KEY_CODE_INSERT = 45;
@@ -81,7 +81,7 @@ class HexEditor {
 	onCut (clipboard) {
 		if (this.isSelected()) {
 			this._toClipboard(clipboard, this._selectedValues());
-			this.bulkDelete(this._selectBefore, this._selectEnd - this._selectBefore);
+			this.bulkRemove(this._selectBefore, this._selectEnd - this._selectBefore);
 			this.unselect();
 			return false;
 		} else {
@@ -91,7 +91,7 @@ class HexEditor {
 
 	onPaste (clipboard) {
 		if (this.isSelected()) {
-			this.bulkDelete(this._selectBefore, this._selectEnd - this._selectBefore);
+			this.bulkRemove(this._selectBefore, this._selectEnd - this._selectBefore);
 			this.unselect();
 		}
 		this.bulkInsert(this.cursor(), this._fromClipboard(clipboard));
@@ -146,9 +146,9 @@ class HexEditor {
 				case this.KEY_CODE_RIGHT:
 				case this.KEY_CODE_DOWN:
 					return this._onKeydownMove(keyCode);
-				case this.KEY_CODE_DELETE:
+				case this.KEY_CODE_REMOVE:
 				case this.KEY_CODE_BACKSPACE:
-					return this._onKeydownDelete(keyCode);
+					return this._onKeydownRemove(keyCode);
 				case this.KEY_CODE_INSERT:
 					return this._onKeydownInsert();
 			}
@@ -234,12 +234,12 @@ class HexEditor {
 		return false;
 	}
 
-	_onKeydownDelete (keyCode) {
+	_onKeydownRemove (keyCode) {
 		if (this.isSelected()) {
-			this.bulkDelete(this._selectBefore, this._selectEnd - this._selectBefore);
+			this.bulkRemove(this._selectBefore, this._selectEnd - this._selectBefore);
 			this.unselect();
 		} else {
-			this.delete(this.cursor(), keyCode === this.KEY_CODE_BACKSPACE);
+			this.remove(this.cursor(), keyCode === this.KEY_CODE_BACKSPACE);
 		}
 		return false;
 	}
@@ -284,46 +284,62 @@ class HexEditor {
 			return;
 		}
 		const before = ~~(cursor / 2) * 2;
-		const inserted = (cursor % 2) === 0;
-		const beforeValues = this_stream.read(before, 2);
-		const high = inserted ? hex : hexValues[0];
-		const low = inserted ? '0' : hex;
+		const even = (cursor % 2) === 0;
+		const beforeValues = this._stream.read(before, 2);
+		const high = even ? hex : beforeValues[0];
+		const low = even ? '0' : hex;
 		const afterValues = high + low;
 		this._stream.write(afterValues, before);
 		this.moveCursor(cursor + 1);
-		this.undo.add('update', beforeValues, afterValues)
-			.then((tag, beforeValues, afterValues) => {
+		// undo
+		this._undo.add('update')
+			.undo(() => {
 				this._stream.write(beforeValues, before);
 			})
-			.catch((tag, beforeValues, afterValues) => {
-				if (tag === 'update') {
-					this._stream.write(afterValues, before);
-				}
+			.redo(() => {
+				this._stream.write(afterValues, before);
 			});
 	}
 
 	insert (cursor, hex) {
-		this._stream.insert(`${hex}0`, cursor);
+		this.bulkInsert(cursor, `${hex}0`);
 		this.moveCursor(cursor + 1);
 	}
 
 	bulkInsert (cursor, hexValues) {
 		this._stream.insert(hexValues, cursor);
 		this.moveCursor(cursor + hexValues.length);
+		// undo
+		this._undo.add('insert')
+			.undo(() => {
+				this._stream.remove(cursor, hexValues.length);
+			})
+			.redo(() => {
+				this._stream.insert(hexValues, cursor);
+			});
 	}
 
-	delete (cursor, toBack = false) {
+	remove (cursor, toBack = false) {
 		const before = toBack ? cursor - 2 : cursor;
-		this.bulkDelete(before, 2);
+		this.bulkRemove(before, 2);
 	}
 
-	bulkDelete (before, length) {
-		if (!this._stream.isInside(before)) {
-			console.warn('Unreachable index', HexUtil.toAddress(before), HexUtil.toAddress(before + length));
+	bulkRemove (cursor, length) {
+		if (!this._stream.isInside(cursor)) {
+			console.warn('Unreachable index', HexUtil.toAddress(cursor), HexUtil.toAddress(cursor + length));
 			return;
 		}
-		this._stream.remove(before, length);
-		this.moveCursor(before);
+		const beforeValues = this._stream.read(cursor, length);
+		this._stream.remove(cursor, length);
+		this.moveCursor(cursor);
+		// undo
+		this._undo.add('remove')
+			.undo(() => {
+				this._stream.insert(beforeValues, cursor);
+			})
+			.redo(() => {
+				this._stream.remove(cursor, beforeValues.length);
+			});
 	}
 
 	toggleMode () {

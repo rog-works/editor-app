@@ -32,7 +32,7 @@ class Stream {
 	write (values, before) {
 		const _before = Math.min(Math.max(before, 0), this.length);
 		if (_before === 0) {
-			this._source = values + this.read(_before);
+			this._source = values + this.read(values.length + _before);
 		} else if (_before === this.length) {
 			this._source = this._source + values;
 		} else {
