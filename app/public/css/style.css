@@ -4,6 +4,12 @@
 	content: "|";
 }
 
+.dummy {
+	width: 0;
+	height: 0;
+	opacity: 1;/* FIXME */
+}
+
 /* paddinng for each 1byte */
 .table.hex .row .cell {
 	padding-left: 2px;

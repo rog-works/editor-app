@@ -11,28 +11,19 @@ class Hex extends Page {
 
 		this.path = '#';
 		this.rows = HexRows.mixin(ko.observableArray([]));
-		this.editor = new HexEditor();
+		this.editor = new HexEditor(this);
 		this.state = this.STATE_SYNCRONIZED;
 		this.icon[this.ICON_STATE_SYNCRONIZED] = ko.observable(true);
 		this.icon[this.ICON_STATE_MODIFIED] = ko.observable(false);
 		// XXX
 		this.load(this.rows);
 		this.focused = ko.observable(false);
+		this.editorCursor = ko.observable(0);
 	}
 
 	click () {
-		console.log('on click');
-		$('#dummy').focus();
-	}
-	
-	focusin () {
-		console.log('on focusin');
-		$('.hex').click();
-		console.log('click', $('.hex').length);
-	}
-	
-	focusout () {
-		console.log('on focusout');
+		console.log('on click', this.focused());
+		this.focused(true);
 	}
 
 	static init () {
@@ -40,11 +31,6 @@ class Hex extends Page {
 		// self.load();
 		// self._editor().on('change', () => { self.changed(); });
 		return self;
-	}
-
-	// FIXME
-	cursor () {
-		return this.editor.localCursor;
 	}
 
 	load (path = '#', content = '') {
@@ -190,7 +176,7 @@ class Undo extends Array {
 }
 
 class HexEditor {
-	constructor () {
+	constructor (owner) {
 		// keypress
 		this.KEY_CODE_0 = 48;
 		this.KEY_CODE_1 = 49;
@@ -229,10 +215,12 @@ class HexEditor {
 		// - save
 		this.KEY_CODE_SAVE = 83;
 
+		// FIXME
+		this.owner = owner;
 		this.rows = null;
 		this.mode = 'update';
 		this.cursor = 0;
-		this.localCursor = 0;
+		this.localCursor = ko.observable(0);
 		this.selectBefore = 0;
 		this.selectEnd = 0;
 		this.undo = new Undo();
@@ -339,8 +327,12 @@ class HexEditor {
 			this.KEY_CODE_E,
 			this.KEY_CODE_F
 		];
-		const value = allows.indexOf(keyCode);
-		this.upsert(this.cursor, value.toString(16).toUpperCase());
+		const hex = allows.indexOf(keyCode).toString(16).toUpperCase();
+		if (this.isInsert(this.cursor)) {
+			this.insert(this.cursor, hex);
+		} else {
+			this.update(this.cursor, hex);
+		}
 		return false;
 	}
 
@@ -386,15 +378,9 @@ class HexEditor {
 
 	moveCursor (cursor) {
 		this.cursor = Math.min(Math.max(cursor, 0), this.rows.hexBytes.length);
-		this.localCursor = this.cursor - this.rows.globalPos;
-	}
-
-	upsert (cursor, hex) {
-		if (this.isInsert()) {
-			this.insert(cursor, hex);
-		} else {
-			this.update(cursor, hex);
-		}
+		this.localCursor(this.cursor - this.rows.globalPos);
+		// FIXME
+		this.owner.editorCursor(this.localCursor);
 	}
 
 	update (cursor, hex) {
@@ -452,9 +438,9 @@ class HexEditor {
 		return this.isInside(this.selectBefore) && this.isInside(this.selectEnd) && this.selectBefore < this.selectEnd;
 	}
 
-	isInsert () {
-		const tail = this.rows.hexBytes.length <= this.cursor;
-		const even = this.mode === 'insert' && (this.cursor % 1) === 0;
+	isInsert (cursor) {
+		const tail = this.rows.hexBytes.length <= cursor;
+		const even = this.mode === 'insert' && (cursor % 1) === 0;
 		return tail || even;
 	}
 
@@ -735,6 +721,8 @@ class HexColumn {
 		this.hex = ko.observable('--');
 		this.byte = null;
 		this.css = {};
+		// FIXME
+		this.editorPos = ko.observable(0);
 		this.update(this.globalPos);
 	}
 
@@ -750,14 +738,12 @@ class HexColumn {
 			this.hex(hex);
 			this.byte = byte;
 		}
+		// FIXME
+		this.editorPos(this.row.localPos + this.localPos);
 	}
 
 	moveRow (globalRowPos) {
 		const globalPos = HexUtil.toPos(globalRowPos) + this.localPos;
 		this.update(globalPos);
-	}
-
-	localPos2 () {
-		return this.row.localPos + this.localPos;
 	}
 }
