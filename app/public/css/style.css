@@ -1,17 +1,12 @@
 /* hex styles */
-
-.cursor::before {
-	content: "|";
-}
-
 .dummy {
 	width: 0;
 	height: 0;
 	opacity: 1;/* FIXME */
 }
 
-/* paddinng for each 1byte */
-.table.hex .row .cell {
+/* paddinng for each 2byte */
+.table.hex .row .cell:nth-child(even + 1) {
 	padding-left: 2px;
 }
 
@@ -30,7 +25,7 @@
 .margin-l3 { margin-left: 8px; }
 
 .w480 { width: 480px; }
-.h- { height: 12px; }
+.h- { height: 16px; }
 
 /* font styles */
 .font-s75 {

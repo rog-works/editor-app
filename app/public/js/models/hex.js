@@ -18,12 +18,6 @@ class Hex extends Page {
 		// XXX
 		this.load(this.rows);
 		this.focused = ko.observable(false);
-		this.editorCursor = ko.observable(0);
-	}
-
-	click () {
-		console.log('on click', this.focused());
-		this.focused(true);
 	}
 
 	static init () {
@@ -42,7 +36,8 @@ class Hex extends Page {
 	}
 
 	focus () {
-		// this._editor().focus();
+		console.log('on focus', this.focused());
+		this.focused(true);
 	}
 
 	resize (width, height) {
@@ -110,73 +105,8 @@ class Hex extends Page {
 	}
 }
 
-class UndoBuffer {
-	constructor (tag, before, after, apply, restore) {
-		this.tag = tag;
-		this.before = before;
-		this.after = after;
-		this.apply = apply;
-		this.restore = restore;
-	}
-}
-
-class Undo extends Array {
-	constructor () {
-		super();
-		this.curr = 0;
-	}
-
-	add (tag, before, after) {
-		return new Promise((resolve, reject) => {
-			const removes = this.length - this.curr - 1;
-			for (let i = 0; i < removes; i += 1) {
-				this.pop();
-			}
-			this.push(new UndoBuffer(tag, before, after, resolve, reject));
-		});
-	}
-
-	clear () {
-		while (this.length > 0) {
-			this.pop();
-		}
-		this.curr = 0;
-	}
-
-	undo () {
-		this.curr = Math.min(Math.max(this.curr - 1, 0), this.length - 1);
-		const undo = this._at(this.curr);
-		if (undo !== null) {
-			undo.restore(undo.tag, undo.before, undo.after);
-		}
-	}
-
-	redo () {
-		this.curr = Math.min(Math.max(this.curr + 1, 0), this.length - 1);
-		const undo = this._at(this.curr);
-		if (undo !== null) {
-			undo.apply(undo.tag, undo.before, undo.after);
-		}
-	}
-
-	hasUndo () {
-		return this.curr > 0;
-	}
-
-	hasRedo () {
-		return this.curr < this.length;
-	}
-
-	_at (index) {
-		if (index < this.length) {
-			return this[index];
-		}
-		return null;
-	}
-}
-
 class HexEditor {
-	constructor (owner) {
+	constructor () {
 		// keypress
 		this.KEY_CODE_0 = 48;
 		this.KEY_CODE_1 = 49;
@@ -215,9 +145,7 @@ class HexEditor {
 		// - save
 		this.KEY_CODE_SAVE = 83;
 
-		// FIXME
-		this.owner = owner;
-		this.rows = null;
+		this.rows = null;// FIXME
 		this.mode = 'update';
 		this.cursor = 0;
 		this.localCursor = ko.observable(0);
@@ -339,9 +267,9 @@ class HexEditor {
 	_onKeydownArrow (keyCode) {
 		const allows = {
 			[this.KEY_CODE_LEFT]: -1,
-			[this.KEY_CODE_UP]: -16,
+			[this.KEY_CODE_UP]: -32,
 			[this.KEY_CODE_RIGHT]: 1,
-			[this.KEY_CODE_DOWN]: 16
+			[this.KEY_CODE_DOWN]: 32
 		};
 		this.moveCursor(this.cursor + allows[keyCode]);
 		return false;
@@ -378,9 +306,7 @@ class HexEditor {
 
 	moveCursor (cursor) {
 		this.cursor = Math.min(Math.max(cursor, 0), this.rows.hexBytes.length);
-		this.localCursor(this.cursor - this.rows.globalPos);
-		// FIXME
-		this.owner.editorCursor(this.localCursor);
+		this.localCursor(this.cursor);
 	}
 
 	update (cursor, hex) {
@@ -558,13 +484,13 @@ class HexUtil {
 class HexRows {
 	constructor () {
 		// XXX
-		this.FONT_SIZE_H = 12;
+		this.ROW_SIZE_H = 16;
 
 		this.localPos = 0;
 		this.globalPos = 0;
 		this.hexBytes = '';
 		this.position = {
-			top:  ko.observable(0)
+			top: ko.observable(0)
 		};
 		// XXX
 		this.size = {
@@ -613,11 +539,10 @@ class HexRows {
 	}
 
 	hexAt (globalPos) {
-		const strPos = globalPos * 2;
-		if (strPos >= 0 && this.hexBytes.length > strPos + 1) {
-			return this.hexBytes.substr(strPos, 2).toUpperCase();
+		if (globalPos >= 0 && globalPos < this.hexBytes.length) {
+			return this.hexBytes.substr(globalPos, 1).toUpperCase();
 		} else {
-			return '--';
+			return '.';
 		}
 	}
 
@@ -627,11 +552,11 @@ class HexRows {
 		this.size.height = height;
 		const globalRowNum = ~~((this.hexBytes.length + 31) / 32);
 		this.globalSize.width(width);
-		this.globalSize.height(globalRowNum * this.FONT_SIZE_H);
+		this.globalSize.height(globalRowNum * this.ROW_SIZE_H);
 
 		// reallocate
 		this.clear();
-		const localRowNum = ~~(height / this.FONT_SIZE_H);
+		const localRowNum = ~~(height / this.ROW_SIZE_H);
 		for (let localRowPos = 0; localRowPos < localRowNum; localRowPos += 1) {
 			this.push(new HexRow(this, localRowPos));
 		}
@@ -674,76 +599,94 @@ class HexRows {
 
 class HexRow {
 	constructor (rows, localRowPos) {
-		this.rows = rows;
+		this._rows = rows;
+		this._localPos = HexUtil.toPos(localRowPos);
+		this._globalPos = 0;
 		this.columns = [];
-		this.localRowPos = localRowPos;
-		this.globalRowPos = this.localRowPos;
-		this.address = ko.observable(HexUtil.toAddress(HexUtil.toPos(this.globalRowPos)));
-		this.text = ko.observable();
+		this.address = ko.observable('');
+		this.text = ko.observable('');
 		this.load();
 	}
 
+	get rows () {
+		return this._rows;
+	}
+
+	get localPos () {
+		return this._localPos;
+	}
+
+	get localRowPos () {
+		return HexUtil.toRowPos(this._localPos);
+	}
+
+	set localRowPos (value) {
+		this._localPos = HexUtil.toPos(value);
+	} 
+
 	load () {
-		for (let x = 0; x < 16; x += 1) {
-			const column = new HexColumn(this, x);
-			this.columns.push(column);
+		for (let x = 0; x < 32; x += 1) {
+			this.columns.push(new HexColumn(this, x));
 		}
+		this.address(HexUtil.toAddress(this._globalPos + this._localPos));
 		this.text(HexUtil.byteToStr(this._bytes()));
 	}
 
 	moveRow (globalRowPos) {
-		this.globalRowPos = globalRowPos;
+		this._globalPos = HexUtil.toPos(globalRowPos);
+		const localRowPos = this.localRowPos;
 		for (const column of this.columns) {
-			column.moveRow(this.globalRowPos + this.localRowPos);
+			column.update();
 		}
-		this.address(HexUtil.toAddress(HexUtil.toPos(this.globalRowPos + this.localRowPos)));
+		this.address(HexUtil.toAddress(this._globalPos + this._localPos));
 		this.text(HexUtil.byteToStr(this._bytes()));
+	}
+
+	hexAt (x) {
+		const globalRowPos = HexUtil.toRowPos(this._globalPos);
+		return this._rows.hexAt((globalRowPos * 32) + (this.localRowPos * 32) + x);
 	}
 
 	_bytes () {
 		let bytes = [];
-		for (const column of this.columns) {
-			if (!column.available()) {
+		for (let x = 0; x < 16; x += 1) {
+			const columnH = this.columns[x * 2 + 0];
+			const columnL = this.columns[x * 2 + 1];
+			if (!columnH.available()) {
 				break;
 			}
-			bytes.push(column.byte);
+			bytes.push((columnH.value << 4) | columnL.value);
 		}
 		return bytes;
 	}
 }
 
 class HexColumn {
-	constructor (row, localPos) {
-		this.rows = row.rows;
-		this.row = row;
-		this.localPos = localPos;
-		this.globalPos = this.localPos;
-		this.hex = ko.observable('--');
-		this.byte = null;
+	constructor (row, indexX) {
+		this._row = row;
+		this._indexX = indexX;
+		this._value = null;
+		this.hex = ko.observable('.');
 		this.css = {};
-		// FIXME
-		this.editorPos = ko.observable(0);
+		this.localIndex = ko.observable(0);
 		this.update(this.globalPos);
 	}
 
-	available () {
-		return this.byte !== null;
+	get value () {
+		return this._value;
 	}
 
-	update (globalPos) {
-		this.globalPos = globalPos;
-		const hex = this.rows.hexAt(this.globalPos);
-		const byte = hex !== '--' ? HexUtil.toByte(hex) : null;
+	available () {
+		return this._value !== null;
+	}
+
+	update () {
+		const hex = this._row.hexAt(this._indexX);
 		if (this.hex() !== hex) {
 			this.hex(hex);
-			this.byte = byte;
+			this._value = hex !== '.' ? HexUtil.toByte(hex) : null;
 		}
 		// FIXME
-		this.editorPos(this.row.localPos + this.localPos);
-	}
-
-	moveRow (globalRowPos) {
-		const globalPos = HexUtil.toPos(globalRowPos) + this.localPos;
-		this.update(globalPos);
+		this.localIndex(this._row.localRowPos * 32 + this._indexX);
 	}
 }
