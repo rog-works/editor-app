@@ -48,7 +48,7 @@ class Hex extends Page {
 
 	keydown (self, e) {
 		console.log('on keydown', e.keyCode);
-		if (!this.editor.onKeydown(e.keyCode)) {console.log('to changed');
+		if (!this.editor.onKeydown(e.keyCode, e.ctrlKey)) {
 			this.rows.changed();
 			return false;
 		} else {
@@ -276,6 +276,10 @@ class HexRow {
 		return (this.localRowPos * 32) + x;
 	}
 
+	toGlobalPos (x) {
+		return this._rows.toGlobalPos(this.toLocalPos(x));
+	}
+
 	load () {
 		for (let x = 0; x < 32; x += 1) {
 			this.columns.push(new HexColumn(this, x));
@@ -313,7 +317,7 @@ class HexColumn {
 		this._value = null;
 		this.hex = ko.observable('-');
 		this.css = {};
-		this.localPos = ko.observable(0);
+		this.globalPos = ko.observable(0);
 	}
 
 	get value () {
@@ -330,8 +334,8 @@ class HexColumn {
 			this.hex(hex);
 			this._value = hex !== '-' ? HexUtil.toByte(hex) : null;
 		}
-		// FIXME
-		this.localPos(this._row.toLocalPos(this._posX));
+		// XXX
+		this.globalPos(this._row.toGlobalPos(this._posX));
 	}
 }
 

@@ -42,8 +42,7 @@ class HexEditor {
 
 		this._stream = null;
 		this._mode = 'update';
-		this._cursor = 0;
-		this.localCursor = ko.observable(0);// XXX
+		this.cursor = ko.observable(0);
 		this._selectBefore = 0;
 		this._selectEnd = 0;
 		this._undo = new Undo();
@@ -52,8 +51,7 @@ class HexEditor {
 	load (stream) {
 		this._stream = stream;
 		this._mode = 'update';
-		this._cursor = 0;
-		this.localCursor(0);
+		this.cursor(0);
 		this._undo.clear();
 		this.unselect();
 	}
@@ -88,45 +86,53 @@ class HexEditor {
 			this.bulkDelete(this._selectBefore, this._selectEnd - this._selectBefore);
 			this.unselect();
 		}
-		this.blukInsert(this._cursor, this._fromClipboard(clipboard));
+		this.blukInsert(this.cursor(), this._fromClipboard(clipboard));
 		return false;
 	}
 
 	onKeydown (keyCode, isCtrl) {
-		switch (keyCode) {
-			case this.KEY_CODE_0:
-			case this.KEY_CODE_1:
-			case this.KEY_CODE_2:
-			case this.KEY_CODE_3:
-			case this.KEY_CODE_4:
-			case this.KEY_CODE_5:
-			case this.KEY_CODE_6:
-			case this.KEY_CODE_7:
-			case this.KEY_CODE_8:
-			case this.KEY_CODE_9:
-			case this.KEY_CODE_A:
-			case this.KEY_CODE_B:
-			case this.KEY_CODE_C:
-			case this.KEY_CODE_D:
-			case this.KEY_CODE_E:
-			case this.KEY_CODE_F:
-				return this._onKeypressUpdate(keyCode);
-			case this.KEY_CODE_LEFT:
-			case this.KEY_CODE_UP:
-			case this.KEY_CODE_RIGHT:
-			case this.KEY_CODE_DOWN:
-				return this._onKeydownArrow(keyCode);
-			case this.KEY_CODE_DELETE:
-			case this.KEY_CODE_BACKSPACE:
-				return this._onKeydownDelete(keyCode);
-			case this.KEY_CODE_INSERT:
-				return this._onKeydownInsert();
-			case this.KEY_CODE_UNDO:
-				return isCtrl && this._onKeydownUndo();
-			case this.KEY_CODE_REDO:
-				return isCtrl && this._onKeydownRedo();
-			case this.KEY_CODE_SAVE:
-				return isCtrl && this._onKeydownSave();
+		if (!isCtrl) {
+			switch (keyCode) {
+				case this.KEY_CODE_0:
+				case this.KEY_CODE_1:
+				case this.KEY_CODE_2:
+				case this.KEY_CODE_3:
+				case this.KEY_CODE_4:
+				case this.KEY_CODE_5:
+				case this.KEY_CODE_6:
+				case this.KEY_CODE_7:
+				case this.KEY_CODE_8:
+				case this.KEY_CODE_9:
+				case this.KEY_CODE_A:
+				case this.KEY_CODE_B:
+				case this.KEY_CODE_C:
+				case this.KEY_CODE_D:
+				case this.KEY_CODE_E:
+				case this.KEY_CODE_F:
+					return this._onKeypressUpdate(keyCode);
+				case this.KEY_CODE_LEFT:
+				case this.KEY_CODE_UP:
+				case this.KEY_CODE_RIGHT:
+				case this.KEY_CODE_DOWN:
+					return this._onKeydownMove(keyCode);
+				case this.KEY_CODE_DELETE:
+				case this.KEY_CODE_BACKSPACE:
+					return this._onKeydownDelete(keyCode);
+				case this.KEY_CODE_INSERT:
+					return this._onKeydownInsert();
+			}
+		} else {
+			switch (keyCode) {
+				case this.KEY_CODE_F:
+				case this.KEY_CODE_B:
+					return this._onKeydownMove(keyCode);
+				case this.KEY_CODE_UNDO:
+					return this._onKeydownUndo();
+				case this.KEY_CODE_REDO:
+					return this._onKeydownRedo();
+				case this.KEY_CODE_SAVE:
+					return this._onKeydownSave();
+			}
 		}
 		return true;
 	}
@@ -151,22 +157,25 @@ class HexEditor {
 			this.KEY_CODE_F
 		];
 		const hex = allows.indexOf(keyCode).toString(16).toUpperCase();
-		if (this.isInsert(this._cursor)) {
-			this.insert(this._cursor, hex);
+		if (this.isInsert(this.cursor())) {
+			this.insert(this.cursor(), hex);
 		} else {
-			this.update(this._cursor, hex);
+			this.update(this.cursor(), hex);
 		}
 		return false;
 	}
 
-	_onKeydownArrow (keyCode) {
+	_onKeydownMove (keyCode) {
 		const allows = {
 			[this.KEY_CODE_LEFT]: -1,
 			[this.KEY_CODE_UP]: -32,
 			[this.KEY_CODE_RIGHT]: 1,
-			[this.KEY_CODE_DOWN]: 32
+			[this.KEY_CODE_DOWN]: 32,
+			// XXX
+			[this.KEY_CODE_F]: 32 * 16,
+			[this.KEY_CODE_B]: -32 * 16,
 		};
-		this.moveCursor(this._cursor + allows[keyCode]);
+		this.moveCursor(this.cursor() + allows[keyCode]);
 		return false;
 	}
 
@@ -174,7 +183,7 @@ class HexEditor {
 		if (this.isSelected()) {
 			this.bulkDelete(this._selectBefore, this._selectEnd - this._selectBefore);
 		} else {
-			this.delete(this._cursor, keyCode === this.KEY_CODE_BACKSPACE);
+			this.delete(this.cursor(), keyCode === this.KEY_CODE_BACKSPACE);
 		}
 		return false;
 	}
@@ -200,8 +209,7 @@ class HexEditor {
 	}
 
 	moveCursor (cursor) {
-		this._cursor = Math.min(Math.max(cursor, 0), this._stream.length);
-		this.localCursor(this._cursor);
+		this.cursor(Math.min(Math.max(cursor, 0), this._stream.length));
 	}
 
 	update (cursor, hex) {
@@ -253,7 +261,7 @@ class HexEditor {
 
 	isInsert (cursor) {
 		const tail = this._stream.length <= cursor;
-		const even = this._mode === 'insert' && (cursor % 1) === 0;
+		const even = this._mode === 'insert' && (cursor % 2) === 0;
 		return tail || even;
 	}
 
