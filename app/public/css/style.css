@@ -2,21 +2,21 @@
 .dummy {
 	width: 0;
 	height: 0;
-	opacity: 1;/* FIXME */
+	opacity: 0;
 }
 
-/* paddinng for each 2byte */
-.table.hex .row .cell:nth-child(even + 1) {
+/* paddinng for each 1byte */
+.table.hex .row .cell:nth-child(2n + 3) {
 	padding-left: 2px;
 }
 
 /* paddinng for each 4byte */
-.table.hex .row .cell:nth-child(2n + 3) {
+.table.hex .row .cell:nth-child(4n + 5) {
 	padding-left: 4px;
 }
 
 /* paddinng for each 8byte */
-.table.hex .row .cell:nth-child(9) {
+.table.hex .row .cell:nth-child(17) {
 	padding-left: 8px;
 }
 
