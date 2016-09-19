@@ -48,7 +48,7 @@ class Hex extends Page {
 
 	keydown (self, e) {
 		console.log('on keydown', e.keyCode);
-		if (!this.editor.onKeydown(e.keyCode, e.ctrlKey)) {
+		if (!this.editor.onKeydown(e.keyCode, e.ctrlKey, e.shiftKey)) {
 			this.rows.changed();
 			return false;
 		} else {
