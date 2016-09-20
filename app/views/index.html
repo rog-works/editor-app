@@ -61,21 +61,22 @@
 				</div>
 			</div>
 			<!-- hex -->
-			<div class="bc2 font-s75 left fill-h scroll hide-scroll close" data-bind="event: { scroll: hex.scroll.bind($data.hex) }, css: { close: hex.display.active() === false }, style: hex.size">
+			<div class="bc2 font-s75 left fill-h scroll hide-scroll close" data-bind="click: hex.focus.bind($data.hex), event: { scroll: hex.scroll.bind($data.hex) }, css: { close: hex.display.active() === false }, style: hex.size">
 				<div class="w480 relative" data-bind="style: hex.rows.position">
-					<div class="bc3 left table" data-bind="foreach: hex.rows">
+					<input class="dummy" type="text" data-bind="attr: { pos: hex.editor.cursor }, hasFocus: hex.focused, event: { keydown: hex.keydown.bind($data.hex), copy: hex.copy.bind($data.hex), cut: hex.cut.bind($data.hex), paste: hex.paste.bind($data.hex) }">
+					<div class="left table" data-bind="foreach: hex.rows">
 						<div class="row">
-							<div class="h- cell center" data-bind="text: $data.address"></div>
+							<div class="fc4 bc2 h- cell center bottom-line" data-bind="text: $data.address"></div>
 						</div>
 					</div>
-					<div class="bc3 left table margin-l3 deco-less hex" tabindex="1" data-bind="foreach: hex.rows, event: { keydown: hex.keydown.bind($data.hex), copy: hex.copy.bind($data.hex), cut: hex.cut.bind($data.hex), paste: hex.paste.bind($data.hex) }">
+					<div class="left table margin-l3 hex" data-bind="foreach: hex.rows">
 						<div class="row" data-bind="foreach: $data.columns">
-							<div class="h- cell center" data-bind="text: $data.hex, css: { cursor: hex.cursor === $data.localPos2 }"></div>
+							<div class="fc1 bc2 h- cell center bottom-line" data-bind="attr: { pos: $data.globalPos }, text: $data.hex, css: { 'fc1-p': $data.globalPos() === $root.hex.editor.cursor(), 'bc1-s': $data.globalPos() >= $root.hex.editor.selectBefore && $data.globalPos() < $root.hex.editor.selectEnd }"></div>
 						</div>
 					</div>
-					<div class="bc3 left table margin-l3" data-bind="foreach: hex.rows">
+					<div class="left table margin-l3" data-bind="foreach: hex.rows">
 						<div class="row">
-							<div class="h- cell middle" data-bind="text: $data.text"></div>
+							<div class="fc4 bc2 h- cell middle bottom-line" data-bind="text: $data.text"></div>
 						</div>
 					</div>
 				</div>
@@ -131,6 +132,9 @@
 		<script type="text/javascript" chatset="utf8" src="http://cdnjs.cloudflare.com/ajax/libs/knockout/2.3.0/knockout-min.js"></script>
 		<script type="text/javascript" chatset="utf8" src="js/lib/ws.js"></script>
 		<script type="text/javascript" chatset="utf8" src="js/lib/koplugin.js"></script>
+		<script type="text/javascript" chatset="utf8" src="js/lib/stream.js"></script>
+		<script type="text/javascript" chatset="utf8" src="js/lib/undo.js"></script>
+		<script type="text/javascript" chatset="utf8" src="js/lib/hexeditor.js"></script>
 		<script type="text/javascript" chatset="utf8" src="js/models/node.js"></script>
 		<script type="text/javascript" chatset="utf8" src="js/models/logger.js"></script>
 		<script type="text/javascript" chatset="utf8" src="js/models/editor.js"></script>

@@ -1,21 +1,22 @@
 /* hex styles */
-
-.cursor::before {
-	content: "|";
+.dummy {
+	width: 0;
+	height: 0;
+	opacity: 0;
 }
 
 /* paddinng for each 1byte */
-.table.hex .row .cell {
+.table.hex .row .cell:nth-child(2n + 3) {
 	padding-left: 2px;
 }
 
 /* paddinng for each 4byte */
-.table.hex .row .cell:nth-child(2n + 3) {
+.table.hex .row .cell:nth-child(4n + 5) {
 	padding-left: 4px;
 }
 
 /* paddinng for each 8byte */
-.table.hex .row .cell:nth-child(9) {
+.table.hex .row .cell:nth-child(17) {
 	padding-left: 8px;
 }
 
@@ -24,7 +25,7 @@
 .margin-l3 { margin-left: 8px; }
 
 .w480 { width: 480px; }
-.h- { height: 12px; }
+.h- { height: 16px; }
 
 /* font styles */
 .font-s75 {
@@ -109,6 +110,7 @@
 .fc1-p { color: #282; }
 .fc1-w { color: #882; }
 .fc1-e { color: #822; }
+.fc1-s { color: #228; }
 
 .bc1 { background-color: #000; }
 .bc2 { background-color: #222; }
@@ -118,6 +120,7 @@
 .bc1-p { background-color: #282; }
 .bc1-w { background-color: #882; }
 .bc1-e { background-color: #822; }
+.bc1-s { background-color: #228; }
 
 .bc1.stripe:nth-child(even) { background-color: #222; }
 .bc2.stripe:nth-child(even) { background-color: #444; }
