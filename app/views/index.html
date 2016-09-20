@@ -71,7 +71,7 @@
 					</div>
 					<div class="left table margin-l3 hex" data-bind="foreach: hex.rows">
 						<div class="row" data-bind="foreach: $data.columns">
-							<div class="fc1 bc2 h- cell center bottom-line" data-bind="attr: { pos: $data.globalPos }, text: $data.hex, css: { 'fc1-p': $data.globalPos() === $root.hex.editor.cursor(), 'bc1-s': $data.globalPos() >= $root.hex.editor.selectBefore && $data.globalPos() <= $root.hex.editor.selectEnd }"></div>
+							<div class="fc1 bc2 h- cell center bottom-line" data-bind="attr: { pos: $data.globalPos }, text: $data.hex, css: { 'fc1-p': $data.globalPos() === $root.hex.editor.cursor(), 'bc1-s': $data.globalPos() >= $root.hex.editor.selectBefore && $data.globalPos() < $root.hex.editor.selectEnd }"></div>
 						</div>
 					</div>
 					<div class="left table margin-l3" data-bind="foreach: hex.rows">
