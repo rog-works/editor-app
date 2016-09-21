@@ -21,14 +21,22 @@ array ::= Array.isArray(value)
 object ::= typeof value === "object"
 
 {
-	"schema": {
+	"$": {
 		"signature": [
 			"0x89", "0x50", "0x4e", "0x47",
 			"0x0d", "0x0a", "0x1a", "0x0a"
 		],
 		"ihdr": {
-			"length": "0x0000000D",
-			"type": "IHDR",
+			"length": {
+				"type": "int",
+				"pattern": "0x0000000D",
+				"description": "chunk length"
+			},
+			"type": {
+				"type": "string",
+				"pattern": "IHDR",
+				"description": "chunk siganature"
+			},
 			"width": "int4",
 			"height": "int4",
 			"depth": "byte",
