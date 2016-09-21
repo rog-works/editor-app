@@ -1,0 +1,59 @@
+// signatures
+digit ::= "[0-9]"
+natural_number ::= "0" | {digit}
+signed_number ::= ["[-+]"], natural_numeric
+alphabet ::= "[a-zA-Z]"
+symbol ::= "[$_-.]"
+character ::= alphabet | digit | symbol
+identifer ::= "[$_]" | alphabet, [{character}]
+
+// structures
+numeric ::= signed_number
+string ::= identifer
+list ::= identifer, "[" identifer "]"
+reference ::= "$", identifer
+byte ::= "0x", {digit}{2}
+short ::= "0x", {digit}{4}
+int ::= "0x", {digit}{8}
+
+// literals
+array ::= Array.isArray(value)
+object ::= typeof value === "object"
+
+{
+	"schema": {
+		"signature": [
+			"0x89", "0x50", "0x4e", "0x47",
+			"0x0d", "0x0a", "0x1a", "0x0a"
+		],
+		"ihdr": {
+			"length": "0x0000000D",
+			"type": "IHDR",
+			"width": "int4",
+			"height": "int4",
+			"depth": "byte",
+			"colorType": "byte",
+			"compress": "byte",
+			"filter": "byte",
+			"interlace": "byte",
+			"crc": "int4"
+		},
+		"plte": {
+			"length": "int4",
+			"type": "PLTE",
+			"bytes": "todo",
+			"crc": "int4"
+		},
+		"idat": {
+			"length": "int4",
+			"type": "IDAT",
+			"bytes": "byte[this.length]",
+			"crc": "int4"
+		},
+		"iend": {
+			"length": "0x00000000",
+			"type": "IEND",
+			"crc": "0xAE426082"
+		}
+	}
+}
