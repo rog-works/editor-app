@@ -1,3 +1,50 @@
+{
+	"$": {
+		"signature": {
+			":type": "byte[8]",
+			":pattern": [
+				"0x89", "0x50", "0x4e", "0x47",
+				"0x0d", "0x0a", "0x1a", "0x0a"
+			],
+			":description": "PNG file signafure",
+			":require": true
+		},
+		"ihdr": {
+			"length": {":pattern": "0x0000000D"},
+			"type": "IHDR",
+			"width": "int",
+			"height": "int",
+			"depth": "byte",
+			"colorType": "byte",
+			"compress": "byte",
+			"filter": "byte",
+			"interlace": "byte",
+			"crc": "int"
+		},
+		"plte": {
+			"length": "int",
+			"type": "PLTE",
+			"bytes": {
+				":type": "byte[this.length]",
+				
+			},
+			"crc": "int",
+			":require": false
+		},
+		"idat": {
+			"length": "int",
+			"type": "IDAT",
+			"bytes": "byte[this.length]",
+			"crc": "int"
+		},
+		"iend": {
+			"length": "0x00000000",
+			"type": "IEND",
+			"crc": "0xAE426082"
+		}
+	}
+}
+
 // signatures
 digit ::= "[0-9]"
 natural_number ::= "0" | {digit}
@@ -16,52 +63,10 @@ byte ::= "0x", {digit}{2}
 short ::= "0x", {digit}{4}
 int ::= "0x", {digit}{8}
 
+// expression
+// TODO
+
 // literals
+boolean ::= typeof value === "boolean"
 array ::= Array.isArray(value)
 object ::= typeof value === "object"
-
-{
-	"$": {
-		"signature": [
-			"0x89", "0x50", "0x4e", "0x47",
-			"0x0d", "0x0a", "0x1a", "0x0a"
-		],
-		"ihdr": {
-			"length": {
-				"type": "int",
-				"pattern": "0x0000000D",
-				"description": "chunk length"
-			},
-			"type": {
-				"type": "string",
-				"pattern": "IHDR",
-				"description": "chunk siganature"
-			},
-			"width": "int4",
-			"height": "int4",
-			"depth": "byte",
-			"colorType": "byte",
-			"compress": "byte",
-			"filter": "byte",
-			"interlace": "byte",
-			"crc": "int4"
-		},
-		"plte": {
-			"length": "int4",
-			"type": "PLTE",
-			"bytes": "todo",
-			"crc": "int4"
-		},
-		"idat": {
-			"length": "int4",
-			"type": "IDAT",
-			"bytes": "byte[this.length]",
-			"crc": "int4"
-		},
-		"iend": {
-			"length": "0x00000000",
-			"type": "IEND",
-			"crc": "0xAE426082"
-		}
-	}
-}
