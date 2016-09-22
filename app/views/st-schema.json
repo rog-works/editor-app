@@ -18,7 +18,7 @@
 				":pattern": "0x0000000D"
 			},
 			"data": {
-				"type": "IHDR",
+				"type": "'IHDR'",
 				"width": "int",
 				"height": "int",
 				"depth": "byte",
@@ -32,7 +32,7 @@
 		"plte": {
 			"length": "int",
 			"data": {
-				"type": "PLTE",
+				"type": "'PLTE'",
 				"bytes": "$pallet[this.length]"
 			},
 			"crc": "$crc",
@@ -40,13 +40,13 @@
 		},
 		"idat": {
 			"length": "int",
-			"type": "IDAT",
+			"type": "'IDAT'",
 			"bytes": "byte[this.length]",
 			"crc": "$crc"
 		},
 		"iend": {
 			"length": "0x00000000",
-			"type": "IEND",
+			"type": "'IEND'",
 			"crc": "0xAE426082"
 		}
 	},
@@ -74,23 +74,33 @@ character ::= alphabet | digit | character_symbol
 idenrifer_head ::= "[$_]" | alphabet
 identifer ::= idenrifer_head, [{character}]
 
-// hex
+// hex of identifers
 hex_identifer ::= "0x"
 
-// primitive structures
-numeric ::= signed_number
-float ::= signed_decimel
-string ::= identifer
+// constant structures
+string ::= "'", {.}, "'"
 byte ::= hex_identifer, {digit}{2}
 short ::= hex_identifer, {digit}{4}
 int ::= hex_identifer, {digit}{8}
+float ::= signed_decimel
+numeric ::= signed_number
+constant ::= string | byte | short | int | float | numeric
 
 // dynamic structures
 array ::= identifer, "[" identifer "]"
-reference ::= "$", array | identifer 
+reference ::= "$", array | identifer
+dynamic ::= array | reference
 
-// expressions
-// TODO
+// structure
+structure ::= dynamic | constant
+
+// expression
+expression_symbol ::= "[+-*/%]"
+expression ::= structure, expression_symbol, structure
+
+// function
+invoker ::= dynamic | identifer
+function ::= invoker, "(", [{function | structure | expression, [",", function | structure, expression]}], ")"
 
 // literals
 literal_boolean = typeof value === "boolean"
