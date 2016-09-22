@@ -64,12 +64,12 @@ sign ::= "[-+]"
 signed_number ::= [sign], natural_number
 
 // decimel of identifers
-decimel_symbol ::= "."
-signed_decimel ::= signed_number, decimel_symbol, {digit}
+decimel_delimiter ::= "[.]"
+signed_decimel ::= signed_number, decimel_delimiter, {digit}
 
 // string of identifers
 alphabet ::= "[a-zA-Z]"
-character_symbol ::= "[$_-.]"
+character_symbol ::= "[$_.]"
 character ::= alphabet | digit | character_symbol
 idenrifer_head ::= "[$_]" | alphabet
 identifer ::= idenrifer_head, [{character}]
@@ -78,7 +78,7 @@ identifer ::= idenrifer_head, [{character}]
 hex_identifer ::= "0x"
 
 // constant structures
-string ::= "'", {.}, "'"
+string ::= "'", {"."}, "'"
 byte ::= hex_identifer, {digit}{2}
 short ::= hex_identifer, {digit}{4}
 int ::= hex_identifer, {digit}{8}
@@ -95,12 +95,12 @@ dynamic ::= array | reference
 structure ::= dynamic | constant
 
 // expression
-expression_symbol ::= "[+-*/%]"
-expression ::= structure, expression_symbol, structure
+expression_symbol ::= "[+-*/%&|^]"
+expression ::= ["("], expression | structure, expression_symbol, expression | structure, [")"]
 
 // function
 invoker ::= dynamic | identifer
-function ::= invoker, "(", [{function | structure | expression, [",", function | structure, expression]}], ")"
+function ::= invoker, "(", [{function | expression | structure, [",", function | expression | structure]}], ")"
 
 // literals
 literal_boolean = typeof value === "boolean"
