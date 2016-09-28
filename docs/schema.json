@@ -1,0 +1,59 @@
+{
+	"$": {
+		"signature": {
+			":length": 8,
+			":before": "0x00000000",
+			":end": "0x00000007",
+			":type": "byte[this.:length]",
+			":pattern": [
+				"0x89", "0x50", "0x4e", "0x47",
+				"0x0d", "0x0a", "0x1a", "0x0a"	
+			],
+			":strategy": "read(this.:before, this.:end)",
+			":description": "PNG file signafure",
+			":require": true,
+			":flex": false
+		},
+		"ihdr": {
+			"length": {
+				":pattern": "0x0000000D"
+			},
+			"data": {
+				"type": "'IHDR'",
+				"width": "int",
+				"height": "int",
+				"depth": "byte",
+				"colorType": "byte",
+				"compress": "byte",
+				"filter": "byte",
+				"interlace": "byte"
+			},
+			"crc": "$crc"
+		},
+		"plte": {
+			"length": "int",
+			"data": {
+				"type": "'PLTE'",
+				"bytes": "$pallet[this.length]"
+			},
+			"crc": "$crc",
+			":require": false
+		},
+		"idat": {
+			"length": "int",
+			"type": "'IDAT'",
+			"bytes": "byte[this.length]",
+			"crc": "$crc"
+		},
+		"iend": {
+			"length": "0x00000000",
+			"type": "'IEND'",
+			"crc": "0xAE426082"
+		}
+	},
+	"$pallet": "byte[3]",
+	"$crc": {
+		":type": "int",
+		":strategy": "crc(this.data.:before, this.data.:end)"
+	}
+}
