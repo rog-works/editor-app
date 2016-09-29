@@ -102,6 +102,9 @@
 				<div class="bc1 wh1 table" data-bind="css: hex.display, click: focus.bind($data, 'hex')">
 					<i class="cell center fa fa-table" data-bind="css: hex.icon"></i>
 				</div>
+				<div class="bc1 wh1 table" data-bind="click: test">
+					<i class="cell center fa fa-info"></i>
+				</div>
 			</div>
 			<!-- dialog -->
 			<div class="bc1 trans25 float close" data-bind="css: dialog.display, style: dialog.size">
@@ -135,6 +138,8 @@
 		<script type="text/javascript" chatset="utf8" src="js/lib/stream.js"></script>
 		<script type="text/javascript" chatset="utf8" src="js/lib/undo.js"></script>
 		<script type="text/javascript" chatset="utf8" src="js/lib/hexeditor.js"></script>
+		<script type="text/javascript" chatset="utf8" src="js/lib/parser/ebnf.js"></script>
+		<script type="text/javascript" chatset="utf8" src="js/lib/parser/token.js"></script>
 		<script type="text/javascript" chatset="utf8" src="js/models/node.js"></script>
 		<script type="text/javascript" chatset="utf8" src="js/models/logger.js"></script>
 		<script type="text/javascript" chatset="utf8" src="js/models/editor.js"></script>

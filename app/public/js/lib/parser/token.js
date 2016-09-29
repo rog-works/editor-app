@@ -9,13 +9,23 @@ class TokenParser {
 		return this._parse(this._stream, this._definitions());
 	}
 
+	_definitions () {
+		return [
+			AsTokenIdentifer,
+			AsTokenNumeric,
+			AsTokenString,
+			AsTokenPunctuator,
+			AsTokenWhiteSpace
+		];
+	}
+
 	_parse (stream, definitions) {
 		const tokens = [];
 		while (stream.available) {
-			const exists = null;
+			let exists = null;
 			for (const definition of definitions) {
 				const begin = stream.pos;
-				const [err, results] = this._get(definition.is(), stream);
+				const [err, results] = this._parseDefinition(definition.is(), stream);
 				if (err === null) {
 					exists = results;
 					break;
@@ -23,75 +33,92 @@ class TokenParser {
 					stream.seek(begin, 'begin');
 				}
 			}
-			if (exists.length > 0) {
+			if (exists === null) {
+				throw new Error(`Failed parse definition`);
+			} else if (exists.length > 0) {
 				tokens.push(...exists);
-			} else {
-				throw new Error('Failed parse token');
+			}
+			if (!stream.available) {
+				console.log('eof');
 			}
 		}
 		return tokens;
 	}
 
-	_get (root, stream) {
-		let err = null;
+	_parseDefinition (root, stream) {
 		const tokens = [];
-		for (let i = 0; i < root.length; i += 1) {
-			const statement = root[i];
-			const hasNext = root.length > i + 1;
-			const results = [];
-			if (statement.type === 'if'
-			 || statemejt.type === 'else') {
-				[err, results] = this._get(statement, stream);
-				// FIXME
-				if (err !== null && hasNext) {
-					if (['else', 'then'].indexOf(root[i + 1].type) !== -1) {
-						err = null;
-					}
-				}
-			} else if (statement.type === 'while') {
-				[err, results] = this._get(statement, stream);
-				// FIXME
-				if (err !== null && hasNext) {
-					err = null;
-				}
+		let ignore = null;
+		for (const statement of root) {
+			// ignore statement type XXX
+			if (ignore !== null && ignore === statement.type) {
+				continue;
+			}
+			ignore = null;
+
+			// parse by definition
+			let err = null;
+			let results = null;
+			console.log('DEF', statement.path, statement.dependecy);
+			if (typeof statement.dependecy === 'function') {
+				[err, results] = this._parseDefinition(statement.dependecy.is(), stream);
+			} else if (statement.type in this) {
+				[err, results, ignore] = this[statement.type](statement, stream);
 			} else {
-				if (typeof statement.dependecy === 'function') {
-					[err, results] = this._get(statement.is(), stream);
-				} else {
-					const data = this._on(statement, stream);
-					if (data !== null) {
-						tokens.push(data);
-					} else {
-						err = new Error('Failed parse dependecy');
-					}
-				}
+				throw new Error(`Unexpected dependecy. ${statement.dependecy}`);
 			}
 
 			if (err !== null) {
-				break;
-			} else if (results.length > 0) {
+				return [err, tokens];
+			} else if (results !== null && results.length > 0) {
 				tokens.push(...results);
 			}
 		}
-		return [err, tokens];
-	}
-	
-	_on (statement, stream) {
-		const data = statement.dependecy.parse(stream);
-		if (data !== null) {
-			return data;
-		} else {
-			return null;
-		}
+		return [null, tokens];
 	}
 
-	_definitions () {
-		return [
-			AsTokenIdentifer,
-			AsTokenNumeric,
-			AsTokenString,
-			AsTokenPunctuator
-		];
+	if (statement, stream) {
+		const [err, results] = this._parseDefinition(statement, stream);
+		// XXX
+		let ignore = null;
+		if (err !== null && statement.hasNext) {
+			err = null;
+		} else {
+			ignore = 'else';
+		}
+		return [err, results, ignore];
+	}
+
+	else (statement, stream) {
+		return this.if(statement, stream);
+	}
+
+	while (statement, stream) {
+		const [err, results] = this._parseDefinition(statement, stream);
+		// XXX
+		if (err !== null && statement.hasNext) {
+			err = null;
+		}
+		return [err, results, null];
+	}
+
+	without (statement, stream) {
+		const [err] = this._parseDefinition(statement, stream);
+		return [err, null, null];
+	}
+
+	on (statement, stream) {
+		let dependecy = statement.dependecy;
+		if (typeof dependecy === 'string') {
+			dependecy = new AsEndSymbol(dependecy);
+		} else if (typeof dependecy === 'object' && dependecy.constructor === RegExp) {
+			dependecy = new AsEndSymbol(dependecy);
+		}
+		const data = dependecy.parse(stream);
+		let err = null;
+		if (data === null) {
+			err = new Error(`Failed parse dependecy. ${dependecy}`);
+		}
+		return [err, [data], null];
 	}
 }
 
@@ -102,9 +129,9 @@ class As {
 }
 
 class AsEndSymbol {
-	constructor (matcher) {
-		this._regular = typeof matcher === 'object';
-		this._matcher = matcher;
+	constructor (subject) {
+		this._regular = typeof subject === 'object';
+		this._subject = subject;
 	}
 
 	parse (stream) {
@@ -118,22 +145,25 @@ class AsEndSymbol {
 	_parseRegular (stream) {
 		let symbol = '';
 		while (stream.available) {
-			const char = stream.peak(1);
-			if (!this._matcher.test(symbol + char)) {
+			const next = symbol + stream.peak(1);
+			const matches = next.match(this._subject);
+			console.log('END', 'subject:', this._subject, 'matched:', `"${symbol}"`, 'target:', `"${next}"`, 'results:', matches);
+			if (matches === null || matches[0].length < next.length) {
 				break;
 			}
 			stream.seek(1);
-			symbol += char;
+			symbol = next;
 		}
+		console.log('END', 'returned:', `"${symbol}"`);
 		return symbol.length > 0 ? symbol : null;
 	}
 
 	_parseCompare (stream) {
-		const symbol = stream.peak(this._matcher.length);
-		if (this._matcher !== symbol) {
+		const symbol = stream.peak(this._subject.length);
+		if (this._subject !== symbol) {
 			return null;
 		}
-		stream.seek(this._matcher.length);
+		stream.seek(this._subject.length);
 		return symbol;
 	}
 }
@@ -141,27 +171,38 @@ class AsEndSymbol {
 class AsTokenIdentifer {
 	static is () {
 		return As.is()
-			.on(new AsEndSymbol(/[a-zA-Z$_][0-9a-zA-Z$_:]*/));
+			.on(/[a-zA-Z$_][0-9a-zA-Z$_]*/);
 	}
 }
 
 class AsTokenNumeric {
 	static is () {
 		return As.is()
-			.on(new AsEndSymbol(/[0-9]+(\.[0-9]+)?/));
+			.on(/[0-9]+(\.[0-9]+)?/);
 	}
 }
 
 class AsTokenString {
 	static is () {
 		return As.is()
-			.on(new AsEndSymbol(/'.*'/));
+			.on(/'.*'/);
 	}
 }
 
 class AsTokenPunctuator {
 	static is () {
 		return As.is()
-			.on(new AsEndSymbol(/<=|>=|==|!=|&&|[|]{2}|['\"().*/%+-&|^<>=]/));
+			.any(
+				/<=|>=|==|!=/,
+				/[&]{2}|[|]{2}/,
+				/[\-=\/,.;:'"+*_&|^%!?(){}\[\]]/
+			);
+	}
+}
+
+class AsTokenWhiteSpace {
+	static is () {
+		return As.is()
+			.without(/[ \t\n]+/);
 	}
 }

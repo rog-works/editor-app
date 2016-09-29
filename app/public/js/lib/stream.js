@@ -50,7 +50,7 @@ class Stream {
 
 	isInside (offset = undefined) {
 		const end = this._toAbsolute(offset);
-		return this.pos < end && end < this.length;
+		return this.pos < end && end <= this.length;
 	}
 
 	read (length = undefined) {

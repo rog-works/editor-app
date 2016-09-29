@@ -10,7 +10,7 @@ class AsExpresstion {
 
 	static is () {
 		return As.is()
-			.on(AsLogicalCompareExpression)
+			.on(AsLogicalCompareExpression);
 	}
 }
 
@@ -24,7 +24,7 @@ class AsLogicalCompareExpression {
 			.if(AsBitCalcExpression)
 			.else(
 				AsLogicalCompareExpression,
-				new AsEndSymbol(/[&]{2}|[|]{2}/),
+				/[&]{2}|[|]{2}/,
 				AsBitCalcExpression
 			);
 	}
@@ -40,7 +40,7 @@ class AsBitCalcExpression {
 			.if(AsEqualsCompareExpression)
 			.else(
 				AsBitCalcExpression,
-				new AsEndSymbol(/[&^|]/),
+				/[&^|]/,
 				AsEqualsCompareExpression
 			);
 	}
@@ -56,7 +56,7 @@ class AsEqualsCompareExpression {
 			.if(AsSizeCompareExpression)
 			.else(
 				AsEqualsCompareExpression,
-				new AsEndSymbol(/==|!=/),
+				/==|!=/,
 				AsSizeCompareExpression
 			);
 	}
@@ -72,7 +72,7 @@ class AsSizeCompareExpression {
 			.if(AsAddSubCalcExpression)
 			.else(
 				AsSizeCompareExpression,
-				new AsEndSymbol(/<|<=|>|>=/),
+				/<|<=|>|>=/,
 				AsAddSubCalcExpression
 			);
 	}
@@ -88,7 +88,7 @@ class AsAddSubCalcExpression {
 			.if(AsMulDivCalcExpression)
 			.else(
 				AsAddSubCalcExpression,
-				new AsEndSymbol(/[*/%]/),
+				/[+-]/,
 				AsMulDivCalcExpression
 			);
 	}
@@ -104,7 +104,7 @@ class AsMulDivCalcExpression {
 			.if(AsOperand)
 			.else(
 				AsMulDivCalcExpression,
-				new AsEndSymbol(/[*/%]/),
+				/[*/%]/,
 				AsOperand
 			);
 	}
@@ -123,9 +123,7 @@ class AsOperand {
 				// AsFunction
 			)
 			.else(
-				new AsEndSymbol('('),
-				AsExpression,
-				new AsEndSymbol(')')
+				'(', AsExpression, ')'
 			);
 	}
 }
@@ -138,10 +136,7 @@ class AsVariable {
 	static is () {
 		return As.is()
 			.on(AsIdentifer)
-			.while(
-				new AsEndSymbol('.'),
-				AsIdentifer
-			)
+			.while('.', AsIdentifer);
 	}
 }
 
@@ -152,7 +147,7 @@ class AsIdentifer {
 
 	static is () {
 		return As.is()
-			.on(new AsEndSymbol(/[a-zA-Z$_][0-9a-zA-Z$_:]*/))
+			.on(/[a-zA-Z$_][0-9a-zA-Z$_]*/);
 	}
 }
 
@@ -181,11 +176,7 @@ class AsText {
 
 	static is () {
 		return As.is()
-			.on(
-				new AsEndSymbol("'"),
-				new AsText(),
-				new AsEndSymbol("'")
-			)
+			.on("'", new AsText(), "'");
 	}
 
 	parse (reader) {

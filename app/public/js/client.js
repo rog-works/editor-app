@@ -17,6 +17,24 @@ class Application extends Node {
 		};
 	}
 
+	test () {
+		const path = '/app/docs/schema.json';
+		const entry = this.entry.at(path);
+		if (entry.content.length === 0) {
+			const url = '/' + encodeURIComponent(path);
+			EntryItem.send((url))
+				.then((entity) => {
+					const schema = JSON.parse(entity.content);
+					const parser = new TokenParser(schema.$.signature['_strategy']);
+					const results = parser.execute();
+					console.log('RET', results);
+				})
+				.catch((error) => {
+					console.error(error.message, error.stack);
+				});
+		}
+	}
+
 	static init () {
 		const self = new Application();
 		window.onload = () => { self._load(); };

@@ -6,14 +6,15 @@ class Path {
 		for (const route of args) {
 			routes.push(...route.split('/'));
 		}
+		const results = [];
 		for (const route of routes) {
 			if (route === '..') {
-				routes.pop();
+				results.pop();
 			} else {
-				routes.push(route);
+				results.push(route);
 			}
 		}
-		return routes.join('/');
+		return results.join('/').replace('//', '/');// XXX
 	}
 	
 	static dirname (path) {
@@ -21,11 +22,11 @@ class Path {
 	}
 	
 	static basename (path) {
-		return path.split('/')[-1];
+		return path.split('/').pop();
 	}
 }
 
-class Node extends Array {
+class _Node extends Array {
 	constructor (path = '/') {
 		super();
 		this._parent = null;
@@ -49,7 +50,7 @@ class Node extends Array {
 	}
 
 	get size () {
-		const num = 0;
+		let num = 0;
 		for (const child of this) {
 			num += child.size();
 		}
@@ -58,8 +59,12 @@ class Node extends Array {
 
 	at (rel) {
 		const routes = rel.split('/');
-		const name = routes.unshift(0);
+		const name = routes.shift();
 		for (const child of this) {
+			// XXX
+			if (name === '..') {
+				return this._parent;
+			}
 			if (child.name !== name) {
 				continue;
 			}
@@ -92,10 +97,13 @@ class Node extends Array {
 	}
 }
 
-class EBNFStatement extends Node {
-	constructor (type = '/', dependecy) {
+class EBNFStatement extends _Node {
+	constructor (type = '/', dependecy = null) {
 		super(type);
 		this._dependecy = dependecy;
+		// XXX deprecated
+		this._prev = null;
+		this._next = null;
 	}
 
 	get type () {
@@ -105,9 +113,24 @@ class EBNFStatement extends Node {
 	get dependecy () {
 		return this._dependecy;
 	}
+
+	// XXX deprecated
+	get hasNext () {
+		return this._next !== null;
+	}
+
+	add (child) {
+		// XXX deprecated
+		if (this.length > 0) {
+			const prev = this[this.length - 1];
+			prev._next = child;
+			child._prev = prev;
+		}
+		super.add(child);
+	}
 }
 
-class EBNFTree extends Node {
+class EBNFTree extends _Node {
 	constructor () {
 		super();
 		this._cwd = this;
@@ -117,12 +140,14 @@ class EBNFTree extends Node {
 		for (const arg of args) {
 			this._cwd.add(new EBNFStatement('on', arg));
 		}
+		return this;
 	}
 
 	if (...args) {
 		this._md('if');
 		this._cd('if');
 		this.on(...args);
+		return this;
 	}
 
 	else (...args) {
@@ -130,6 +155,7 @@ class EBNFTree extends Node {
 		this._md('else');
 		this._cd('else');
 		this.on(...args);
+		return this;
 	}
 
 	any (...args) {
@@ -140,16 +166,19 @@ class EBNFTree extends Node {
 		for (const arg of args) {
 			this.else(arg);
 		}
+		return this;
 	}
 
 	exists (...args) {
 		this.if(...args);
 		this.then();
+		return this;
 	}
 
 	then (...args) {
 		this._cd('../');
 		this.on(...args);
+		return this;
 	}
 
 	while (...args) {
@@ -157,11 +186,19 @@ class EBNFTree extends Node {
 		this._md('while');
 		this._cd('while');
 		this.on(...args);
+		return this;
+	}
+
+	without (...args) {
+		this._md('without');
+		this._cd('without');
+		this.on(...args);
+		return this;
 	}
 
 	_cd (rel) {
 		const to = this._cwd.at(rel);
-		if (to !== null) {
+		if (to === null) {
 			throw new Error(`No such entry. cwd = ${this._cwd.path}, rel = ${rel}`);
 		}
 		this._cwd = to;

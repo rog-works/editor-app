@@ -1,22 +1,22 @@
 {
 	"$": {
 		"signature": {
-			":length": 8,
-			":before": "0x00000000",
-			":end": "0x00000007",
-			":type": "byte[this.:length]",
-			":pattern": [
+			"_length": 8,
+			"_before": "0x00000000",
+			"_end": "0x00000007",
+			"_type": "byte[this._length]",
+			"_pattern": [
 				"0x89", "0x50", "0x4e", "0x47",
 				"0x0d", "0x0a", "0x1a", "0x0a"	
 			],
-			":strategy": "read(this.:before, this.:end)",
-			":description": "PNG file signafure",
-			":require": true,
-			":flex": false
+			"_strategy": "read(this._before, this._end)",
+			"_description": "PNG file signafure",
+			"_require": true,
+			"_flex": false
 		},
 		"ihdr": {
 			"length": {
-				":pattern": "0x0000000D"
+				"_pattern": "0x0000000D"
 			},
 			"data": {
 				"type": "'IHDR'",
@@ -37,7 +37,7 @@
 				"bytes": "$pallet[this.length]"
 			},
 			"crc": "$crc",
-			":require": false
+			"_require": false
 		},
 		"idat": {
 			"length": "int",
@@ -53,7 +53,7 @@
 	},
 	"$pallet": "byte[3]",
 	"$crc": {
-		":type": "int",
-		":strategy": "crc(this.data.:before, this.data.:end)"
+		"_type": "int",
+		"_strategy": "crc(this.data._before, this.data._end)"
 	}
 }
