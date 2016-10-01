@@ -25,7 +25,8 @@ class Application extends Node {
 			EntryItem.send((url))
 				.then((entity) => {
 					const schema = JSON.parse(entity.content);
-					const parser = new TokenParser(schema.$.signature['_strategy']);
+					const root = `{\\n\\t"a":123}`;//JSON.stringify(schema.$.signature);
+					const parser = new TokenParser(root);
 					const results = parser.execute();
 					console.log('RET', results);
 				})
