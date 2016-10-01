@@ -8,7 +8,7 @@ class AsExpresstion {
 		return key === null ? 'expression' : key === 'expression';
 	}
 
-	static is () {
+	static get is () {
 		return As.is()
 			.on(AsLogicalCompareExpression);
 	}
@@ -19,7 +19,7 @@ class AsLogicalCompareExpression {
 		return key === null ? 'logical-compare-expression' : key === 'logical-compare-expression';
 	}
 
-	static is () {
+	static get is () {
 		return As.is()
 			.if(AsBitCalcExpression)
 			.else(
@@ -35,7 +35,7 @@ class AsBitCalcExpression {
 		return key === null ? 'bit-calc-expression' : key === 'bit-calc-expression';
 	}
 
-	static is () {
+	static get is () {
 		return As.is()
 			.if(AsEqualsCompareExpression)
 			.else(
@@ -51,7 +51,7 @@ class AsEqualsCompareExpression {
 		return key === null ? 'equals-compare-expression' : key === 'equals-compare-expression';
 	}
 
-	static is () {
+	static get is () {
 		return As.is()
 			.if(AsSizeCompareExpression)
 			.else(
@@ -67,7 +67,7 @@ class AsSizeCompareExpression {
 		return key === null ? 'size-calc-expression' : key === 'size-calc-expression';
 	}
 
-	static is () {
+	static get is () {
 		return As.is()
 			.if(AsAddSubCalcExpression)
 			.else(
@@ -83,7 +83,7 @@ class AsAddSubCalcExpression {
 		return key === null ? 'addsub-calc-expression' : key === 'addsub-calc-expression';
 	}
 
-	static is () {
+	static get is () {
 		return As.is()
 			.if(AsMulDivCalcExpression)
 			.else(
@@ -99,7 +99,7 @@ class AsMulDivCalcExpression {
 		return key === null ? 'muldiv-calc-expression' : key === 'muldiv-calc-expression';
 	}
 
-	static is () {
+	static get is () {
 		return As.is()
 			.if(AsOperand)
 			.else(
@@ -115,7 +115,7 @@ class AsOperand {
 		return key === null ? 'operand' : key === 'operand';
 	}
 
-	static is () {
+	static get is () {
 		return As.is()
 			.any(
 				AsConstant,
@@ -133,7 +133,7 @@ class AsVariable {
 		return key === null ? 'variable' : key === 'variable';
 	}
 
-	static is () {
+	static get is () {
 		return As.is()
 			.on(AsIdentifer)
 			.while('.', AsIdentifer);
@@ -145,7 +145,7 @@ class AsIdentifer {
 		return key === null ? 'identifer' : key === 'identifer';
 	}
 
-	static is () {
+	static get is () {
 		return As.is()
 			.on(/[a-zA-Z$_][0-9a-zA-Z$_]*/);
 	}
@@ -156,7 +156,7 @@ class AsConstant {
 		return key === null ? 'constant' : key === 'constant';
 	}
 
-	static is () {
+	static get is () {
 		return As.is()
 			.any(
 				AsText,
@@ -174,7 +174,7 @@ class AsText {
 		return key === null ? 'text' : key === 'text';
 	}
 
-	static is () {
+	static get is () {
 		return As.is()
 			.on("'", new AsText(), "'");
 	}
@@ -194,7 +194,7 @@ class AsNumber {
 		return key === null ? 'number' : key === 'number';
 	}
 
-	static is () {
+	static get is () {
 		return As.is()
 			.on(new AsNumber());
 	}

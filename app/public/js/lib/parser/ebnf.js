@@ -130,10 +130,19 @@ class EBNFStatement extends _Node {
 	}
 }
 
-class EBNFTree extends _Node {
-	constructor () {
-		super();
-		this._cwd = this;
+class EBNFDefinition {
+	constructor (from) {
+		this._from = from;
+		this._root = new EBNFStatement();
+		this._cwd = this._root;
+	}
+
+	get from () {
+		return this._from;
+	}
+
+	get root () {
+		return this._root;
 	}
 
 	on (...args) {
@@ -145,7 +154,6 @@ class EBNFTree extends _Node {
 
 	if (...args) {
 		this._md('if');
-		this._cd('if');
 		this.on(...args);
 		return this;
 	}
@@ -153,13 +161,12 @@ class EBNFTree extends _Node {
 	else (...args) {
 		this._cd('../');
 		this._md('else');
-		this._cd('else');
 		this.on(...args);
 		return this;
 	}
 
 	any (...args) {
-		const first = args.pop();
+		const first = args.shift();
 		if (first !== null) {
 			this.if(first);
 		}
@@ -184,14 +191,12 @@ class EBNFTree extends _Node {
 	while (...args) {
 		this._cd('../');
 		this._md('while');
-		this._cd('while');
 		this.on(...args);
 		return this;
 	}
 
 	without (...args) {
 		this._md('without');
-		this._cd('without');
 		this.on(...args);
 		return this;
 	}
@@ -205,6 +210,9 @@ class EBNFTree extends _Node {
 	}
 
 	_md (type) {
-		this._cwd.add(new EBNFStatement(type));
+		const statement = new EBNFStatement(type);
+		this._cwd.add(statement);
+		// cwd on the peak statement XXX
+		this._cwd = statement;
 	}
 }
