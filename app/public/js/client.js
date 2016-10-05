@@ -25,10 +25,13 @@ class Application extends Node {
 			EntryItem.send((url))
 				.then((entity) => {
 					const schema = JSON.parse(entity.content);
-					const root = `{\\n\\t"a":123}`;//JSON.stringify(schema.$.signature);
-					const parser = new TokenParser(root);
+					const root = 'this["0xAE426082"](a,b) || 2';//schema.$.signature._type;
+					const parser = new TokenParser(new TextStream(root));
 					const results = parser.execute();
-					console.log('RET', results);
+					console.log('TOKEN:', results);
+					const expParser = new ExpressionParser(new ArrayStream(results));
+					const expression = expParser.execute();
+					console.log('EXP:', expression);
 				})
 				.catch((error) => {
 					console.error(error.message, error.stack);

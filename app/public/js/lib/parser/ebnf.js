@@ -1,31 +1,5 @@
 'use strict'
 
-class Path {
-	static join (...args) {
-		const routes = [];
-		for (const route of args) {
-			routes.push(...route.split('/'));
-		}
-		const results = [];
-		for (const route of routes) {
-			if (route === '..') {
-				results.pop();
-			} else {
-				results.push(route);
-			}
-		}
-		return results.join('/').replace('//', '/');// XXX
-	}
-	
-	static dirname (path) {
-		return Path.join(path, '..');
-	}
-	
-	static basename (path) {
-		return path.split('/').pop();
-	}
-}
-
 class _Node extends Array {
 	constructor (path = '/') {
 		super();
@@ -106,6 +80,11 @@ class EBNFStatement extends _Node {
 		this._next = null;
 	}
 
+	// XXX
+	get from () {
+		return null;
+	}
+
 	get type () {
 		return this.name;
 	}
@@ -130,19 +109,15 @@ class EBNFStatement extends _Node {
 	}
 }
 
-class EBNFDefinition {
+class EBNFDefinition extends EBNFStatement {
 	constructor (from) {
+		super();
 		this._from = from;
-		this._root = new EBNFStatement();
-		this._cwd = this._root;
+		this._cwd = this;
 	}
 
 	get from () {
 		return this._from;
-	}
-
-	get root () {
-		return this._root;
 	}
 
 	on (...args) {
@@ -176,9 +151,9 @@ class EBNFDefinition {
 		return this;
 	}
 
-	exists (...args) {
-		this.if(...args);
-		this.then();
+	option (...args) {
+		this._md('option');
+		this.on(...args);
 		return this;
 	}
 
@@ -189,7 +164,6 @@ class EBNFDefinition {
 	}
 
 	while (...args) {
-		this._cd('../');
 		this._md('while');
 		this.on(...args);
 		return this;
@@ -204,7 +178,7 @@ class EBNFDefinition {
 	_cd (rel) {
 		const to = this._cwd.at(rel);
 		if (to === null) {
-			throw new Error(`No such entry. cwd = ${this._cwd.path}, rel = ${rel}`);
+			throw new Error(`No such entry. cwd = "${this._cwd.path}", rel = "${rel}"`);
 		}
 		this._cwd = to;
 	}
@@ -212,7 +186,7 @@ class EBNFDefinition {
 	_md (type) {
 		const statement = new EBNFStatement(type);
 		this._cwd.add(statement);
-		// cwd on the peak statement XXX
+		// XXX cwd on the peak statement
 		this._cwd = statement;
 	}
 }

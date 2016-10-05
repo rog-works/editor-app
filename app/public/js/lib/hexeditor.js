@@ -279,17 +279,13 @@ class HexEditor {
 	}
 
 	update (cursor, hex) {
-		if (this._stream.length < cursor) {
-			console.warn('Unreachable index', HexUtil.toAddress(cursor));
-			return;
-		}
 		const begin = ~~(cursor / 2) * 2;
 		const even = (cursor % 2) === 0;
-		const beforeValues = this._stream.read(begin, 2);
+		this._stream.seek(begin, 'begin');
+		const beforeValues = this._stream.peak(2);
 		const high = even ? hex : beforeValues[0];
 		const low = even ? '0' : hex;
 		const afterValues = high + low;
-		this._stream.seek(begin, 'begin');
 		this._stream.write(afterValues);
 		this.moveCursor(cursor + 1);
 		// undo
@@ -297,10 +293,12 @@ class HexEditor {
 			.undo(() => {
 				this._stream.seek(begin, 'begin');
 				this._stream.write(beforeValues);
+				this.moveCursor(cursor);
 			})
 			.redo(() => {
 				this._stream.seek(begin, 'begin');
 				this._stream.write(afterValues);
+				this.moveCursor(cursor + 1);
 			});
 	}
 
@@ -318,10 +316,12 @@ class HexEditor {
 			.undo(() => {
 				this._stream.seek(cursor, 'begin');
 				this._stream.remove(hexValues.length);
+				this.moveCursor(cursor);
 			})
 			.redo(() => {
 				this._stream.seek(cursor, 'begin');
 				this._stream.insert(hexValues);
+				this.moveCursor(cursor + hexValues.length);
 			});
 	}
 
@@ -331,22 +331,25 @@ class HexEditor {
 	}
 
 	bulkRemove (cursor, length) {
-		if (!this._stream.isInside(cursor)) {
+		if (cursor < 0 || this._stream.length <= cursor) {
 			console.warn('Unreachable index', HexUtil.toAddress(cursor), HexUtil.toAddress(cursor + length));
 			return;
 		}
-		const beforeValues = this._stream.read(cursor, length);
-		this._stream.remove(length, cursor);
+		this._stream.seek(cursor, 'begin');
+		const beforeValues = this._stream.peak(length);
+		this._stream.remove(length);
 		this.moveCursor(cursor);
 		// undo
 		this._undo.add('remove')
 			.undo(() => {
 				this._stream.seek(cursor, 'begin');
 				this._stream.insert(beforeValues);
+				this.moveCursor(cursor);
 			})
 			.redo(() => {
 				this._stream.seek(cursor, 'begin');
 				this._stream.remove(beforeValues.length);
+				this.moveCursor(cursor);
 			});
 	}
 
@@ -371,11 +374,8 @@ class HexEditor {
 	}
 
 	_getValues (begin, length) {
-		if (!this._stream.isInside(begin)) {
-			console.warn('Unreachable index', HexUtil.toAddress(begin), HexUtil.toAddress(begin + length));
-			return '';
-		}
-		return this._stream.read(begin, length);
+		this._stream.seek(begin, 'begin');
+		return this._stream.peak(length);
 	}
 
 	_toClipboard (clipboard, values) {

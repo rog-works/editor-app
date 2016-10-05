@@ -10,7 +10,7 @@
 				"0x0d", "0x0a", "0x1a", "0x0a"	
 			],
 			"_strategy": "read(this._before, this._end)",
-			"_description": "PNG file signafure",
+			"_description": "'PNG file signafure'",
 			"_require": true,
 			"_flex": false
 		},
@@ -34,7 +34,7 @@
 			"length": "int",
 			"data": {
 				"type": "'PLTE'",
-				"bytes": "$pallet[this.length]"
+				"bytes": "byte[this.length][3]"
 			},
 			"crc": "$crc",
 			"_require": false
@@ -51,7 +51,6 @@
 			"crc": "0xAE426082"
 		}
 	},
-	"$pallet": "byte[3]",
 	"$crc": {
 		"_type": "int",
 		"_strategy": "crc(this.data._before, this.data._end)"

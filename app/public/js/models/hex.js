@@ -29,7 +29,7 @@ class Hex extends Page {
 
 	load (path = '#', content = '') {
 		try {
-		const stream = new Stream(content);
+		const stream = new TextStream(content);
 		this._transition(this.STATE_LOADING);
 		this.path = path;
 		this.rows.load(stream);
@@ -117,7 +117,7 @@ class HexRows {
 
 		this._localPos = 0;
 		this._globalPos = 0;
-		this._stream = new Stream();
+		this._stream = new TextStream();
 
 		// layout
 		this.position = {

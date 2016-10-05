@@ -16,7 +16,7 @@ class Schema {
 		} else if (typeof value === 'object') {
 			// without symbol keys
 			const keys = Object.keys(value).filter((_key) => {
-				return /^[^:]/.test(_key);
+				return /^[^_]/.test(_key);
 			});
 			const object = $({}, value); // XXX
 			keys.forEach((_key) => {
@@ -31,15 +31,15 @@ class Schema {
 
 class SchemaDefinition {
 	constructor (raw) {
-		this[':length'] = -1;
-		this[':before'] = 0;
-		this[':end'] = 0;
-		this[':type'] = '';
-		this[':pattern'] = null;
-		this[':strategy'] = 'read(this.:before, this.:end)';
-		this[':description'] = '';
-		this[':require'] = true;
-		this[':flex'] = false;
+		this['_length'] = -1;
+		this['_before'] = 0;
+		this['_end'] = 0;
+		this['_type'] = '';
+		this['_pattern'] = null;
+		this['_strategy'] = 'read(this._before, this._end)';
+		this['_description'] = '';
+		this['_require'] = true;
+		this['_flex'] = false;
 		this._init(raw);
 	}
 
@@ -83,78 +83,78 @@ class SchemaDefinition {
 	}
 
 	_asText (raw) {
-		this[':length'] = raw.length;
-		this[':type'] = 'string';
-		this[':pattern'] = raw;
+		this['_length'] = raw.length;
+		this['_type'] = 'string';
+		this['_pattern'] = raw;
 	}
 
 	_asHexByte (raw) {
-		this[':length'] = 1;
-		this[':type'] = 'byte';
-		this[':pattern'] = raw;
+		this['_length'] = 1;
+		this['_type'] = 'byte';
+		this['_pattern'] = raw;
 	}
 
 	_asHexShort (raw) {
-		this[':length'] = 2;
-		this[':type'] = 'short';
-		this[':pattern'] = raw;
+		this['_length'] = 2;
+		this['_type'] = 'short';
+		this['_pattern'] = raw;
 	}
 
 	_asHexInt (raw) {
-		this[':length'] = 4;
-		this[':type'] = 'int';
-		this[':pattern'] = raw;
+		this['_length'] = 4;
+		this['_type'] = 'int';
+		this['_pattern'] = raw;
 	}
 
 	_asDecimel (raw) {
-		this[':length'] = 4;
-		this[':type'] = 'float';
-		this[':pattern'] = raw;
+		this['_length'] = 4;
+		this['_type'] = 'float';
+		this['_pattern'] = raw;
 	}
 
 	_asNumeric (raw) {
-		this[':length'] = 4;
-		this[':type'] = 'float';
-		this[':pattern'] = raw;
+		this['_length'] = 4;
+		this['_type'] = 'int';
+		this['_pattern'] = raw;
 	}
 
 	_asString (raw) {
-		this[':type'] = 'string';
-		this[':flex'] = true;
+		this['_type'] = 'string';
+		this['_flex'] = true;
 	}
 
 	_asByte (raw) {
-		this[':length'] = 1;
-		this[':type'] = 'byte';
+		this['_length'] = 1;
+		this['_type'] = 'byte';
 	}
 
 	_asShort (raw) {
-		this[':length'] = 2;
-		this[':type'] = 'short';
+		this['_length'] = 2;
+		this['_type'] = 'short';
 	}
 
 	_asInt (raw) {
-		this[':length'] = 4;
-		this[':type'] = 'int';
+		this['_length'] = 4;
+		this['_type'] = 'int';
 	}
 
 	_asReference (parser) {
-		this[':type'] = parser;
-		this[':flex'] = true;
+		this['_type'] = parser;
+		this['_flex'] = true;
 	}
 
 	_asArray (parser) {
-		this[':type'] = parser;
-		this[':flex'] = true;
+		this['_type'] = parser;
+		this['_flex'] = true;
 	}
 
 	_asExpression (parser) {
-		this[':type'] = parser;
-		this[':flex'] = true;
+		this['_type'] = parser;
+		this['_flex'] = true;
 	}
 
 	_asFunction (parser) {
-		this[':type'] = parser;
-		this[':flex'] = true;
+		this['_type'] = parser;
+		this['_flex'] = true;
 	}
 }
