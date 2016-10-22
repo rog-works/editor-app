@@ -49,7 +49,7 @@ class FileProvider {
 	 */
 	static at (path) {
 		return new Promise((resolve, reject) => {
-				fs.readFile(path, (error, entry) => {
+			fs.readFile(path, (error, entry) => {
 				if (error === null) {
 					resolve(entry);
 				} else {

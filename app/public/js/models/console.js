@@ -39,7 +39,13 @@ class Console extends Page {
 
 	_log (tag, ...args) {
 		args.unshift(tag);
-		this.logger.line(args.join(' '));
+		this.logger.line(args.map((arg) => {
+			if (Array.isArray(arg) || typeof arg === 'object') {
+				return JSON.stringify(arg);
+			} else {
+				return arg;
+			}
+		}).join(' '));
 	}
 	
 	coloring (line) {

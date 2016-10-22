@@ -28,12 +28,16 @@ class Hex extends Page {
 	}
 
 	load (path = '#', content = '') {
-		const stream = new Stream(content);
+		try {
+		const stream = new TextStream(content);
 		this._transition(this.STATE_LOADING);
 		this.path = path;
 		this.rows.load(stream);
 		this.editor.load(stream);
 		this._transition(this.STATE_SYNCRONIZED);
+		} catch (error) {
+			console.error(error);
+		}
 	}
 
 	focus () {
@@ -113,7 +117,7 @@ class HexRows {
 
 		this._localPos = 0;
 		this._globalPos = 0;
-		this._stream = new Stream();
+		this._stream = new TextStream();
 
 		// layout
 		this.position = {
@@ -156,8 +160,9 @@ class HexRows {
 	}
 
 	hexAt (localPos) {
-		if (this._stream.isInside(localPos)) {
-			return this._stream.read(this.toGlobalPos(localPos), 1).toUpperCase();
+		this._stream.seek(this.toGlobalPos(localPos), 'begin');
+		if (this._stream.isInside(1)) {
+			return this._stream.read(1).toUpperCase();
 		} else {
 			return '-';
 		}

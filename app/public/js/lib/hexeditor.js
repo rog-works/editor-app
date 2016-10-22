@@ -43,13 +43,13 @@ class HexEditor {
 		this._stream = null;
 		this._mode = 'update';
 		this.cursor = ko.observable(0);
-		this._selectBefore = -1;
+		this._selectBegin = -1;
 		this._selectEnd = -1;
 		this._undo = new Undo();
 	}
 
-	get selectBefore () {
-		return this._selectBefore;
+	get selectBegin () {
+		return this._selectBegin;
 	}
 
 	get selectEnd () {
@@ -65,7 +65,7 @@ class HexEditor {
 	}
 
 	unselect () {
-		this._selectBefore = -1;
+		this._selectBegin = -1;
 		this._selectEnd = -1;
 	}
 
@@ -81,7 +81,7 @@ class HexEditor {
 	onCut (clipboard) {
 		if (this.isSelected()) {
 			this._toClipboard(clipboard, this._selectedValues());
-			this.bulkRemove(this._selectBefore, this._selectEnd - this._selectBefore);
+			this.bulkRemove(this._selectBegin, this._selectEnd - this._selectBegin);
 			this.unselect();
 			return false;
 		} else {
@@ -91,7 +91,7 @@ class HexEditor {
 
 	onPaste (clipboard) {
 		if (this.isSelected()) {
-			this.bulkRemove(this._selectBefore, this._selectEnd - this._selectBefore);
+			this.bulkRemove(this._selectBegin, this._selectEnd - this._selectBegin);
 			this.unselect();
 		}
 		this.bulkInsert(this.cursor(), this._fromClipboard(clipboard));
@@ -212,22 +212,22 @@ class HexEditor {
 		const prev = this.cursor();
 		const next = this._getNextCursor(this.cursor() + allows[keyCode]);
 		const toBack = next < prev;
-		const initialMoved = this._selectBefore === -1;
+		const initialMoved = this._selectBegin === -1;
 		// XXX
 		if (initialMoved) {
-			const before = toBack ? next : prev;
+			const begin = toBack ? next : prev;
 			const end = toBack ? prev : next;
-			this._selectBefore = Math.min(before, this._stream.length);
+			this._selectBegin = Math.min(begin, this._stream.length);
 			this._selectEnd = Math.max(end, 0);
 		} else {
-			if (this._selectBefore > next) {
-				this._selectBefore = next;
+			if (this._selectBegin > next) {
+				this._selectBegin = next;
 			} else if (this._selectEnd < next) {
 				this._selectEnd = next;
 			} else if (toBack) {
 				this._selectEnd = next;
 			} else {
-				this._selectBefore = next;
+				this._selectBegin = next;
 			}
 		}
 		this.moveCursor(next);
@@ -236,7 +236,7 @@ class HexEditor {
 
 	_onKeydownRemove (keyCode) {
 		if (this.isSelected()) {
-			this.bulkRemove(this._selectBefore, this._selectEnd - this._selectBefore);
+			this.bulkRemove(this._selectBegin, this._selectEnd - this._selectBegin);
 			this.unselect();
 		} else {
 			this.remove(this.cursor(), keyCode === this.KEY_CODE_BACKSPACE);
@@ -279,25 +279,26 @@ class HexEditor {
 	}
 
 	update (cursor, hex) {
-		if (this._stream.length < cursor) {
-			console.warn('Unreachable index', HexUtil.toAddress(cursor));
-			return;
-		}
-		const before = ~~(cursor / 2) * 2;
+		const begin = ~~(cursor / 2) * 2;
 		const even = (cursor % 2) === 0;
-		const beforeValues = this._stream.read(before, 2);
+		this._stream.seek(begin, 'begin');
+		const beforeValues = this._stream.peak(2);
 		const high = even ? hex : beforeValues[0];
 		const low = even ? '0' : hex;
 		const afterValues = high + low;
-		this._stream.write(afterValues, before);
+		this._stream.write(afterValues);
 		this.moveCursor(cursor + 1);
 		// undo
 		this._undo.add('update')
 			.undo(() => {
-				this._stream.write(beforeValues, before);
+				this._stream.seek(begin, 'begin');
+				this._stream.write(beforeValues);
+				this.moveCursor(cursor);
 			})
 			.redo(() => {
-				this._stream.write(afterValues, before);
+				this._stream.seek(begin, 'begin');
+				this._stream.write(afterValues);
+				this.moveCursor(cursor + 1);
 			});
 	}
 
@@ -307,38 +308,48 @@ class HexEditor {
 	}
 
 	bulkInsert (cursor, hexValues) {
-		this._stream.insert(hexValues, cursor);
+		this._stream.seek(cursor, 'begin');
+		this._stream.insert(hexValues);
 		this.moveCursor(cursor + hexValues.length);
 		// undo
 		this._undo.add('insert')
 			.undo(() => {
-				this._stream.remove(cursor, hexValues.length);
+				this._stream.seek(cursor, 'begin');
+				this._stream.remove(hexValues.length);
+				this.moveCursor(cursor);
 			})
 			.redo(() => {
-				this._stream.insert(hexValues, cursor);
+				this._stream.seek(cursor, 'begin');
+				this._stream.insert(hexValues);
+				this.moveCursor(cursor + hexValues.length);
 			});
 	}
 
 	remove (cursor, toBack = false) {
-		const before = toBack ? cursor - 2 : cursor;
-		this.bulkRemove(before, 2);
+		const begin = toBack ? cursor - 2 : cursor;
+		this.bulkRemove(begin, 2);
 	}
 
 	bulkRemove (cursor, length) {
-		if (!this._stream.isInside(cursor)) {
+		if (cursor < 0 || this._stream.length <= cursor) {
 			console.warn('Unreachable index', HexUtil.toAddress(cursor), HexUtil.toAddress(cursor + length));
 			return;
 		}
-		const beforeValues = this._stream.read(cursor, length);
-		this._stream.remove(cursor, length);
+		this._stream.seek(cursor, 'begin');
+		const beforeValues = this._stream.peak(length);
+		this._stream.remove(length);
 		this.moveCursor(cursor);
 		// undo
 		this._undo.add('remove')
 			.undo(() => {
-				this._stream.insert(beforeValues, cursor);
+				this._stream.seek(cursor, 'begin');
+				this._stream.insert(beforeValues);
+				this.moveCursor(cursor);
 			})
 			.redo(() => {
-				this._stream.remove(cursor, beforeValues.length);
+				this._stream.seek(cursor, 'begin');
+				this._stream.remove(beforeValues.length);
+				this.moveCursor(cursor);
 			});
 	}
 
@@ -347,9 +358,9 @@ class HexEditor {
 	}
 
 	isSelected () {
-		return this._stream.isInside(this._selectBefore)
+		return this._stream.isInside(this._selectBegin)
 			&& this._stream.isInside(this._selectEnd)
-			&& this._selectBefore < this._selectEnd;
+			&& this._selectBegin < this._selectEnd;
 	}
 
 	isInsert (cursor) {
@@ -359,15 +370,12 @@ class HexEditor {
 	}
 
 	_selectedValues () {
-		return this._getValues(this._selectBefore, this._selectEnd - this._selectBefore);
+		return this._getValues(this._selectBegin, this._selectEnd - this._selectBegin);
 	}
 
-	_getValues (before, length) {
-		if (!this._stream.isInside(before)) {
-			console.warn('Unreachable index', HexUtil.toAddress(before), HexUtil.toAddress(before + length));
-			return '';
-		}
-		return this._stream.read(before, length);
+	_getValues (begin, length) {
+		this._stream.seek(begin, 'begin');
+		return this._stream.peak(length);
 	}
 
 	_toClipboard (clipboard, values) {

@@ -17,6 +17,28 @@ class Application extends Node {
 		};
 	}
 
+	test () {
+		const path = '/app/docs/schema.json';
+		const entry = this.entry.at(path);
+		if (entry.content.length === 0) {
+			const url = '/' + encodeURIComponent(path);
+			EntryItem.send((url))
+				.then((entity) => {
+					const schema = JSON.parse(entity.content);
+					const root = 'this["0xAE426082"](a,b) || 2';//schema.$.signature._type;
+					const parser = new TokenParser(new TextStream(root));
+					const results = parser.execute();
+					console.log('TOKEN:', results);
+					const expParser = new ExpressionParser(new ArrayStream(results));
+					const expression = expParser.execute();
+					console.log('EXP:', expression);
+				})
+				.catch((error) => {
+					console.error(error.message, error.stack);
+				});
+		}
+	}
+
 	static init () {
 		const self = new Application();
 		window.onload = () => { self._load(); };
