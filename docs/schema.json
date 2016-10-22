@@ -28,21 +28,19 @@
 				"filter": "byte",
 				"interlace": "byte"
 			},
-			"crc": "$crc"
+			"crc": "as($crc)"
 		},
 		"plte": {
 			"length": "int",
-			"data": {
-				"type": "'PLTE'",
-				"bytes": "byte[this.length][3]"
-			},
-			"crc": "$crc",
+			"type": "'PLTE'",
+			"bytes": "byte[parent.length][3]",
+			"crc": "as($crc)",
 			"_require": false
 		},
 		"idat": {
 			"length": "int",
 			"type": "'IDAT'",
-			"bytes": "byte[this.length]",
+			"bytes": "byte[parent.length]",
 			"crc": "$crc"
 		},
 		"iend": {
