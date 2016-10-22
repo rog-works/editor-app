@@ -4,17 +4,20 @@ class Hex extends Page {
 	constructor () {
 		super();
 		this.KEY_CODE_S = 83;
-		this.KEY_CODE_INVALIDS = [82, 87]; // R and W
 		this.STATE_SYNCRONIZED = 'syncronized';
 		this.STATE_MODIFIED = 'modified';
 		this.ICON_STATE_SYNCRONIZED = 'fa-table';
 		this.ICON_STATE_MODIFIED = 'fa-check-circle';
 
-		this.path = '#';
-		this.rows = HexRows.mixin(ko.observableArray([]));
+		// state
 		this.state = this.STATE_SYNCRONIZED;
 		this.icon[this.ICON_STATE_SYNCRONIZED] = ko.observable(true);
 		this.icon[this.ICON_STATE_MODIFIED] = ko.observable(false);
+
+		this.path = '#';
+		this.rows = HexRows.mixin(ko.observableArray([]));
+		this.editor = new HexEditor();
+		this.focused = ko.observable(false);
 	}
 
 	static init () {
@@ -24,43 +27,62 @@ class Hex extends Page {
 		return self;
 	}
 
+	load (path = '#', content = '') {
+		try {
+		const stream = new TextStream(content);
+		this._transition(this.STATE_LOADING);
+		this.path = path;
+		this.rows.load(stream);
+		this.editor.load(stream);
+		this._transition(this.STATE_SYNCRONIZED);
+		} catch (error) {
+			console.error(error);
+		}
+	}
+
+	focus () {
+		console.log('On focus', this.focused());
+		this.focused(true);
+	}
+
 	resize (width, height) {
 		super.resize(width, height);
 		this.rows.resize(width, height);
 	}
 
-	load (path = '#', content = '') {
-		this._transition(this.STATE_LOADING);
-		this.path = path;
-		this.rows.load(content);
-		this._transition(this.STATE_SYNCRONIZED);
-	}
-
-	focus () {
-		// this._editor().focus();
-	}
-
 	keydown (self, e) {
-		if (e.ctrlKey || e.metaKey) {
-			// handling ctrl + s
-			if (e.keyCode === this.KEY_CODE_S) {
-				this.save();
-				return false;
-			// XXX
-			} else if (this.KEY_CODE_INVALIDS.indexOf(e.keyCode) !== -1) {
-				return false;
-			}
+		console.log('On keydown', e.keyCode, e.ctrlKey, e.shiftKey);
+		if (!this.editor.onKeydown(e.keyCode, e.ctrlKey, e.shiftKey)) {
+			this.rows.changed();
+			return false;
+		} else {
+			return true;
 		}
-		return true;
+	}
+
+	copy (self, e) {
+		console.log('On copy');
+		return this.editor.onCopy(e.originalEvent.clipboardData);
+	}
+
+	cut (self, e) {
+		console.log('On cut');
+		return this.editor.onCut(e.originalEvent.clipboardData);
+	}
+
+	paste (self, e) {
+		console.log('On paste');
+		return this.editor.onPaste(e.originalEvent.clipboardData);
 	}
 
 	scroll (self, e) {
 		this.rows.scrollY(e.target.scrollTop);
+		return true;
 	}
 
 	save () {
 		this._transition(this.STATE_LOADING);
-		this.fire('updateEntry', this.path, this.rows.hexBytes);
+		this.fire('updateEntry', this.path, this.rows.stream.source);
 	}
 
 	saved (updated) {
@@ -85,6 +107,240 @@ class Hex extends Page {
 		} else if (state === this.STATE_SYNCRONIZED) {
 			this.icon[this.ICON_STATE_SYNCRONIZED](true);
 		}
+	}
+}
+
+class HexRows {
+	constructor () {
+		// XXX
+		this.ROW_SIZE_H = 16;
+
+		this._localPos = 0;
+		this._globalPos = 0;
+		this._stream = new TextStream();
+
+		// layout
+		this.position = {
+			top: ko.observable(0)
+		};
+		// XXX
+		this.size = {
+			width: 360,
+			height: 640
+		};
+		// XXX
+		this.globalSize = {
+			width: ko.observable(360),
+			height: ko.observable(640)
+		};
+	}
+
+	static mixin (obj) {
+		const self = new HexRows();
+		for (const key in self) {
+			if (self.hasOwnProperty(key)) {
+				obj[key] = self[key];
+			}
+		}
+		// XXX
+		[
+			'hexAt',
+			'toGlobalPos',
+			'toByteOfGlobalPos',
+			'load',
+			'clear',
+			'resize',
+			'changed',
+			'scrollY',
+			'moveRow'
+		].forEach((key) => {
+			obj[key] = self[key].bind(obj);
+		});
+		return obj;
+	}
+
+	hexAt (localPos) {
+		this._stream.seek(this.toGlobalPos(localPos), 'begin');
+		if (this._stream.isInside(1)) {
+			return this._stream.read(1).toUpperCase();
+		} else {
+			return '-';
+		}
+	}
+
+	toGlobalPos (localPos) {
+		return (HexUtil.toRowPos(this._globalPos) * 32) + localPos;
+	}
+
+	// XXX
+	toByteOfGlobalPos (localPos) {
+		return this._globalPos + localPos;
+	}
+
+	load (stream) {
+		this._globalPos = 0;
+		this._stream = stream;
+		this.position.top(0);
+		this.resize(this.size.width, this.size.height);
+	}
+
+	clear () {
+		this.removeAll();
+	}
+
+	resize (width, height) {
+		// resize
+		this.size.width = width;
+		this.size.height = height;
+		const globalRowNum = ~~((this._stream.length + 31) / 32);
+		this.globalSize.width(width);
+		this.globalSize.height(globalRowNum * this.ROW_SIZE_H);
+
+		// reallocate
+		const rows = this();
+		const localRowNum = Math.min(~~(height / this.ROW_SIZE_H), globalRowNum);
+		const diffRowNum = localRowNum - rows.length;
+		if (diffRowNum > 0) {
+			const beforeRowPos = rows.length;
+			for (let i = 0; i < diffRowNum; i += 1) {
+				this.push(new HexRow(this, beforeRowPos + i));
+			}
+		} else if (diffRowNum < 0) {
+			for (let i = 0; i < Math.abs(diffRowNum); i += 1) {
+				this.pop();
+			}
+		}
+
+		// reindex
+		this.moveRow(HexUtil.toRowPos(this._globalPos));
+	}
+
+	changed () {
+		this.moveRow(HexUtil.toRowPos(this._globalPos));
+	}
+
+	scrollY (posY) {
+		const globalRowPos = HexUtil.toRowPos(posY);
+		this.position.top(posY);
+		this.moveRow(globalRowPos);
+	}
+
+	moveRow (globalRowPos) {
+		const diffRowPos = globalRowPos - HexUtil.toRowPos(this._globalPos);
+		this._globalPos = HexUtil.toPos(globalRowPos);
+
+		// sorted rows
+		if (diffRowPos !== 0) {
+			const rows = this();
+			for (const row of rows) {
+				row.localRowPos = (row.localRowPos + rows.length - diffRowPos) % rows.length;
+			}
+			this.sort((a, b) => {
+				return a.localRowPos - b.localRowPos;
+			});
+		}
+
+		// reindex
+		for (const row of this()) {
+			row.update();
+		}
+	}
+}
+
+class HexRow {
+	constructor (rows, localRowPos) {
+		this._rows = rows;
+		this._localPos = HexUtil.toPos(localRowPos);
+		this.columns = [];
+		this.address = ko.observable('');
+		this.text = ko.observable('');
+		this.load();
+	}
+
+	get rows () {
+		return this._rows;
+	}
+
+	get localPos () {
+		return this._localPos;
+	}
+
+	get localRowPos () {
+		return HexUtil.toRowPos(this._localPos);
+	}
+
+	set localRowPos (value) {
+		this._localPos = HexUtil.toPos(value);
+	} 
+
+	hexAt (x) {
+		return this._rows.hexAt(this.toLocalPos(x));
+	}
+
+	toLocalPos (x) {
+		return (this.localRowPos * 32) + x;
+	}
+
+	toGlobalPos (x) {
+		return this._rows.toGlobalPos(this.toLocalPos(x));
+	}
+
+	load () {
+		for (let x = 0; x < 32; x += 1) {
+			this.columns.push(new HexColumn(this, x));
+		}
+		this.address(HexUtil.toAddress(this._rows.toByteOfGlobalPos(this._localPos)));
+		this.text(HexUtil.byteToStr(this._bytes()));
+	}
+
+	update () {
+		for (const column of this.columns) {
+			column.update();
+		}
+		this.address(HexUtil.toAddress(this._rows.toByteOfGlobalPos(this._localPos)));
+		this.text(HexUtil.byteToStr(this._bytes()));
+	}
+
+	_bytes () {
+		let bytes = [];
+		for (let x = 0; x < 16; x += 1) {
+			const columnH = this.columns[x * 2 + 0];
+			const columnL = this.columns[x * 2 + 1];
+			if (!columnH.available) {
+				break;
+			}
+			bytes.push((columnH.value << 4) | columnL.value);
+		}
+		return bytes;
+	}
+}
+
+class HexColumn {
+	constructor (row, posX) {
+		this._row = row;
+		this._posX = posX;
+		this._value = null;
+		this.hex = ko.observable('-');
+		this.css = {};
+		this.globalPos = ko.observable(0);
+	}
+
+	get value () {
+		return this._value;
+	}
+
+	get available () {
+		return this._value !== null;
+	}
+
+	update () {
+		const hex = this._row.hexAt(this._posX);
+		if (this.hex() !== hex) {
+			this.hex(hex);
+			this._value = hex !== '-' ? HexUtil.toByte(hex) : null;
+		}
+		// XXX
+		this.globalPos(this._row.toGlobalPos(this._posX));
 	}
 }
 
@@ -171,189 +427,5 @@ class HexUtil {
 
 	static _readByte (bytes, offset) {
 		return bytes.length > offset ? bytes[offset] : 0;
-	}
-}
-
-class HexRows {
-	constructor () {
-		// XXX
-		this.FONT_SIZE_H = 12;
-
-		this.localPos = 0;
-		this.globalPos = 0;
-		this.hexBytes = '';
-		this.position = {
-			top:  ko.observable(0)
-		};
-		// XXX
-		this.size = {
-			width: 360,
-			height: 640
-		};
-		// XXX
-		this.globalSize = {
-			width: ko.observable(360),
-			height: ko.observable(640)
-		};
-	}
-
-	static mixin (obj) {
-		const self = new HexRows();
-		for (const key in self) {
-			if (self.hasOwnProperty(key)) {
-				obj[key] = self[key];
-			}
-		}
-		// XXX
-		[
-			'load',
-			'clear',
-			'hexAt',
-			'resize',
-			'scrollY',
-			'moveRow'
-		].forEach((key) => {
-			obj[key] = self[key].bind(obj);
-		});
-		return obj;
-	}
-
-	load (hexBytes) {
-		this.position.top(0);
-		this.localPos = 0;
-		this.globalPos = 0;
-		this.hexBytes = hexBytes;
-		this.resize(this.size.width, this.size.height);
-	}
-
-	clear () {
-		this.removeAll();
-	}
-
-	hexAt (globalPos) {
-		const strPos = globalPos * 2;
-		if (strPos >= 0 && this.hexBytes.length > strPos + 1) {
-			return this.hexBytes.substr(strPos, 2).toUpperCase();
-		} else {
-			return '--';
-		}
-	}
-
-	resize (width, height) {
-		// resize
-		this.size.width = width;
-		this.size.height = height;
-		const globalRowNum = ~~((this.hexBytes.length + 31) / 32);
-		this.globalSize.width(width);
-		this.globalSize.height(globalRowNum * this.FONT_SIZE_H);
-
-		// reallocate
-		this.clear();
-		const localRowNum = ~~(height / this.FONT_SIZE_H);
-		for (let localRowPos = 0; localRowPos < localRowNum; localRowPos += 1) {
-			this.push(new HexRow(this, localRowPos));
-		}
-
-		// reindex
-		this.moveRow(HexUtil.toRowPos(this.globalPos));
-	}
-
-	scrollY (posY) {
-		const globalRowPos = HexUtil.toRowPos(posY);
-		this.position.top(posY);
-		this.moveRow(globalRowPos);
-	}
-
-	moveRow (globalRowPos) {
-		const diffRowPos = globalRowPos - HexUtil.toRowPos(this.globalPos);
-		this.globalPos = HexUtil.toPos(globalRowPos);
-
-		// sorted rows
-		if (diffRowPos !== 0) {
-			const rows = this();
-			for (const row of rows) {
-				row.localRowPos = (row.localRowPos + rows.length - diffRowPos) % rows.length;
-			}
-			this.sort((a, b) => {
-				return a.localRowPos - b.localRowPos;
-			});
-		}
-
-		// reindex
-		for (const row of this()) {
-			row.moveRow(globalRowPos);
-		}
-	}
-}
-
-class HexRow {
-	constructor (rows, localRowPos) {
-		this.rows = rows;
-		this.columns = [];
-		this.localRowPos = localRowPos;
-		this.globalRowPos = this.localRowPos;
-		this.address = ko.observable(HexUtil.toAddress(HexUtil.toPos(this.globalRowPos)));
-		this.text = ko.observable();
-		this.load();
-	}
-
-	load () {
-		for (let x = 0; x < 16; x += 1) {
-			const column = new HexColumn(this, x);
-			this.columns.push(column);
-		}
-		this.text(HexUtil.byteToStr(this._bytes()));
-	}
-
-	moveRow (globalRowPos) {
-		this.globalRowPos = globalRowPos;
-		for (const column of this.columns) {
-			column.moveRow(this.globalRowPos + this.localRowPos);
-		}
-		this.address(HexUtil.toAddress(HexUtil.toPos(this.globalRowPos + this.localRowPos)));
-		this.text(HexUtil.byteToStr(this._bytes()));
-	}
-
-	_bytes () {
-		let bytes = [];
-		for (const column of this.columns) {
-			if (!column.available()) {
-				break;
-			}
-			bytes.push(column.byte);
-		}
-		return bytes;
-	}
-}
-
-class HexColumn {
-	constructor (row, localPos) {
-		this.rows = row.rows;
-		this.row = row;
-		this.localPos = localPos;
-		this.globalPos = this.localPos;
-		this.hex = ko.observable('--');
-		this.byte = null;
-		this.css = {};
-		this.update(this.globalPos);
-	}
-
-	available () {
-		return this.byte !== null;
-	}
-
-	update (globalPos) {
-		this.globalPos = globalPos;
-		const hex = this.rows.hexAt(this.globalPos);
-		const byte = hex !== '--' ? HexUtil.toByte(hex) : null;
-		if (this.hex() !== hex) {
-			this.hex(hex);
-			this.byte = byte;
-		}
-	}
-
-	moveRow (globalRowPos) {
-		const globalPos = HexUtil.toPos(globalRowPos) + this.localPos;
-		this.update(globalPos);
 	}
 }

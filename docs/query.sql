@@ -1,0 +1,22 @@
+Q.select(
+	Post.title.as('title'),
+	Comment.as('comments')
+).from(
+	Post
+).leftJoin(
+		Q.select(
+			Comment.columns
+		).from(
+			Comment
+		).where(
+			Comment.postId.and(Person.id)
+		)
+).where(
+	Post.created.and(today);
+).groupBy(
+	Post.uid
+).orderBy(
+	Post.id
+).limit(
+	Post.perPage
+);

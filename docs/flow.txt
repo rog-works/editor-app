@@ -1,0 +1,160 @@
+
+- 限りなく正解に近い候補
+~ 未確定の候補
+^ 確定したが書式を解析中
++ 確定
+x NG
+
+< "crc(this.data.:before, this.data.:end)"
+"c":
+ - alphabet
+ - character
+ - identifer_head
+ - identifer
+ - variable
+ - operand
+ ~ expression
+ ~ function
+"cr":
+"crc":
+ - identifer
+ - variable
+ ~ operand
+ ~ expression
+ ~ function
+"<identifer|variable>(":
+ ~ operand
+ ~ expression
+ ~ function
+ "crc":
+  + identifer
+  + variable
+"<identifer|variable>(th":
+ ~ operand
+ ~ expression
+ ~ function
+ "crc":
+  + identifer
+  + variable
+ "th":
+  - identifer
+  - variable
+  ~ operand
+  ~ expression
+  ~ function
+"<identifer|variable>(this.data.:before":
+ ~ operand
+ ~ expresssion
+ ~ function
+ "crc":
+  + identifer
+  + variable
+ "this.data.:before":
+  - identifer
+  - variable
+  ~ operand
+  ~ expression
+  ~ function
+"<identifer|variable>(<identifer|variable>,":
+ ~ operand
+ ~ expresssion
+ ~ function
+ "crc":
+  + identifer
+  + variable
+ "this.data.:before":
+  + identifer
+  + variable
+"<identifer|variable>(<identifer|variable>,":
+ ~ operand
+ ~ expresssion
+ ~ function
+ "crc":
+  + identifer
+  + variable
+ "this.data.:before":
+  + identifer
+  + variable
+ ",":
+"<identifer|variable>(<identifer|variable>,<white_space>":
+ ~ operand
+ ~ expresssion
+ ~ function
+ "crc":
+  + identifer
+  + variable
+ "this.data.:before":
+  + identifer
+  + variable
+ ",":
+ " ":
+  + white_space
+"<identifer|variable>(<identifer|variable>,<white_space>this.data.:end":
+ ~ operand
+ ~ expresssion
+ ~ function
+ "crc":
+  + identifer
+  + variable
+ "this.data.:before":
+  + identifer
+  + variable
+ ",":
+ " ":
+  + white_space
+ "this.data.:end":
+  - identifer
+  - variable
+  ~ operand
+  ~ expression
+  ~ function
+"<identifer|variable>(<identifer|variable>,<white_space><identifer|variable>)":
+ ~ operand
+ ~ expresssion
+ ~ function
+ "crc":
+  + identifer
+  + variable
+ "this.data.:before":
+  + identifer
+  + variable
+ ",":
+ " ":
+  + white_space
+ "this.data.:end":
+  + identifer
+  + variable
+"<identifer|variable>(<identifer|variable>,<white_space><identifer|variable>)":
+ ~ operand
+ ~ expresssion
+ ~ function
+ "crc":
+  + identifer
+  + variable
+ "this.data.:before":
+  + identifer
+  + variable
+ ",":
+ " ":
+  + white_space
+ "this.data.:end":
+  + identifer
+  + variable
+ ")"
+"<identifer|variable>(<identifer|variable>,<white_space><identifer|variable>)$":
+ ~ operand
+ ~ expresssion
+ ~ function
+ "crc":
+  + identifer
+  + variable
+ "this.data.:before":
+  + identifer
+  + variable
+ ",":
+ " ":
+  + white_space
+ "this.data.:end":
+  + identifer
+  + variable
+ ")"
