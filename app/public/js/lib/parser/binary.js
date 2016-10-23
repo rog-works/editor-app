@@ -31,20 +31,6 @@ class Reader {
 	}
 }
 
-class Schema {
-	constructor (definition) {
-		this._definition = definition;
-	}
-
-	static create (json) {
-		return new Schema(DefinitionFactory.create('/', JSON.parse(json)));
-	}
-
-	deserialize (stream) {
-		return this._definition.deserialize(stream);
-	}
-}
-
 class DefinitionFactory {
 	static create (key, value) {
 		if (DefinitionFactory.isObject(value)) {
@@ -53,7 +39,6 @@ class DefinitionFactory {
 			return new ValueDefinition(key, value);
 		}
 	}
-
 }
 
 class Definition extends _Node {
@@ -69,11 +54,11 @@ class Definition extends _Node {
 		this._require = true;
 		this._flex = false;
 		if (typeof value === 'object') {
-			this._override(value);
+			this._update(value);
 		}
 	}
 
-	_override (data) {
+	_update (data) {
 		for (let key in data) {
 			if (key in this) {
 				this[key] = value[key];
@@ -97,7 +82,7 @@ class ObjectDefinition extends Definition {
 		super(key, value);
 		this._init(value);
 	}
-	
+
 	_init (data) {
 		for (let key in data) {
 			const value = data[key];
@@ -121,10 +106,35 @@ class ObjectDefinition extends Definition {
 class ValueDefinition extends Definition {
 	constructor (key, value) {
 		super(key, value);
-		this._expression = new Expression(value);
+		this._expression = null;
+		this._init(value);
+	}
+	
+	_init (value) {
+		if (typeof value === 'object') {
+			this._expression = 
+		}
+	}
+
+	get context () {
+		return {
+			root: this.root,
+			parent: this.parent,
+			this: this
+		};
+	}
+
+	_exec (context, expression, stream) {
+		return Script.create()
+			.bind({
+				context: context,
+				stream: stream
+			})
+			.run(expression);
 	}
 
 	deserialize (stream) {
+		// XXX
 		const actual = this._exec(this._context, this._expression, stream);
 	}
 }

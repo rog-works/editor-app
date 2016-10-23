@@ -2,10 +2,10 @@
 	"$": {
 		"signature": {
 			"_length": 8,
-			"_before": "0x00000000",
+			"_begin": "0x00000000",
 			"_end": "0x00000007",
 			"_type": "byte[this._length]",
-			"_pattern": [
+			"_expected": [
 				"0x89", "0x50", "0x4e", "0x47",
 				"0x0d", "0x0a", "0x1a", "0x0a"	
 			],
@@ -16,7 +16,7 @@
 		},
 		"ihdr": {
 			"length": {
-				"_pattern": "0x0000000D"
+				"_expected": "0x0000000D"
 			},
 			"data": {
 				"type": "'IHDR'",
@@ -33,15 +33,15 @@
 		"plte": {
 			"length": "int",
 			"type": "'PLTE'",
-			"bytes": "byte[parent.length][3]",
+			"data": "byte[parent.length][3]",
 			"crc": "as($crc)",
 			"_require": false
 		},
 		"idat": {
 			"length": "int",
 			"type": "'IDAT'",
-			"bytes": "byte[parent.length]",
-			"crc": "$crc"
+			"data": "byte[parent.length]",
+			"crc": "as($crc)"
 		},
 		"iend": {
 			"length": "0x00000000",
@@ -51,6 +51,6 @@
 	},
 	"$crc": {
 		"_type": "int",
-		"_strategy": "crc(this.data._before, this.data._end)"
+		"_strategy": "crc(parent.data._begin, parent.data._end)"
 	}
 }
