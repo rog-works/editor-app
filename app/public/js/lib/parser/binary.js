@@ -32,8 +32,8 @@ class Reader {
 }
 
 class Schema {
-	constructor (defenition) {
-		this._definition = defenition;
+	constructor (definition) {
+		this._definition = definition;
 	}
 
 	static create (json) {
@@ -42,10 +42,6 @@ class Schema {
 
 	deserialize (stream) {
 		return this._definition.deserialize(stream);
-	}
-
-	tree () {
-		return [];
 	}
 }
 
@@ -58,13 +54,6 @@ class DefinitionFactory {
 		}
 	}
 
-	static isObject (value) {
-		if (typeof value === 'object') {
-			return Object.keys(value).filter((key) => { return /^[^_]/.test(key); }).length > 0;
-		} else {
-			return false;
-		}
-	}
 }
 
 class Definition extends _Node {
@@ -93,17 +82,49 @@ class Definition extends _Node {
 			}
 		}
 	}
+
+	static isObject (value) {
+		if (typeof value === 'object') {
+			return Object.keys(value).filter(key => /^[^_]/.test(key)).length > 0;
+		} else {
+			return false;
+		}
+	}
 }
 
 class ObjectDefinition extends Definition {
 	constructor (key, value) {
 		super(key, value);
-		Object.keys(value).filter()
+		this._init(value);
+	}
+	
+	_init (data) {
+		for (let key in data) {
+			const value = data[key];
+			if (Definition.isObject(value)) {
+				this.add(new ObjectDefinition(key, value));
+			} else {
+				this.add(new ValueDefinition(key, value));
+			}
+		}
 	}
 
 	deserialize (stream) {
+		const data = {};
 		for(const child of this) {
-			child.value();
+			data[child.name] = child.deserialize(stream);
 		}
+		return data;
+	}
+}
+
+class ValueDefinition extends Definition {
+	constructor (key, value) {
+		super(key, value);
+		this._expression = new Expression(value);
+	}
+
+	deserialize (stream) {
+		const actual = this._exec(this._context, this._expression, stream);
 	}
 }
