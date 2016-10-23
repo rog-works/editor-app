@@ -44,12 +44,12 @@ class DefinitionFactory {
 class Definition extends _Node {
 	constructor (key, value) {
 		super(key);
-		this._length = -1;
-		this._before = 0;
-		this._end = 0;
-		this._type = '';
-		this._pattern = null;
-		this._strategy = 'read(this._before, this._end)';
+		this._length = null;
+		this._begin = null;
+		this._end = null;
+		this._type = null;
+		this._expected = null;
+		this._strategy = 'read(this._begin, this._end)';
 		this._description = '';
 		this._require = true;
 		this._flex = false;
@@ -63,9 +63,30 @@ class Definition extends _Node {
 			if (key in this) {
 				this[key] = value[key];
 			} else {
-				throw new Error(`Unexpected definition key ${key}`);
+				throw new Error(`Unexpected definition key. ${key}`);
 			}
 		}
+	}
+
+	get context () {
+		return {
+			root: this.root,
+			parent: this.parent,
+			this: this
+		};
+	}
+
+	calcPrev () {
+		if (this.parent === null) {
+			return null;
+		}
+		const index = this.parent.indexOf(this.name);
+		return index === 0 ? this.parent : this.parent[index - 1];
+	}
+
+	calcBegin () {
+		const prev = this.calcPrev();
+		return prev === null ? 0 : prev.begin + prev._length;
 	}
 
 	static isObject (value) {
@@ -103,28 +124,48 @@ class ObjectDefinition extends Definition {
 	}
 }
 
+class IntDefinition extends Definition {
+	deserialize (stream) {
+		stream.seek('begin', this._begin);
+		return stream.readInt();
+	}
+}
+
+class StringDefinition extends Definition {
+	deserialize (stream) {
+		stream.seek('begin', this._begin);
+		return HexUtil.byteToStrUTF8(stream.read(this._length));
+	}
+}
+
+class ArrayDefinition extends Definition {
+	deserialize (stream) {
+		stream.seek('begin', this._begin);
+		return stream.read(this._length);
+	}
+}
+
 class ValueDefinition extends Definition {
 	constructor (key, value) {
 		super(key, value);
-		this._expression = null;
 		this._init(value);
 	}
 	
 	_init (value) {
 		if (typeof value === 'object') {
-			this._expression = 
+			// FIXME
+			this._expression = null;
+		} else if (typeof value === 'string') {
+			const expression = new Expression(value);
+			if (expression instanceof CallExpression) {
+				expression.callee
+			}
+		} else {
+			throw new Error(`Unexpected value type. '${typeof value}'`);
 		}
 	}
 
-	get context () {
-		return {
-			root: this.root,
-			parent: this.parent,
-			this: this
-		};
-	}
-
-	_exec (context, expression, stream) {
+	_exec (context, expression) {
 		return Script.create()
 			.bind({
 				context: context,
@@ -133,8 +174,12 @@ class ValueDefinition extends Definition {
 			.run(expression);
 	}
 
+	calcActual (stream) {
+		stream.seek('begin', this.begin)
+		return stream.read(this.length);
+	}
+
 	deserialize (stream) {
-		// XXX
-		const actual = this._exec(this._context, this._expression, stream);
+		return this.calcActual(stream);
 	}
 }
