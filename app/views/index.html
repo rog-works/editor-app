@@ -99,8 +99,11 @@
 				<div class="bc1 wh1 table" data-bind="css: console.display, click: focus.bind($data, 'console')">
 					<i class="cell center fa fa-info" data-bind="css: console.icon"></i>
 				</div>
-				<div class="bc1 wh1 table" data-bind="css: hex.display, click: focus.bind($data, 'hex')">
+				<div class="bc1 wh1 table bottom-line" data-bind="css: hex.display, click: focus.bind($data, 'hex')">
 					<i class="cell center fa fa-table" data-bind="css: hex.icon"></i>
+				</div>
+				<div class="bc1 wh1 table" data-bind="css: { close: editor.display.active() === false }, click: editor.save.bind($data.editor)">
+					<i class="cell center fa fa-save"></i>
 				</div>
 				<div class="bc1 wh1 table" data-bind="click: test">
 					<i class="cell center fa fa-info"></i>

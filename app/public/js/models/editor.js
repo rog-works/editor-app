@@ -104,6 +104,7 @@ class Editor extends Page {
 			html: {mode: 'html', tabs: 4, softTabs: false},
 			json: {mode: 'json', tabs: 4, softTabs: false},
 			js: {mode: 'javascript', tabs: 4, softTabs: false},
+			ts: {mode: 'typescript', tabs: 4, softTabs: false},
 			rb: {mode: 'ruby', tabs: 2, softTabs: true},
 			yml: {mode: 'yaml', tabs: 2, softTabs: true},
 			yaml: {mode: 'yaml', tabs: 2, softTabs: true}

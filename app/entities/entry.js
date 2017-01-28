@@ -149,7 +149,7 @@ class Entry {
 	 * @return string Hex string
 	 */
 	static _toHex (content) {
-		return Buffer(content).toString('hex');
+		return new Buffer(content).toString('hex');
 	}
 
 	/**
@@ -161,7 +161,7 @@ class Entry {
 		// equal file name
 		const names = [
 			'Vagrantfile',
-			'Dokerfile'
+			'Dockerfile'
 		];
 		if(names.indexOf(name) !== -1) {
 			return true;
@@ -170,6 +170,9 @@ class Entry {
 		return [
 			// script
 			'.js',
+			'.jsx',
+			'.ts',
+			'.tsx',
 			'.php',
 			'.rb',
 			'.py',
@@ -181,8 +184,11 @@ class Entry {
 			// data
 			'.css',
 			'.yml',
+			'.yaml',
 			'.json',
 			'.conf',
+			'.cnf',
+			'.sql',
 			'.log'
 		].indexOf(Path.extname(name)) !== -1;
 	}
