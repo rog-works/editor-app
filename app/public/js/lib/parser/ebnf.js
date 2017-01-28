@@ -16,17 +16,29 @@ class _Node extends Array {
 	}
 
 	get path () {
-		if (this._parent !== null) {
-			return Path.join(this._parent.path, this._path);
+		if (this.parent !== null) {
+			return Path.join(this.parent.path, this._path);
 		} else {
 			return this._path;
 		}
 	}
 
+	get parent () {
+		return this._parent;
+	}
+
+	get root () {
+		let curr = this;
+		while (curr.parent !== null) {
+			curr = curr.parent;
+		}
+		return curr;
+	}
+
 	get size () {
 		let num = 0;
 		for (const child of this) {
-			num += child.size();
+			num += child.size;
 		}
 		return num;
 	}
@@ -37,7 +49,7 @@ class _Node extends Array {
 		for (const child of this) {
 			// XXX
 			if (name === '..') {
-				return this._parent;
+				return this.parent;
 			}
 			if (child.name !== name) {
 				continue;
@@ -59,7 +71,7 @@ class _Node extends Array {
 	remove (rel) {
 		const node = this.at(rel);
 		if (node !== null) {
-			node._parent.removeAt(node);
+			node.parent.removeAt(node);
 		}
 	}
 
