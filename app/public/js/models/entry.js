@@ -35,8 +35,17 @@ class Entry extends Page {
 				}
 				this.entries.push(new EntryAdd());
 				this.addNodes(this.entries());
+				this.closeAll();
 				this._transition(this.STATE_RUN);
 			});
+	}
+	
+	closeAll () {
+		for (const entry of this.entries()) {
+			if (entry instanceof EntryDirectory) {
+				entry.click(); // XXX rename
+			}
+		}
 	}
 
 	at (path) {
