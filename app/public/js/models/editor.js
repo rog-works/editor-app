@@ -76,6 +76,17 @@ class Editor extends Page {
 			this._transition(this.STATE_MODIFIED);
 		}
 	}
+	
+	cursor (key) {
+		switch (key) {
+		case 'left':
+			this._editor().navigateLeft(1);
+			break;
+		case 'right':
+			this._editor().navigateRight(1);
+			break;
+		}
+	}
 
 	beforeLoad () {
 		this._transition(this.STATE_LOADING);

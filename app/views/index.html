@@ -46,7 +46,7 @@
 					<span class="fill-w h1"></span>
 					<i class="wh1 cell center fa fa-remove" data-bind="click: weblog.clear.bind($data.weblog)"></i>
 				</div>
-				<div class="fill-w h90 scroll hide-scroll" data-bind="foreach: weblog.logs, wsEvent: { message: weblog.message.bind($data.weblog) }">
+				<div class="fill-w h90 scroll hide-scroll" data-bind="foreach: weblog.log">
 					<pre class="font-s75 space-less" data-bind="text: $data.log, css: $data.css, click: $data.expand"></pre>
 				</div>
 			</div>
@@ -105,8 +105,14 @@
 				<div class="bc1 wh1 table" data-bind="css: { close: editor.display.active() === false }, click: editor.save.bind($data.editor)">
 					<i class="cell center fa fa-save"></i>
 				</div>
-				<div class="bc1 wh1 table" data-bind="click: test">
-					<i class="cell center fa fa-info"></i>
+				<!--<div class="bc1 wh1 table" data-bind="click: test">-->
+				<!--	<i class="cell center fa fa-info"></i>-->
+				<!--</div>-->
+				<div class="bc1 wh1 table" data-bind="click: editor.cursor.bind($data.editor, 'left')">
+					<i class="cell center fa fa-caret-left"></i>
+				</div>
+				<div class="bc1 wh1 table" data-bind="click: editor.cursor.bind($data.editor, 'right')">
+					<i class="cell center fa fa-caret-right"></i>
 				</div>
 			</div>
 			<!-- dialog -->

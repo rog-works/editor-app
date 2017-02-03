@@ -65,7 +65,7 @@ class FileProvider {
 	 * @param string content File content
 	 * @throws no such file or directory
 	 */
-	static create (path, content = '') {
+	static create (path, content = 'empty') {
 		return new Promise((resolve, reject) => {
 			const dir = Path.dirname(path);
 			FileProvider.mkdir(dir).then(() => {
