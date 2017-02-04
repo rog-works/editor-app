@@ -36,8 +36,10 @@
 						<option data-bind="value: $data">
 					</datalist>
 				</div>
-				<div class="fill-w h90 scroll hide-scroll" data-bind="foreach: shell.logs, wsEvent: { message: shell.message.bind($data.shell) }">
-					<pre class="font-s75 space-less" data-bind="text: $data.log, css: $data.css, click: $data.expand"></pre>
+				<div data-bind="with: shell">
+					<div class="fill-w h90 scroll hide-scroll" data-bind="foreach: logs, wsEvent: { message: message }">
+						<pre class="font-s75 space-less" data-bind="text: $data.log, css: $data.css, click: $data.expand"></pre>
+					</div>
 				</div>
 			</div>
 			<!-- weblog -->
@@ -46,8 +48,10 @@
 					<span class="fill-w h1"></span>
 					<i class="wh1 cell center fa fa-remove" data-bind="click: weblog.clear.bind($data.weblog)"></i>
 				</div>
-				<div class="fill-w h90 scroll hide-scroll" data-bind="foreach: weblog.log">
-					<pre class="font-s75 space-less" data-bind="text: $data.log, css: $data.css, click: $data.expand"></pre>
+				<div data-bind="with: weblog">
+					<div class="fill-w h90 scroll hide-scroll" data-bind="foreach: logs, wsEvent: { message: message }">
+						<pre class="font-s75 space-less" data-bind="text: $data.log, css: $data.css, click: $data.expand"></pre>
+					</div>
 				</div>
 			</div>
 			<!-- console -->

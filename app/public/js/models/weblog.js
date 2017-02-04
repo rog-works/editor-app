@@ -10,7 +10,6 @@ class Weblog extends Page {
 	static init (id = 'page-weblog') {
 		const self = new Weblog();
 		// ko.applyBindings(self, document.getElementById(id));
-		APP.ws.on('message', self.message.bind(self));
 		return self;
 	}
 
@@ -19,11 +18,11 @@ class Weblog extends Page {
 	}
 
 	message (event) {
-		console.log('aaaa', event);
 		const [tag, data] = event;
-		//if (tag === 'editor.webpack-log') {
+		// if (tag === 'editor.access-log') {
+		if (tag === 'editor.webpack-log') {
 			return this._log(data);
-		//}
+		}
 		return true;
 	}
 
