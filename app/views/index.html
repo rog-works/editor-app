@@ -50,7 +50,7 @@
 				</div>
 				<div data-bind="with: weblog">
 					<div class="fill-w h90 scroll hide-scroll" data-bind="foreach: logs, wsEvent: { message: message }">
-						<pre class="font-s75 space-less" data-bind="text: $data.log, css: $data.css, click: $data.expand"></pre>
+						<pre class="font-s75 space-less" data-bind="html: $data.log, css: $data.css, click: $data.expand"></pre>
 					</div>
 				</div>
 			</div>

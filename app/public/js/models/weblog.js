@@ -37,6 +37,19 @@ class Weblog extends Page {
 			line += delimiter + msg[key];
 			delimiter = ' ';
 		}
+		return this._colorize(line);
+	}
+	
+	_colorize (line) {
+		line = line.replace(/\s?\/nodered-webpack\s?/, '');
+		line = line.replace(/\s?stdout\s?/, '');
+		line = line.replace(/[\w\d]{64}/, '');
+		line = line.split('[31m').join('<span style="color:#f00">');
+		line = line.split('[32m').join('<span style="color:#0f0">');
+		line = line.split('[33m').join('<span style="color:#ff0">');
+		line = line.split('[1m').join('<span style="font-weight:bold">');
+		line = line.split('[22m').join('</span>');
+		line = line.split('[39m').join('</span>');
 		return line;
 	}
 }
