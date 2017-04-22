@@ -42,6 +42,7 @@ class Weblog extends Page {
 	
 	_colorize (line) {
 		line = line.replace(/\s?\/nodered-webpack\s?/, '');
+		line = line.replace(/\s?\/editor-webpack\s?/, '');
 		line = line.replace(/\s?stdout\s?/, '');
 		line = line.replace(/[\w\d]{64}/, '');
 		line = line.split('[31m').join('<span style="color:#f00">');

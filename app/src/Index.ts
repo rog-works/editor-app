@@ -1,5 +1,6 @@
 import CSV from './helpers/CSV';
 import File from './io/File';
+import Process from './io/Process';
 
 class Test {
 	constructor(
@@ -16,3 +17,4 @@ class Test {
 console.log(CSV.stringify(new Test));
 console.log(__dirname, process.cwd());
 console.log(File.exists(__dirname + '/src/Index.ts'));
+console.log(new Process);

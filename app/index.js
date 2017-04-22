@@ -3602,6 +3602,7 @@ if (typeof Object.create === 'function') {
 Object.defineProperty(exports, "__esModule", { value: true });
 const CSV_1 = __webpack_require__(11);
 const File_1 = __webpack_require__(12);
+const Process_1 = __webpack_require__(24);
 class Test {
     constructor(_hoge = 0, _fuga = 'piyo') {
         this._hoge = _hoge;
@@ -3617,6 +3618,7 @@ class Test {
 console.log(CSV_1.default.stringify(new Test));
 console.log(__dirname, process.cwd());
 console.log(File_1.default.exists(__dirname + '/src/Index.ts'));
+console.log(new Process_1.default);
 
 
 /***/ }),
@@ -3630,6 +3632,66 @@ module.exports = require("child_process");
 /***/ (function(module, exports) {
 
 module.exports = require("events");
+
+/***/ }),
+/* 24 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", { value: true });
+const child_process_1 = __webpack_require__(22);
+class ProcessProvider {
+    constructor(_command, _args = [], _options = {}, _handlers = {}) {
+        this._command = _command;
+        this._args = _args;
+        this._options = _options;
+        this._handlers = _handlers;
+        this._handlers = {
+            // stdin: this.stdin,
+            stdout: this._stdout,
+            stderr: this._stderr
+        };
+    }
+    add(arg, available = true) {
+        if (available) {
+            if (Array.isArray(arg)) {
+                for (const a of arg) {
+                    this._args.push(a);
+                }
+            }
+            else {
+                this._args.push(arg);
+            }
+        }
+        return this;
+    }
+    option(options) {
+        this._options = options;
+        return this;
+    }
+    on(tag, handler) {
+        this._handlers[tag] = handler;
+        return this;
+    }
+    _stdout(data) {
+        console.log(data);
+    }
+    _stderr(data) {
+        console.log(data);
+    }
+    run() {
+        console.log('executed', this._command, this._args);
+        const query = `${this._command} ${this._args.join(' ')}`;
+        const child = child_process_1.exec(query, this._options);
+        child.stdout.on('data', this._handlers.stdout);
+        child.stderr.on('data', this._handlers.stderr);
+        return true;
+    }
+}
+exports.default = ProcessProvider;
+module.exports = ProcessProvider;
+
 
 /***/ })
 /******/ ]);
