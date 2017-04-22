@@ -4,7 +4,7 @@ module.exports = {
 	entry: `${__dirname}/src/Index.ts`,
 	output: {
 		path: `${__dirname}/`,
-		filename: 'index.js'
+		filename: 'bundle.js'
 	},
 	resolve: {
 		extensions: ['.ts', '.js']
