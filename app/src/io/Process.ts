@@ -1,6 +1,6 @@
 import {exec} from 'child_process';
 
-export default class ProcessProvider {
+export default class Process {
 	public constructor(
 		private _command: string,
 		private _args: string[] = [],
@@ -54,5 +54,3 @@ export default class ProcessProvider {
 		return true;
 	}
 }
-
-module.exports = ProcessProvider;
