@@ -38,19 +38,18 @@ export default class Process {
 	}
 
 	private _stdout(data: any): void {
-		console.log(data);
+		console.log('TRACE', data);
 	}
 
 	private _stderr(data: any): void {
-		console.log(data);
+		console.log('TRACE', data);
 	}
 
-	public run(): boolean {
-		console.log('executed', this._command, this._args);
+	public run(): void {
+		console.log('TRACE', 'Executed command', this._command, this._args);
 		const query = `${this._command} ${this._args.join(' ')}`;
 		const child = exec(query, this._options);
 		child.stdout.on('data', this._handlers.stdout);
 		child.stderr.on('data', this._handlers.stderr);
-		return true;
 	}
 }

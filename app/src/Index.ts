@@ -1,22 +1,3 @@
-import CSV from './helpers/CSV';
-import Render from './helpers/Render';
-import File from './io/File';
-import Process from './io/Process';
+import Application from './applications/Application';
 
-class Test {
-	constructor(
-		private _hoge: number = 0,
-		private _fuga: string = 'piyo'
-	) {}
-	get hoge(): number {
-		return this._hoge;
-	}
-	set hoge(value: number) {
-		this._hoge = value;
-	}
-}
-console.log(CSV.stringify(new Test));
-console.log(Render.hoge());
-console.log(__dirname, process.cwd());
-console.log(File.exists(__dirname + '/src/Index.ts'));
-console.log(new Process('ls'));
+Application.listen(process.env.PORT);

@@ -1,5 +1,18 @@
 const webpack = require('webpack');
 
+function externalModules() {
+	const fs = require('fs');
+	const modules = {};
+	fs.readdirSync('node_modules')
+		.filter(function(dir) {
+			return ['.bin'].indexOf(dir) === -1;
+		})
+		.forEach((name) => {
+			modules[name] = 'commonjs ' + name;
+		});
+	return modules;
+}
+
 module.exports = {
 	entry: `${__dirname}/src/Index.ts`,
 	output: {
@@ -18,7 +31,8 @@ module.exports = {
 		rules: [
 			{
 				test: /\.ts$/,
-				use: 'ts-loader'
+				use: 'ts-loader',
+				exclude: /node_modules/
 			},
 			{
 				test: /\.html$/,
@@ -32,5 +46,6 @@ module.exports = {
 	watchOptions: {
 		poll: 500
 	},
-	devtool: 'source-map'
+	devtool: 'source-map',
+	externals: externalModules()
 };
