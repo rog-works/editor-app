@@ -11,7 +11,7 @@ export default class Application {
 	public static readonly PUBLIC_ROOT_PATH = '/opt/app/app/app/public';
 	public static readonly ACCESS_LOG_PATH = '/var/log/app/editor.log';
 
-	public constructor (
+	private constructor (
 		private _app = Express()
 	) {}
 

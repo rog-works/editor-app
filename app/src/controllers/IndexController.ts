@@ -10,7 +10,8 @@ export default class IndexController extends Controller {
 		this._res.sendFile('/opt/app/app/app/views/index2.html');
 	}
 
-	routes () {
+	// @override
+	public static routes () {
 		return [
 			Route.get('/').on('index'),
 			Route.get('/2').on('index2')

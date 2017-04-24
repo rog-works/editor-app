@@ -29,11 +29,13 @@ export default class EntryController extends Controller {
 		this.view(Entity.rename(path, to));
 	}
 
+	// @override
 	public keys(): string[] {
 		return Entity.keys();
 	}
 
-	public routes(): Route[] {
+	// @override
+	public static routes(): Route[] {
 		return [
 			Route.get('/')
 				.query('dir')

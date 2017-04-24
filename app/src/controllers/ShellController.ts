@@ -11,7 +11,8 @@ export default class ShellController extends Controller {
 		this.view(true);
 	}
 
-	public routes(): Route[] {
+	// @override
+	public static routes(): Route[] {
 		return [
 			Route.post('/')
 				.body('query')
