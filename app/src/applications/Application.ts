@@ -43,9 +43,9 @@ export default class Application {
 
 	private _bind(): void {
 		// FIXME 
-		this._app.use('/', Router.bind(<any>IndexController, IndexController.routes()));
-		this._app.use('/entry', Router.bind(<any>EntryController, EntryController.routes()));
-		this._app.use('/shell', Router.bind(<any>ShellController, ShellController.routes()));
+		this._app.use('/', Router.bind(IndexController));
+		this._app.use('/entry', Router.bind(EntryController));
+		this._app.use('/shell', Router.bind(ShellController));
 	}
 
 	public static listen(port: number): void {

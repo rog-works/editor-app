@@ -3,7 +3,7 @@ import Render from '../helpers/Render';
 import Projector from '../helpers/Projector';
 import Route from './Route';
 
-export interface ControllerConstructor extends ObjectConstructor {
+export interface ControllerConstructor {
 	new (_req: Request, _res: Response): Controller
 }
 

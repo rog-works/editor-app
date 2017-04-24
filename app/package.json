@@ -6,14 +6,6 @@
     "build": "node node_modules/webpack/bin/webpack.js --progress --colors --display-error-details --watch"
   },
   "dependencies": {
-    "crypto-js": "*",
-		"express": "4.14.0",
-		"morgan": "1.7.0",
-		"body-parser": "1.15.1",
-		"socket.io": "1.4.8",
-		"glob": "7.0.5"
-  },
-  "devDependencies": {
     "raw-loader": "*",
     "ts-loader": "*",
     "typescript": "*",
