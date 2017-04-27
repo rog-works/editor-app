@@ -1,12 +1,13 @@
 import * as Express from 'express';
 import {default as Controller, ControllerConstructor} from './Controller';
 import Route from './Route';
+import IndexController from '../controllers/IndexController';
 
 export default class Router {
 	public static bind(construct: ControllerConstructor): Express.RequestHandler {
 		const router = Express.Router();
 		for (const route of (<any>construct).routes()) { // XXX any
-			if (router.hasOwnProperty(route.method)) {
+			if (route.method in router) {
 				(<any>router)[route.method](route.path, (req: Express.Request, res: Express.Response) => {
 					this._dispatch(new construct(req, res), this._parseArgs(route.args, req), route);
 				});
@@ -16,7 +17,7 @@ export default class Router {
 	}
 
 	public static _dispatch(controller: Controller, args: any, route: Route) {
-		if (controller.hasOwnProperty(route.on)) {
+		if (route.on in controller) {
 			console.log('INFO', 'Dispache handler.', route.on, args);
 			(<any>controller)[route.on](...args);
 		} else {

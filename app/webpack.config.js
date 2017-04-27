@@ -1,16 +1,15 @@
 const webpack = require('webpack');
 
 function externalModules() {
-	const fs = require('fs');
-	const modules = {};
-	fs.readdirSync('node_modules')
-		.filter(function(dir) {
-			return ['.bin'].indexOf(dir) === -1;
-		})
-		.forEach((name) => {
-			modules[name] = 'commonjs ' + name;
-		});
-	return modules;
+	return {
+		'express': 'commonjs express',
+		'morgan': 'commonjs morgan',
+		'body-parser': 'commonjs body-parser',
+		'glob': 'commonjs glob',
+		'crypto-js': 'commonjs crypto-js',
+		'socket.io': 'commonjs socket.io',
+		'node': 'commonjs node'
+	}
 }
 
 module.exports = {

@@ -1,4 +1,4 @@
-import EntryDAO from '../io/EntryDAO';
+import Storage from '../io/Storage';
 import * as Path from 'path';
 
 export default class Entry {
@@ -28,7 +28,7 @@ export default class Entry {
 
 	public static entries(relDirPath: string = ''): Entry[] {
 		const realDirPath = this._toRealPath(relDirPath);
-		return EntryDAO.entries(realDirPath, false)
+		return Storage.entries(realDirPath, false)
 			.map((entity) => {
 				const relPath = this._toRelativePath(entity);
 				const isFile = this._isFile(entity);
@@ -40,39 +40,39 @@ export default class Entry {
 		const realPath = this._toRealPath(relPath);
 		const isFile = this._isFile(realPath);
 		if (isFile) {
-			return new this(realPath, isFile, EntryDAO.at(realPath));
+			return new this(realPath, isFile, Storage.at(realPath));
 		} else {
 			return new this(realPath, isFile, '');
 		}
 	}
 
 	public static create(relPath: string): void {
-		EntryDAO.create(this._toRealPath(relPath));
+		Storage.create(this._toRealPath(relPath));
 	}
 
 	public static update(relPath: string, content: string): void {
 		const realPath = this._toRealPath(relPath);
-		EntryDAO.update(realPath, content);
+		Storage.update(realPath, content);
 	}
 
 	public static rename(relPath: string, relToPath: string): void {
-		EntryDAO.rename(this._toRealPath(relPath), this._toRealPath(relToPath));
+		Storage.rename(this._toRealPath(relPath), this._toRealPath(relToPath));
 	}
 
 	public static destroy(relPath: string): void {
-		EntryDAO.remove(this._toRealPath(relPath));
+		Storage.remove(this._toRealPath(relPath));
 	}
 
 	public static _isFile(realPath: string): boolean {
-		return EntryDAO.isFile(realPath);
+		return Storage.isFile(realPath);
 	}
 
 	public static _toRealPath(relPath: string): string {
-		return `${EntryDAO.rootDir()}${relPath}`;
+		return `${Storage.rootDir()}${relPath}`;
 	}
 
 	public static _toRelativePath(realPath: string): string {
-		return realPath.substr(EntryDAO.rootDir().length); // XXX inaccuracy
+		return realPath.substr(Storage.rootDir().length); // XXX inaccuracy
 	}
 
 	public static _toHex(content: string): Buffer {
