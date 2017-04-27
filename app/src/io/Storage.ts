@@ -3,7 +3,7 @@ import * as Path from 'path';
 import * as glob from 'glob';
 import {execSync} from 'child_process';
 
-export default class EntryDAO {
+export default class Storage {
 	public static entries(directory: string, nameOnly: boolean = true): string[] {
 		const options: glob.IOptions = {
 			ignore: [
