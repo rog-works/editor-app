@@ -1,10 +1,25 @@
 import * as fs from 'fs';
 import * as Path from 'path';
 import * as glob from 'glob';
-import {execSync} from 'child_process';
+import {exec} from 'child_process';
 
 export default class Storage {
-	public static entries(directory: string, nameOnly: boolean = true): string[] {
+	private static _async<T>(func: Function, ...args: any[]): Promise<T> {
+		return new Promise((resolve, reject) => {
+			const callback = (error: Error, result: T) => {
+				if (error) {
+					console.error('ERROR', error);
+					reject(error);
+				} else {
+					resolve(result);
+				}
+			};
+			args.push(callback);
+			func(...args);
+		});
+	}
+
+	public static async entries(directory: string, nameOnly: boolean = true): Promise<string[]> {
 		const options: glob.IOptions = {
 			ignore: [
 				directory,
@@ -13,70 +28,40 @@ export default class Storage {
 			nosort: true,
 			mark: true
 		};
-		try {
-			let entries = glob.sync(Path.join(directory, '**'), options);
-			entries.sort(this._sort);
-			if (nameOnly) {
-				entries = entries.map(self => Path.basename(self));
-			}
-			return entries;
-		} catch (error) {
-			console.error('ERROR', error);
-			throw error;
+		let entries = await this._async<string[]>(glob, Path.join(directory, '**'), options);
+		entries.sort(this._sort.bind(this));
+		if (nameOnly) {
+			entries = entries.map(self => Path.basename(self));
 		}
+		return entries;
 	}
 
 	public static rootDir(): string {
 		return process.cwd();
 	}
 
-	public static at(path: string): string {
-		try {
-			return fs.readFileSync(path, 'utf8');
-		} catch (error) {
-			console.error('ERROR', error);
-			throw error;
-		}
+	public static async at(path: string): Promise<string> {
+		return await this._async<string>(fs.readFile, path, 'utf8');
 	}
 
-	public static create(path: string, content: string = 'empty'): void {
-		try {
-			this.mkdir(Path.dirname(path));
-			fs.writeFileSync(path, content, 'utf8');
-		} catch (error) {
-			console.error('ERROR', error);
-			throw error;
-		}
+	public static async create(path: string, content: string = 'empty'): Promise<void> {
+		this.mkdir(Path.dirname(path));
+		await this._async<void>(fs.writeFile, path, content, 'utf8');
 	}
 
-	public static update(path: string, content: string): void {
-		try {
-			fs.writeFileSync(path, content, 'utf8');
-		} catch (error) {
-			console.error('ERROR', error);
-			throw error;
-		}
+	public static async update(path: string, content: string): Promise<void> {
+		await this._async<void>(fs.writeFile, path, content, 'utf8');
 	}
 
-	public static rename(path: string, to: string): void {
-		try {
-			fs.rename(path, to);
-		} catch (error) {
-			console.error('ERROR', error);
-			throw error;
-		}
+	public static async rename(path: string, to: string): Promise<void> {
+		await this._async<void>(fs.rename, path, to);
 	}
 
-	public static remove(path: string): void {
-		try {
-			if (this.isFile(path)) {
-				fs.unlinkSync(path);
-			} else {
-				fs.rmdirSync(path);
-			}
-		} catch (error) {
-			console.error('ERROR', error);
-			throw error;
+	public static async remove(path: string): Promise<void> {
+		if (this.isFile(path)) {
+			await this._async<void>(fs.unlink, path);
+		} else {
+			await this._async<void>(fs.rmdir, path);
 		}
 	}
 
@@ -84,22 +69,12 @@ export default class Storage {
 		return !path.endsWith('/');
 	}
 
-	public static exists(path: string): boolean {
-		try {
-			return fs.statSync(path) !== null;
-		} catch (error) {
-			console.error('ERROR', error);
-			throw error;
-		}
+	public static async exists(path: string): Promise<boolean> {
+		return (await this._async<boolean>(fs.stat, path)) !== null;
 	}
 
-	public static mkdir(path: string): void {
-		try {
-			execSync(`mkdir -p ${path}`); // XXX exec...
-		} catch (error) {
-			console.error('ERROR', error);
-			throw error;
-		}
+	public static async mkdir(path: string): Promise<void> {
+		await this._async<void>(exec, `mkdir -p ${path}`); // XXX exec...
 	}
 
 	public static _sort(a: string, b: string): number {

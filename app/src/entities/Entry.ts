@@ -26,9 +26,9 @@ export default class Entry {
 		return ['path', 'isFile', 'isText', 'content'];
 	}
 
-	public static entries(relDirPath: string = ''): Entry[] {
+	public static async entries(relDirPath: string = ''): Promise<Entry[]> {
 		const realDirPath = this._toRealPath(relDirPath);
-		return Storage.entries(realDirPath, false)
+		return (await Storage.entries(realDirPath, false))
 			.map((entity) => {
 				const relPath = this._toRelativePath(entity);
 				const isFile = this._isFile(entity);
@@ -36,11 +36,11 @@ export default class Entry {
 			});
 	}
 
-	public static at(relPath: string): Entry {
+	public static async at(relPath: string): Promise<Entry> {
 		const realPath = this._toRealPath(relPath);
 		const isFile = this._isFile(realPath);
 		if (isFile) {
-			return new this(realPath, isFile, Storage.at(realPath));
+			return new this(realPath, isFile, await Storage.at(realPath));
 		} else {
 			return new this(realPath, isFile, '');
 		}

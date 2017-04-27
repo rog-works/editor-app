@@ -1,13 +1,13 @@
 import * as fs from 'fs';
 import Process from '../io/Process';
-import EntryDAO from '../io/EntryDAO';
+import Storage from '../io/Storage';
 
 export default class Shell {
 	private static readonly LOG_PATH = '/var/log/app/editor-shell.log'; // XXX fix
 
 	public constructor(
 		private _stdout: fs.WriteStream = fs.createWriteStream(Shell.LOG_PATH),
-		private _options: any = { cwd: EntryDAO.rootDir } // XXX any
+		private _options: any = { cwd: Storage.rootDir } // XXX any
 	) {}
 
 	public run(command: string, args: string[], _options: any = {}): void {
