@@ -1,9 +1,25 @@
 import Debugger from './V8Debugger';
 
-type RequestTypes = 'continue' | 'frame';
+type RequestTypes = 'continue' | 'frame' | 'scripts' | 'source' | 'backtrace' | 'setexceptionbreak' | 'listbreakpoints' | 'clearbreakpoint' | 'changebreakpoint' | 'setbreakpoint' | 'evalute' | 'scope' | 'scopes' | 'lookup' | 'setvariablevalue' | 'version' | 'gc' | 'v8flags';
 namespace RequestTypes {
 	export const Continue = 'continue';
 	export const Frame = 'frame';
+	export const Scripts = 'scripts';
+	export const Source = 'source';
+	export const Backtrace = 'backtrace';
+	export const SetExceptionBreak = 'setexceptionbreak';
+	export const ListBreakpoints = 'listbreakpoints';
+	export const Clearbreakpoint = 'clearbreakpoint';
+	export const ChangeBreakpoint = 'changebreakpoint';
+	export const SetBreakpoint = 'setbreakpoint';
+	export const Evalute = 'evalute';
+	export const Scope = 'scope';
+	export const Scopes = 'scopes';
+	export const Lookup = 'lookup';
+	export const SetVariableValue = 'setvariablevalue';
+	export const Version = 'version';
+	export const Gc = 'gc';
+	export const V8flags = 'v8flags';
 }
 
 type StepActions = 'next' | 'in' | 'out';
@@ -22,7 +38,7 @@ namespace BreakTypes {
 export default class Debug {
 	public constructor(
 		private client: Debugger = new Debugger(),
-		private breakpoints: BreakPoints = new Breakpoints()
+		private breakpoints: Breakpoints = new Breakpoints()
 	) {
 		this._bind();
 	}
@@ -36,18 +52,18 @@ export default class Debug {
 			const camelKey = `${key[0].toUpperCase()}${key.substr(1)}`;
 			const handleKey = `on${camelKey}`;
 			if (handleKey in this) {
-				this.client.on(key, (<any>this[handleKey]).bind(this));
+				this.client.on(key, (<any>this)[handleKey].bind(this));
 			}
 		});
 	}
 
 	// socket event
 
-	public connect() {
+	public connect() { // XXX async??
 		this.client.connect();
 	}
 
-	public close() {
+	public close() { // XXX async??
 		this.client.close();
 	}
 
@@ -59,58 +75,58 @@ export default class Debug {
 	// 	return this.client.send('disconnect');
 	// }
 
-	public async continue() {
-		return this.client.send(RequestTypes.Continue);
+	public async continue(): Promise<void> {
+		this.client.send(RequestTypes.Continue);
 	}
 
-	public async in() {
-		return this.client.send(RequestTypes.Continue, { stepaction: StepActions.In });
+	public async in(): Promise<void> {
+		this.client.send(RequestTypes.Continue, { stepaction: StepActions.In });
 	}
 
-	public async next(count: number = 1) {
-		return this.client.send(RequestTypes.Continue, { stepaction: StepActions.Next, stepcount: count });
+	public async next(count: number = 1): Promise<void> {
+		this.client.send(RequestTypes.Continue, { stepaction: StepActions.Next, stepcount: count });
 	}
 
-	public async out() {
-		return this.client.send(RequestTypes.Continue, { stepaction: StepActions.Out });
+	public async out(): Promise<void> {
+		this.client.send(RequestTypes.Continue, { stepaction: StepActions.Out });
 	}
 
-	public async frame(frameId: number = 0) {
-		return this.client.send(RequestTypes.Frame, { number: frameId });
+	public async frame(frameId: number = 0): Promise<void> {
+		this.client.send(RequestTypes.Frame, { number: frameId });
 	}
 
 	// - source mapping
 
-	public async scripts() {
-		return this.client.send(RequestTypes.Scripts);
+	public async scripts(): Promise<void> {
+		this.client.send(RequestTypes.Scripts);
 	}
 
-	public async source() {
-		return this.client.send(RequestTypes.Source);
+	public async source(): Promise<void> {
+		this.client.send(RequestTypes.Source);
 	}
 
-	public async backtrace() {
-		return this.client.send(RequestTypes.Backtrace);
+	public async backtrace(): Promise<void> {
+		this.client.send(RequestTypes.Backtrace);
 	}
 
 	// - break point
 
-	public async setExceptionBreak(type: BreakTypes = BreakTypes.Uncaught, enabled: boolean = false) {
-		return this.client.send(RequestTypes.SetExceptionBreak, { type: type, enabled: enabled });
+	public async setExceptionBreak(type: BreakTypes = BreakTypes.Uncaught, enabled: boolean = false): Promise<void> {
+		this.client.send(RequestTypes.SetExceptionBreak, { type: type, enabled: enabled });
 	}
 
-	public async listBreakpoints() {
+	public async listBreakpoints(): Promise<void> {
 		const res = await this.client.send(RequestTypes.ListBreakpoints);
 		this.breakpoints.clear();
-		res.breakpoints.forEach(resBreakPoint => this.breakpoints.add(new Breakpoint(resBreakPoint)));
+		res.breakpoints.forEach((breakpointEntity: any) => this.breakpoints.add(new Breakpoint(breakpointEntity))); // XXX any
 	}
 
-	public async clearBreakpoint(breakPointId: number) {
+	public async clearBreakpoint(breakPointId: number): Promise<void> {
 		const res = await this.client.send(RequestTypes.Clearbreakpoint, { breakpoint: breakPointId });
 		this.breakpoints.removeAt(breakPointId);
 	}
 
-	public async changeBreakpoint(breakPointId: number, enabled: booleqn = true) {
+	public async changeBreakpoint(breakPointId: number, enabled: boolean = true): Promise<void> {
 		const res = await this.client.send(RequestTypes.ChangeBreakpoint, { breakpoint: breakPointId, enabled: enabled });
 		const breakpoint = this.breakpoints.at(res.breakpoint);
 		if (breakpoint !== null) { // XXX nullable
@@ -118,13 +134,13 @@ export default class Debug {
 		}
 	}
 
-	public async setBreakpoint(path: string, line: number) {
+	public async setBreakpoint(path: string, line: number): Promise<void> {
 		const res = await this.client.send(RequestTypes.SetBreakpoint, { target: path, line: line, type: 'script', enabled: true }); // XXX type?
 		this.breakpoints.add(new Breakpoint(res));
 	}
 
 	// ex
-	public async clearAllBreakpoints() {
+	public async clearAllBreakpoints(): Promise<void> {
 		for (const breakpoint of this.breakpoints.list) {
 			await this.clearBreakpoint(breakpoint.id);
 		}
@@ -132,37 +148,37 @@ export default class Debug {
 
 	// - variable
 
-	public async evalute() {
-		return this.client.send(RequestTypes.Evalute);
+	public async evalute(): Promise<void> {
+		this.client.send(RequestTypes.Evalute);
 	}
 
-	public async scope() {
-		return this.client.send(RequestTypes.Scope);
+	public async scope(): Promise<void> {
+		this.client.send(RequestTypes.Scope);
 	}
 
-	public async scopes() {
-		return this.client.send(RequestTypes.Scopes);
+	public async scopes(): Promise<void> {
+		this.client.send(RequestTypes.Scopes);
 	}
 
 	public async lookup(): Promise<void> {
 		this.client.send(RequestTypes.Lookup);
 	}
 
-	public setVariableValue() {
+	public async setVariableValue(): Promise<void> {
 		this.client.send(RequestTypes.SetVariableValue);
 	}
 
 	// - system
 
-	public async version() {
-		return this.client.send(RequestTypes.Version);
+	public async version(): Promise<void> {
+		this.client.send(RequestTypes.Version);
 	}
 
-	public async gc() {
+	public async gc(): Promise<void> {
 		this.client.send(RequestTypes.Gc);
 	}
 
-	public async v8flags() {
+	public async v8flags(): Promise<void> {
 		this.client.send(RequestTypes.V8flags);
 	}
 
@@ -177,14 +193,14 @@ export default class Debug {
 
 class Breakpoints {
 	public constructor(
-		private _list: Breakpoint[] = {}
+		private _list: any = {} // XXX any
 	) {}
 
 	public get list(): Breakpoint[] {
 		return this._list;
 	}
 	
-	public get has(id: number): boolean {
+	public has(id: number): boolean {
 		return (id in this._list);
 	}
 
@@ -208,7 +224,13 @@ class Breakpoints {
 }
 
 class Breakpoint {
-	public constructor(entity: BreakpointEntity) {
+	public readonly id: number;
+	public readonly scriptId: string;
+	public readonly path: string;
+	public readonly line: number;
+	public readonly column: number;
+	public active: boolean; // XXX not readony
+	public constructor(entity: any) { // XXX any
 		const id = entity.number || entity.breakpoint;
 		const location = entity.actual_locations.pop();
 		const active = entity.active !== undefined ? entity.active : true;
