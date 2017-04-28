@@ -44,25 +44,29 @@ export default class Storage {
 		return await this._async<string>(fs.readFile, path, 'utf8');
 	}
 
-	public static async create(path: string, content: string = 'empty'): Promise<void> {
+	public static async create(path: string, content: string = 'empty'): Promise<boolean> {
 		this.mkdir(Path.dirname(path));
-		await this._async<void>(fs.writeFile, path, content, 'utf8');
+		await this._async<boolean>(fs.writeFile, path, content, 'utf8');
+		return true;
 	}
 
-	public static async update(path: string, content: string): Promise<void> {
-		await this._async<void>(fs.writeFile, path, content, 'utf8');
+	public static async update(path: string, content: string): Promise<boolean> {
+		await this._async<boolean>(fs.writeFile, path, content, 'utf8');
+		return true;
 	}
 
-	public static async rename(path: string, to: string): Promise<void> {
-		await this._async<void>(fs.rename, path, to);
+	public static async rename(path: string, to: string): Promise<boolean> {
+		await this._async<boolean>(fs.rename, path, to);
+		return true;
 	}
 
-	public static async remove(path: string): Promise<void> {
+	public static async remove(path: string): Promise<boolean> {
 		if (this.isFile(path)) {
-			await this._async<void>(fs.unlink, path);
+			await this._async<boolean>(fs.unlink, path);
 		} else {
-			await this._async<void>(fs.rmdir, path);
+			await this._async<boolean>(fs.rmdir, path);
 		}
+		return true;
 	}
 
 	public static isFile(path: string): boolean {

@@ -46,21 +46,21 @@ export default class Entry {
 		}
 	}
 
-	public static create(relPath: string): void {
-		Storage.create(this._toRealPath(relPath));
+	public static async create(relPath: string): Promise<boolean> {
+		return await Storage.create(this._toRealPath(relPath));
 	}
 
-	public static update(relPath: string, content: string): void {
+	public static async update(relPath: string, content: string): Promise<boolean> {
 		const realPath = this._toRealPath(relPath);
-		Storage.update(realPath, content);
+		return await Storage.update(realPath, content);
 	}
 
-	public static rename(relPath: string, relToPath: string): void {
-		Storage.rename(this._toRealPath(relPath), this._toRealPath(relToPath));
+	public static async rename(relPath: string, relToPath: string): Promise<boolean> {
+		return await Storage.rename(this._toRealPath(relPath), this._toRealPath(relToPath));
 	}
 
-	public static destroy(relPath: string): void {
-		Storage.remove(this._toRealPath(relPath));
+	public static async destroy(relPath: string): Promise<boolean> {
+		return await Storage.remove(this._toRealPath(relPath));
 	}
 
 	public static _isFile(realPath: string): boolean {

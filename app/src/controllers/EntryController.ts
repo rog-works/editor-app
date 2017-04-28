@@ -5,27 +5,27 @@ import Route from '../components/Route';
 export default class EntryController extends Controller {
 	private static readonly PATH_REGULAR = '[\\w\\-.%]+';
 
-	public index(dir: string = ''): void {
-		this.view(Entity.entries(dir));
+	public async index(dir: string = ''): Promise<void> {
+		this.view(await Entity.entries(dir));
 	}
 
-	public show(path: string): void {
-		this.view(Entity.at(path));
+	public async show(path: string): Promise<void> {
+		this.view(await Entity.at(path));
 	}
 
-	public create(path: string): void {
-		this.view(Entity.create(path));
+	public async create(path: string): Promise<void> {
+		this.view(await Entity.create(path));
 	}
 
-	public update(path: string, content: string): void {
-		this.view(Entity.update(path, content));
+	public async update(path: string, content: string): Promise<void> {
+		this.view(await Entity.update(path, content));
 	}
 
-	public destroy(path: string): void {
+	public async destroy(path: string): Promise<void> {
 		this.view(Entity.destroy(path));
 	}
 
-	public rename(path: string, to: string): void {
+	public async rename(path: string, to: string): Promise<void> {
 		this.view(Entity.rename(path, to));
 	}
 
