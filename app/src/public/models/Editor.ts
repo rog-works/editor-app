@@ -18,7 +18,6 @@ export default class Editor extends Page {
 		this.load();
 		this._editor().on('change', this.changed.bind(this));
 		ko.track(this);
-		ko.track(this.icon);
 	}
 
 	public load(path: string = '#', content: string = ''): void {

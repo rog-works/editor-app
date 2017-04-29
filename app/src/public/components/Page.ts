@@ -11,7 +11,7 @@ type Icons = 'fa-refresh' | 'fa-spin' | 'fa-pencil' | 'fa-check-circle';
 namespace Icons {
 	export const Loading = 'fa-refresh';
 	export const LoadingSpin = 'fa-spin';
-	export const Syncronized = 'fa-check-circle';
+	export const Syncronized = 'fa-pencil'; // FIXME
 	export const Modified = 'fa-check-circle';
 }
 
@@ -34,7 +34,7 @@ export default class Page extends Node {
 	}
 
 	public activate(focused: boolean): void {
-		this.display.active(focused);
+		this.display.active = focused;
 	}
 
 	protected _transition(state: States): void {

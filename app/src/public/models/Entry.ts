@@ -1,55 +1,50 @@
-'use strict';
+import * as ko from 'knockout-es5';
+import Page from '../components/Page';
 
-class Entry extends Page {
-	constructor () {
+export default class Entry extends Page {
+	public constructor() {
 		super();
 		this.STATE_RUN = 'run';
 		this.ICON_STATE_RUN = 'fa-sitemap';
 
-		this.entries = ko.observableArray([]);
-		this.icon[this.ICON_STATE_RUN] = ko.observable(true);
+		this.entries = [];
+		this.icon[this.ICON_STATE_RUN] = true;
 		this.on('created', this.created);
 		this.on('deleted', this.deleted);
 		this.on('deactivate', this.deactivate);
 		this.on('expand', this.expand);
+		this.load();
+		ko.track(this);
 	}
 
-	static init (id = 'page-entry') {
-		const self = new Entry();
-		// ko.applyBindings(self, document.getElementById(id));
-		self.load();
-		return self;
-	}
-
-	load (dir = '/') {
-		const url = '/?dir=' + encodeURIComponent(dir);
-		this._transition(this.STATE_LOADING);
-		EntryItem.send(url)
-			.then((entities) => {
-				this.entries.removeAll();
-				const entries = entities.map((entity) => {
-					return EntryItem.toEntry(entity);
-				});
-				for (const entry of entries) {
-					this.entries.push(entry);
-				}
-				this.entries.push(new EntryAdd());
-				this.addNodes(this.entries());
-				this.closeAll();
-				this._transition(this.STATE_RUN);
-			});
+	public async load(dir = '/'): Promise<void> {
+		try {
+			const url = '/?dir=' + encodeURIComponent(dir);
+			this._transition(States.Loading);
+			const entites = (await EntryItem.send(url)).map(entity => EntryItem.toEntry(entity));
+			this.entries = [];
+			for (const entry of entries) {
+				this.entries.push(entry);
+			}
+			this.entries.push(new EntryAdd());
+			this.addNodes(this.entries());
+			this.closeAll();
+		} catch (err) {
+			// XXX
+		}
+		this._transition(States.Syncronized);
 	}
 	
-	closeAll () {
-		for (const entry of this.entries()) {
+	public closeAll(): void {
+		for (const entry of this.entries) {
 			if (entry instanceof EntryDirectory) {
 				entry.click(); // XXX rename
 			}
 		}
 	}
 
-	at (path) {
-		for (const entry of this.entries()) {
+	public at(path): EntryItem | null { // XXX nullable
+		for (const entry of this.entries) {
 			if (entry.path === path) {
 				return entry;
 			}
@@ -57,32 +52,35 @@ class Entry extends Page {
 		return null;
 	}
 
-	created (entry) {
+	public created(entry: EntryItem): boolean {
 		this.entries.push(entry);
 		this.addNode(entry);
 		console.log('Created entry', entry);
 		return false;
 	}
 
-	deleted (entry) {
-		const removed = this.entries.remove((self) => {
-			return self.path === entry.path;
-		});
-		console.log('Deleted entry', removed);
+	public deleted(entry: EntryItem): boolean {
+		for (const i = 0; i < this.entries; i += 1) {
+			if (self.path === entry.path) {
+				const removed = this.splice(i, 1);
+				console.log('Deleted entry', removed);
+				break;
+			}
+		})
 		return false;
 	}
 
-	deactivate () {
-		for (const entry of this.entries()) {
-			if (entry.display.active()) {
-				entry.display.active(false);
+	public deactivate(): void {
+		for (const entry of this.entries) {
+			if (entry.display.active) {
+				entry.display.active = false;
 				break;
 			}
 		}
 	}
 
-	expand (dir, opened) {
-		for (const entry of this.entries()) {
+	public expand(dir: string, opened: boolean): void {
+		for (const entry of this.entries {
 			if (entry.dir.startsWith(dir)) {
 				if (opened && entry.closes > 0) {
 					entry.closes -= 1;
