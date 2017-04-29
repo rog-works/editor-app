@@ -8,15 +8,20 @@ function externalModules() {
 		'glob': 'commonjs glob',
 		'crypto-js': 'commonjs crypto-js',
 		'socket.io': 'commonjs socket.io',
-		'node': 'commonjs node'
+		'node': 'commonjs node',
+		'knockout': 'commonjs knockout', // FIXME
+		'knockout-es5': 'commonjs knockout-es5' // FIXME
 	}
 }
 
 module.exports = {
-	entry: `${__dirname}/src/Index.ts`,
+	entry: {
+		server: `${__dirname}/src/Index.ts`,
+		client: `${__dirname}/src/public/Client.ts`
+	},
 	output: {
 		path: `${__dirname}/`,
-		filename: 'bundle.js'
+		filename: '[name].bundle.js'
 	},
 	resolve: {
 		extensions: ['.ts', '.js']

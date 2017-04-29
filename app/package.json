@@ -16,6 +16,8 @@
     "@types/glob": "^5.0.30",
     "@types/morgan": "^1.7.32",
     "@types/node": "^7.0.13",
-    "@types/socket.io": "^1.4.29"
+    "@types/socket.io": "^1.4.29",
+    "@types/knockout": "^3.4.39",
+    "@types/knockout.es5": "0.0.32"
   }
 }
