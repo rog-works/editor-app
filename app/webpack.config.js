@@ -9,8 +9,10 @@ function externalModules() {
 		'crypto-js': 'commonjs crypto-js',
 		'socket.io': 'commonjs socket.io',
 		'node': 'commonjs node',
+		'jquery': 'commonjs jquery', // FIXME
 		'knockout': 'commonjs knockout', // FIXME
-		'knockout-es5': 'commonjs knockout-es5' // FIXME
+		'knockout-es5': 'commonjs knockout-es5', // FIXME
+		'ace': 'commonjs ace' // FIXME
 	}
 }
 

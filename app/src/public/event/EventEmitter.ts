@@ -31,11 +31,12 @@ export default class EventEmitter {
 		return this;
 	}
 
-	public emit(tag: string, sender: any, event: any = undefined): void {
+	public emit(tag: string, sender: any, event: any = undefined): boolean {
 		for (const handler of this._handlers[tag]) {
 			if (!handler(sender, event)) {
-				break;
+				return true;
 			}
 		}
+		return false;
 	}
 }

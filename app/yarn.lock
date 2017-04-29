@@ -2,6 +2,10 @@
 # yarn lockfile v1
 
 
+"@types/ace@^0.0.32":
+  version "0.0.32"
+  resolved "https://registry.yarnpkg.com/@types/ace/-/ace-0.0.32.tgz#d584813960607540ddb202de8b3e229504d45cff"
+
 "@types/body-parser@^1.16.3":
   version "1.16.3"
   resolved "https://registry.yarnpkg.com/@types/body-parser/-/body-parser-1.16.3.tgz#bc2b9a181f2fa85c80f1ecacd8a05cf1414b85a3"
@@ -32,6 +36,10 @@
   dependencies:
     "@types/minimatch" "*"
     "@types/node" "*"
+
+"@types/jquery@^2.0.41":
+  version "2.0.41"
+  resolved "https://registry.yarnpkg.com/@types/jquery/-/jquery-2.0.41.tgz#b87ba051011f99edbe586d8f97282e7786e01a6d"
 
 "@types/knockout.es5@0.0.32":
   version "0.0.32"

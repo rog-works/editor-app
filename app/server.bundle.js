@@ -63,18 +63,20 @@
 /******/ 	__webpack_require__.p = "";
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 11);
+/******/ 	return __webpack_require__(__webpack_require__.s = 16);
 /******/ })
 /************************************************************************/
 /******/ ([
-/* 0 */
+/* 0 */,
+/* 1 */,
+/* 2 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 Object.defineProperty(exports, "__esModule", { value: true });
-const Render_1 = __webpack_require__(20);
-const Projector_1 = __webpack_require__(19);
+const Render_1 = __webpack_require__(25);
+const Projector_1 = __webpack_require__(24);
 class Controller {
     constructor(_req, _res) {
         this._req = _req;
@@ -100,7 +102,7 @@ exports.default = Controller;
 
 
 /***/ }),
-/* 1 */
+/* 3 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -162,13 +164,14 @@ class RouteBuilder {
 
 
 /***/ }),
-/* 2 */
+/* 4 */,
+/* 5 */
 /***/ (function(module, exports) {
 
 module.exports = require("fs");
 
 /***/ }),
-/* 3 */
+/* 6 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -182,10 +185,10 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-const fs = __webpack_require__(2);
-const Path = __webpack_require__(7);
-const glob = __webpack_require__(25);
-const child_process_1 = __webpack_require__(5);
+const fs = __webpack_require__(5);
+const Path = __webpack_require__(10);
+const glob = __webpack_require__(34);
+const child_process_1 = __webpack_require__(8);
 class Storage {
     static _async(func, ...args) {
         return new Promise((resolve, reject) => {
@@ -285,39 +288,39 @@ exports.default = Storage;
 
 
 /***/ }),
-/* 4 */,
-/* 5 */
+/* 7 */,
+/* 8 */
 /***/ (function(module, exports) {
 
 module.exports = require("child_process");
 
 /***/ }),
-/* 6 */
+/* 9 */
 /***/ (function(module, exports) {
 
 module.exports = require("express");
 
 /***/ }),
-/* 7 */
+/* 10 */
 /***/ (function(module, exports) {
 
 module.exports = require("path");
 
 /***/ }),
-/* 8 */
+/* 11 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 Object.defineProperty(exports, "__esModule", { value: true });
-const fs = __webpack_require__(2);
-const Express = __webpack_require__(6);
-const Morgan = __webpack_require__(27);
-const BodyParser = __webpack_require__(24);
-const Router_1 = __webpack_require__(12);
-const IndexController_1 = __webpack_require__(14);
-const EntryController_1 = __webpack_require__(13);
-const ShellController_1 = __webpack_require__(15);
+const fs = __webpack_require__(5);
+const Express = __webpack_require__(9);
+const Morgan = __webpack_require__(36);
+const BodyParser = __webpack_require__(33);
+const Router_1 = __webpack_require__(17);
+const IndexController_1 = __webpack_require__(19);
+const EntryController_1 = __webpack_require__(18);
+const ShellController_1 = __webpack_require__(20);
 class Application {
     constructor(_app = Express()) {
         this._app = _app;
@@ -367,26 +370,28 @@ exports.default = Application;
 
 
 /***/ }),
-/* 9 */,
-/* 10 */,
-/* 11 */
+/* 12 */,
+/* 13 */,
+/* 14 */,
+/* 15 */,
+/* 16 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 Object.defineProperty(exports, "__esModule", { value: true });
-const Application_1 = __webpack_require__(8);
+const Application_1 = __webpack_require__(11);
 Application_1.default.listen(process.env.PORT);
 
 
 /***/ }),
-/* 12 */
+/* 17 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 Object.defineProperty(exports, "__esModule", { value: true });
-const Express = __webpack_require__(6);
+const Express = __webpack_require__(9);
 class Router {
     static bind(construct) {
         const router = Express.Router();
@@ -433,7 +438,7 @@ exports.default = Router;
 
 
 /***/ }),
-/* 13 */
+/* 18 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -447,9 +452,9 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-const Entry_1 = __webpack_require__(16);
-const Controller_1 = __webpack_require__(0);
-const Route_1 = __webpack_require__(1);
+const Entry_1 = __webpack_require__(21);
+const Controller_1 = __webpack_require__(2);
+const Route_1 = __webpack_require__(3);
 class EntryController extends Controller_1.default {
     index(dir = '') {
         return __awaiter(this, void 0, void 0, function* () {
@@ -516,14 +521,14 @@ exports.default = EntryController;
 
 
 /***/ }),
-/* 14 */
+/* 19 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 Object.defineProperty(exports, "__esModule", { value: true });
-const Controller_1 = __webpack_require__(0);
-const Route_1 = __webpack_require__(1);
+const Controller_1 = __webpack_require__(2);
+const Route_1 = __webpack_require__(3);
 class IndexController extends Controller_1.default {
     index() {
         this._res.sendFile('/opt/app/app/app/views/index.html');
@@ -543,15 +548,15 @@ exports.default = IndexController;
 
 
 /***/ }),
-/* 15 */
+/* 20 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 Object.defineProperty(exports, "__esModule", { value: true });
-const Shell_1 = __webpack_require__(17);
-const Controller_1 = __webpack_require__(0);
-const Route_1 = __webpack_require__(1);
+const Shell_1 = __webpack_require__(22);
+const Controller_1 = __webpack_require__(2);
+const Route_1 = __webpack_require__(3);
 class ShellController extends Controller_1.default {
     run(query, dir = '') {
         const args = query.split(' ');
@@ -574,7 +579,7 @@ exports.default = ShellController;
 
 
 /***/ }),
-/* 16 */
+/* 21 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -588,8 +593,8 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-const Storage_1 = __webpack_require__(3);
-const Path = __webpack_require__(7);
+const Storage_1 = __webpack_require__(6);
+const Path = __webpack_require__(10);
 class Entry {
     constructor(realPath, isFile, content) {
         const relPath = Entry._toRelativePath(realPath);
@@ -706,15 +711,15 @@ exports.default = Entry;
 
 
 /***/ }),
-/* 17 */
+/* 22 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 Object.defineProperty(exports, "__esModule", { value: true });
-const fs = __webpack_require__(2);
-const Process_1 = __webpack_require__(21);
-const Storage_1 = __webpack_require__(3);
+const fs = __webpack_require__(5);
+const Process_1 = __webpack_require__(26);
+const Storage_1 = __webpack_require__(6);
 class Shell {
     constructor(_stdout = fs.createWriteStream(Shell.LOG_PATH), _options = { cwd: Storage_1.default.rootDir } // XXX any
     ) {
@@ -743,7 +748,7 @@ exports.default = Shell;
 
 
 /***/ }),
-/* 18 */
+/* 23 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -775,7 +780,7 @@ exports.default = CSV;
 
 
 /***/ }),
-/* 19 */
+/* 24 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -837,13 +842,13 @@ exports.default = Projector;
 
 
 /***/ }),
-/* 20 */
+/* 25 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 Object.defineProperty(exports, "__esModule", { value: true });
-const CSV_1 = __webpack_require__(18);
+const CSV_1 = __webpack_require__(23);
 class Render {
     static notFound(res, message = 'Resource not found') {
         res.sendStatus(404);
@@ -875,13 +880,13 @@ exports.default = Render;
 
 
 /***/ }),
-/* 21 */
+/* 26 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 Object.defineProperty(exports, "__esModule", { value: true });
-const child_process_1 = __webpack_require__(5);
+const child_process_1 = __webpack_require__(8);
 class Process {
     constructor(_command, _args = [], _options = {}, _handlers = {}) {
         this._command = _command;
@@ -933,22 +938,26 @@ exports.default = Process;
 
 
 /***/ }),
-/* 22 */,
-/* 23 */,
-/* 24 */
+/* 27 */,
+/* 28 */,
+/* 29 */,
+/* 30 */,
+/* 31 */,
+/* 32 */,
+/* 33 */
 /***/ (function(module, exports) {
 
 module.exports = require("body-parser");
 
 /***/ }),
-/* 25 */
+/* 34 */
 /***/ (function(module, exports) {
 
 module.exports = require("glob");
 
 /***/ }),
-/* 26 */,
-/* 27 */
+/* 35 */,
+/* 36 */
 /***/ (function(module, exports) {
 
 module.exports = require("morgan");
