@@ -1,6 +1,6 @@
 import * as ko from 'knockout-es5';
-import Page from '../components/Page';
-import {default as Logger, Log} from './log/Logger';
+import {Page} from '../ui/Page';
+import {Logger, Log} from './log/Logger';
 import LogLine from './log/LogLine';
 import {KeyCodes} from '../ui/KeyMap';
 import Http from '../net/Http';

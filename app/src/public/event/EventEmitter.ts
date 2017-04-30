@@ -1,5 +1,5 @@
 export interface EventHandler {
-	(self: any, event?: any): boolean
+	(sender: any, event?: any): boolean
 }
 
 interface EventHandlers {
@@ -9,7 +9,7 @@ interface EventHandlers {
 export default class EventEmitter {
 	private readonly _handlers: EventHandlers
 
-	public constructor(...tags: string[]) {
+	public constructor(tags: string[]) {
 		this._handlers = {};
 		for (const tag of tags) {
 			this._handlers[tag] = [];

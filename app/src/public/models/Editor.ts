@@ -1,32 +1,43 @@
 import * as ko from 'knockout-es5';
 // import * as ace from 'ace'; XXX import nessesory
-import {default as Page, States} from '../components/Page';
+import {Page, States} from '../ui/Page';
 import Path from '../io/Path';
 import {KeyCodes} from '../ui/KeyMap';
 
-export type EditorEvents = 'updateEntry';
+export type EditorEvents = 'saved';
 export namespace EditorEvents {
-	export const UpdateEntry = 'updateEntry';
+	export const Saved = 'saved';
 }
 
-export default class Editor extends Page {
+export class Editor extends Page {
 	public constructor(
-		public path: string = '#',
-		public state: States = States.Syncronized
+		private _path: string = '#',
+		private _state: States = States.Syncronized
 	) {
 		super();
 		this.load();
-		this._editor().on('change', this.changed.bind(this));
+		this._editor.on('change', this.changed.bind(this));
 		ko.track(this);
+	}
+
+	public get path(): string {
+		return this._path;
+	}
+
+	public get content(): string {
+		return this._editor.getSession().getValue();
+	}
+
+	private get _editor(): AceAjax.Editor {
+		return ace.edit('editor');
 	}
 
 	public load(path: string = '#', content: string = ''): void {
 		const ext = Path.extention(path);
 		const config = this._configure(ext);
-		const editor = this._editor();
-		const session = editor.getSession();
+		const session = this._editor.getSession();
 		this._transition(States.Loading);
-		this.path = path;
+		this._path = path;
 		session.setValue(content);
 		session.setTabSize(config.tabs);
 		session.setUseSoftTabs(config.softTabs);
@@ -40,7 +51,7 @@ export default class Editor extends Page {
 	// }
 
 	public focus() {
-		this._editor().focus();
+		this._editor.focus();
 	}
 
 	public keydown(self: this, e: KeyboardEvent): boolean {
@@ -59,7 +70,7 @@ export default class Editor extends Page {
 
 	public save(): void {
 		this._transition(States.Loading);
-		this.fire(EditorEvents.UpdateEntry, this.path, this._content());
+		this.emit(EditorEvents.Saved, this);
 	}
 
 	public saved(updated: boolean): void {
@@ -67,7 +78,7 @@ export default class Editor extends Page {
 	}
 
 	public changed(): void {
-		if (this.state === States.Syncronized) {
+		if (this._state === States.Syncronized) {
 			this._transition(States.Modified);
 		}
 	}
@@ -75,10 +86,10 @@ export default class Editor extends Page {
 	public cursor(key: string): void {
 		switch (key) {
 		case 'left': // XXX magic string
-			this._editor().navigateLeft(1);
+			this._editor.navigateLeft(1);
 			break;
 		case 'right':
-			this._editor().navigateRight(1);
+			this._editor.navigateRight(1);
 			break;
 		}
 	}
@@ -90,11 +101,7 @@ export default class Editor extends Page {
 	// @override
 	protected _transition(state: States): void {
 		super._transition(state);
-		this.state = state;
-	}
-
-	private _content(): string {
-		return this._editor().getSession().getValue();
+		this._state = state;
 	}
 
 	private _configure(extention: string): any {
@@ -112,10 +119,6 @@ export default class Editor extends Page {
 			yaml: {mode: 'yaml', tabs: 2, softTabs: true}
 		};
 		return (extention in config) ? config[extention] : config.sh;
-	}
-
-	private _editor(): AceAjax.Editor {
-		return ace.edit('editor');
 	}
 
 	private _toMode(mode: string): string {

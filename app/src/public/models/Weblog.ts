@@ -1,6 +1,6 @@
 import * as ko from 'knockout-es5';
-import Page from '../components/Page';
-import {default as Logger, Log} from './log/Logger';
+import {Page} from '../ui/Page';
+import {Logger, Log} from './log/Logger';
 import LogLine from './log/LogLine';
 
 export default class Weblog extends Page implements Log {

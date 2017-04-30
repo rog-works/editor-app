@@ -5,7 +5,7 @@ export interface Log {
 	colorized: (message: string) => string
 }
 
-export default class Logger {
+export class Logger {
 	public constructor(
 		private _owner: Log
 	) {}

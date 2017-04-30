@@ -1,10 +1,11 @@
 import EventEmitter from '../event/EventEmitter';
 
+// deprecated
 export default class Node extends EventEmitter {
 	public constructor(
 		private _parent: Node | null
 	) {
-		super();
+		super([]);
 	}
 
 	public addNode(node: Node): void {

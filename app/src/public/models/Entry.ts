@@ -1,40 +1,85 @@
 import * as ko from 'knockout-es5';
-import Page from '../components/Page';
+import EventEmitter from '../event/EventEmitter';
+import {Page, States, Icons} from '../ui/Page';
+import Http from '../net/Http';
+import Path from '../io/Path';
 
-export default class Entry extends Page {
-	public constructor() {
-		super();
-		this.STATE_RUN = 'run';
-		this.ICON_STATE_RUN = 'fa-sitemap';
+interface EntryEntity {
+	path: string;
+	isFile: boolean;
+	isText: boolean;
+	content: string; // | Buffer FIXME
+}
 
-		this.entries = [];
-		this.icon[this.ICON_STATE_RUN] = true;
-		this.on('created', this.created);
-		this.on('deleted', this.deleted);
-		this.on('deactivate', this.deactivate);
-		this.on('expand', this.expand);
+enum EntryTypes { // XXX type???
+	File,
+	FileOpen,
+	Directory,
+	DirectoryClose,
+	FileAdd // XXX
+}
+
+export type EntryEvents = 'created' | 'updated' | 'deleted' | 'renamed' | 'beforeReload' | 'afterReload' | 'deactivate' | 'expand';
+export namespace EntryEvents {
+	export const Created = 'created';
+	export const Updated = 'updated';
+	export const Deleted = 'deleted';
+	export const Renamed = 'renamed';
+	export const BeforeLoaded = 'beforeReloaded';
+	export const AfterLoaded = 'afterReloaded';
+	export const Deactivated = 'deactivates';
+	export const Expanded = 'expanded';
+	export const Added = 'added';
+}
+
+export class Entry extends Page {
+	public constructor(
+		public readonly entries: EntryItem[] = []
+	) {
+		super([EntryEvents.BeforeLoaded, EntryEvents.AfterLoaded]);
 		this.load();
 		ko.track(this);
 	}
 
 	public async load(dir = '/'): Promise<void> {
 		try {
-			const url = '/?dir=' + encodeURIComponent(dir);
+			const url = '?dir=' + encodeURIComponent(dir);
 			this._transition(States.Loading);
-			const entites = (await EntryItem.send(url)).map(entity => EntryItem.toEntry(entity));
-			this.entries = [];
-			for (const entry of entries) {
-				this.entries.push(entry);
-			}
-			this.entries.push(new EntryAdd());
-			this.addNodes(this.entries());
+			const entries = (await Http.get<EntryEntity[]>(`/entry/${url}`)).map(entity => EntryItem.toEntry(entity));
+			this.removeAll();
+			this.adds(this.entries);
+			this.add(new EntryAdd());
 			this.closeAll();
 		} catch (err) {
 			// XXX
 		}
 		this._transition(States.Syncronized);
 	}
-	
+
+	public add(entry: EntryItem): void {
+		entry.on(EntryEvents.Created, this._onCreated);
+		entry.on(EntryEvents.Deleted, this._onDeleted);
+		entry.on(EntryEvents.BeforeLoaded, this._onBeforeLoaded);
+		entry.on(EntryEvents.AfterLoaded, this._onAfterLoaded);
+		entry.on(EntryEvents.Deactivated, this._onDeactivated);
+		entry.on(EntryEvents.Expanded, this._onExpanded);
+		entry.on(EntryEvents.Added, this._onAdded);
+	}
+
+	public adds(entries: EntryItem[]): void {
+		for (const entry of entries) {
+			this.add(entry);
+		}
+	}
+
+	public remove(entry: EntryItem): EntryItem[] {
+		return this.entries.remove(entry);
+	}
+
+	public removeAll(): void {
+		this.entries.removeAll();
+	}
+
 	public closeAll(): void {
 		for (const entry of this.entries) {
 			if (entry instanceof EntryDirectory) {
@@ -43,7 +88,7 @@ export default class Entry extends Page {
 		}
 	}
 
-	public at(path): EntryItem | null { // XXX nullable
+	public at(path: string): EntryItem | null { // XXX nullable
 		for (const entry of this.entries) {
 			if (entry.path === path) {
 				return entry;
@@ -52,174 +97,181 @@ export default class Entry extends Page {
 		return null;
 	}
 
-	public created(entry: EntryItem): boolean {
-		this.entries.push(entry);
-		this.addNode(entry);
-		console.log('Created entry', entry);
+	private _onCreated(sender: EntryItem): boolean {
+		this.add(sender);
 		return false;
 	}
 
-	public deleted(entry: EntryItem): boolean {
-		for (const i = 0; i < this.entries; i += 1) {
-			if (self.path === entry.path) {
-				const removed = this.splice(i, 1);
-				console.log('Deleted entry', removed);
-				break;
-			}
-		})
+	private _onDeleted(sender: EntryItem): boolean {
+		this.remove(sender);
 		return false;
 	}
 
-	public deactivate(): void {
+	private _onBeforeLoaded(sender: any, e: any): boolean {
+		this.emit(EntryEvents.BeforeLoaded, sender, e);
+		return true;
+	}
+
+	private _onAfterLoaded(sender: any, e: any): boolean {
+		this.emit(EntryEvents.AfterLoaded, sender, e);
+		return true;
+	}
+
+	private _onDeactivated(sender: EntryItem): boolean {
 		for (const entry of this.entries) {
 			if (entry.display.active) {
 				entry.display.active = false;
 				break;
 			}
 		}
+		return false;
 	}
 
-	public expand(dir: string, opened: boolean): void {
-		for (const entry of this.entries {
-			if (entry.dir.startsWith(dir)) {
+	private _onExpanded(sender: EntryDirectory): boolean {
+		const opened = !sender.opened;
+		for (const entry of this.entries) {
+			if (entry.dir.startsWith(sender.dir)) {
 				if (opened && entry.closes > 0) {
 					entry.closes -= 1;
 				} else if (!opened) {
 					entry.closes += 1;
 				}
-				entry.display.close(entry.closes > 0);
+				entry.display.close = entry.closes > 0;
 			}
 		}
+		return false;
 	}
 
-	_transition (state) {
-		super._transition(state);
-		if (state === this.STATE_RUN) {
-			this.icon[this.ICON_STATE_RUN](true);
-		}
+	private _onAdded(sender: any, e: any): boolean {
+		this.emit(EntryEvents.Added, sender, e);
+		return true;
+	}
+
+	// @override
+	protected get syncronizedIcon(): Icons {
+		return Icons.Entry;
 	}
 }
 
-class EntryItem extends Node {
-	constructor (entity) {
-		super();
+export class EntryItem extends EventEmitter {
+	public path: string;
+	public isFile: boolean;
+	public isText: boolean;
+	public content: string; // | Buffer; XXX
+	public dir: string;
+	public name: string;
+	public icon: string;
+	public closes: number;
+	public display: any; // XXX any
+	public edit: any;
+
+	public constructor(entity: EntryEntity) {
+		super([
+			EntryEvents.Created,
+			EntryEvents.Deleted,
+			EntryEvents.BeforeLoaded,
+			EntryEvents.AfterLoaded,
+			EntryEvents.Deactivated,
+			EntryEvents.Expanded,
+			EntryEvents.Added
+		]);
 		const path = entity.path.replace(/\/$/, '');
-		const route = path.substr(1).split('/');
-		const depth = Math.max(1, route.length);
-		const name = route.pop();
-		const dir = '/' + route.join('/');
+		const routes = path.substr(1).split('/');
+		const depth = Math.max(1, routes.length);
+		const name = Path.basename(path);
+		const dir = Path.join('/', ...routes);
 		this.path = path;
 		this.isFile = entity.isFile;
 		this.isText = entity.isText;
 		this.content = '';
 		this.dir = dir;
-		this.name = ko.observable(name);
-		this.icon = ko.observable(EntryItem.toIcon(this.isFile ? 'file' : 'directory'));
+		this.name = name;
+		this.icon = EntryItem.toIcon(this.isFile ? EntryTypes.File : EntryTypes.Directory);
 		this.closes = 0;
 		this.display = {
-			active: ko.observable(false),
-			close: ko.observable(false),
+			active: false,
+			close: false,
 			[`depth${depth}`]: true
 		};
 		this.edit = {
-			close: ko.observable(true)
+			close: true
 		};
 	}
 
-	static send (path, exData = {}) {
-		return new Promise((resolve, reject = null) => {
-			const url = `/entry${path}`;
-			const base = {
-				url: url,
-				type: 'GET',
-				dataType: 'json',
-				timeout: 1000,
-				success: (res) => {
-					console.log('Respond', data.type, data.url);
-					resolve(res);
-				},
-				error: (res, err) => {
-					console.error('Failed request', data.type, data.url, err, res.status, res.statusText, res.responseText);
-					if (reject !== null) {
-						reject(err);
-					}
-				}
+	protected _bind(): void {
+		ko.track(this);
+		ko.track(this.display);
+		ko.track(this.edit);
+	}
+
+	public async create(path: string): Promise<boolean> {
+		const created = await Http.post<boolean>('/entry/', {data: {path: path}});
+		if (created) {
+			const entity: EntryEntity = {
+				path: path,
+				isFile: true,
+				isText: true,
+				content: ''
 			};
-			const data = $.extend(base, exData);
-			console.log('Request', data.type, data.url);
-			$.ajax(data);
-		});
+			this.emit(EntryEvents.Created, this, new EntryFile(entity));
+		}
+		return created;
 	}
 
-	create (path) {
-		return EntryItem.send('/', {type: 'POST', data: {path: path}})
-			.then((created) => {
-				const entity = {
-					path: path,
-					isFile: true,
-					content: ''
-				};
-				this.fire('created', EntryItem.toEntry(entity));
-			});
+	public async update(content: string): Promise<boolean> {
+		const url = encodeURIComponent(this.path);
+		const updated = await Http.put<boolean>(`/entry/${url}`, {data: {content: content}});
+		if (updated) {
+			this.emit(EntryEvents.Updated, this, updated);
+		}
+		return updated;
 	}
 
-	update (content) {
-		const url = '/' + encodeURIComponent(this.path);
-		return EntryItem.send(url, {type: 'PUT', data: {content: content}});
+	public async rename(to: string): Promise<boolean> {
+		// FIXME via shownRename
+		if (!Path.valid(to)) {
+			return false;
+		}
+		const encodePath = encodeURIComponent(this.path);
+		const encodeTo = encodeURIComponent(to);
+		const url = `/${encodePath}/rename?to=${encodeTo}`;
+		const renamed = await Http.put<boolean>(`/entry/${url}`);
+		if (renamed) {
+			this.path = to;
+			this.name = Path.basename(to);
+			this.emit(EntryEvents.Renamed, this, renamed);
+		}
+		return renamed;
 	}
 
-	rename () {
-		this.fireAsync('shownRename', this.path)
-			.then((to) => {
-				if (!EntryItem.validSavePath(to)) {
-					return;
-				}
-				const encodePath = encodeURIComponent(this.path);
-				const encodeTo = encodeURIComponent(to);
-				const url = `/${encodePath}/rename?to=${encodeTo}`;
-				EntryItem.send(url, {type: 'PUT'})
-					.then((renamed) => {
-						this.path = to;
-						// XXX
-						this.name(to.split('/').pop());
-					});
-			});
+	public async delete(): Promise<boolean> {
+		// FIXME via shownDelete
+		const prev = this.path + (!this.isFile ? '/' : ''); // XXX directory is ends with '/'
+		const url = encodeURIComponent(prev);
+		const deleted = await Http.delete<boolean>(`/entry/${url}`);
+		if (deleted) {
+			this.emit(EntryEvents.Deleted, this);
+		}
+		return deleted;
 	}
 
-	delete () {
-		this.fireAsync('shownDelete', this.path)
-			.then((ok) => {
-				if (!ok) {
-					console.log('Delete canceled');
-					return;
-				}
-				// XXX
-				const prev = this.path + (!this.isFile ? '/' : '');
-				const url = '/' + encodeURIComponent(prev);
-				EntryItem.send(url, {type: 'DELETE'})
-					.then((deleted) => {
-						this.fire('deleted', this);
-					});
-			});
-	}
-
-	backup (content) {
+	public backup(content: string): void {
 		localStorage.setItem(this.path, content);
 	}
 
-	restore () {
-		const content = localStorage.getItem(this.path);
+	public restore(): string {
+		const content = localStorage.getItem(this.path) || '';
 		if (content) {
 			localStorage.removeItem(this.path);
 		}
 		return content;
 	}
 
-	allow () {
-		this.edit.close(!this.edit.close());
+	public allow(): void {
+		this.edit.close = !this.edit.close;
 	}
 
-	static toEntry(entity) {
+	public static toEntry(entity: EntryEntity): EntryItem {
 		if (entity.isFile) {
 			return new EntryFile(entity);
 		} else {
@@ -227,103 +279,90 @@ class EntryItem extends Node {
 		}
 	}
 
-	static validSavePath (path) {
-		if (typeof path !== 'string' || path.length === 0) {
-			console.warn('Invalid save path', path);
-			return false;
-		}
-		if (/[^\d\w\-\/_.]+/.test(path)) {
-			console.warn('Not allowed path characters', path);
-			return false;
-		}
-		return true;
-	}
-
-	static toIcon (type) {
+	public static toIcon(type: EntryTypes): Icons {
 		const classes = {
-			file: '',
-			fileOpen: 'fa-download',
-			directory: 'fa-folder-open',
-			directoryClose:  'fa-folder',
-			add: 'fa-plus'
+			[EntryTypes.File]: Icons.Empty,
+			[EntryTypes.FileOpen]: Icons.FileOpen,
+			[EntryTypes.Directory]: Icons.Directory,
+			[EntryTypes.DirectoryClose]: Icons.DirectoryClose,
+			[EntryTypes.FileAdd]: Icons.FileAdd
 		};
-		return classes[type];
+		return (type in classes) ? <any>classes[type] : Icons.Empty; // XXX any
 	}
 }
 
 class EntryFile extends EntryItem {
-	constructor (entity) {
+	public constructor(entity: EntryEntity) {
 		super(entity);
+		this._bind();
 	}
 
-	click () {
-		this._load(this.path, this.isText);
+	public click(): void {
+		this._load();
 	}
 
-	update (content) {
-		return super.update(content)
-			.then((updated) => {
-				this.content = content;
-				return updated;
-			})
-			.catch((err) => {
-				this.content = content;
-			});
+	public async update(content: string): Promise<boolean> {
+		const updated = await super.update(content);
+		if (updated) {
+			this.content = content;
+		}
+		return updated;
 	}
 
-	_load (path, isText) {
-		this.fire('beforeReload', isText);
-		const url = '/' + encodeURIComponent(path);
+	private async _load(): Promise<void> {
+		this.emit(EntryEvents.BeforeLoaded, this);
 		if (this.content === '') {
-			EntryItem.send(url)
-				.then((entity) => {
-					this.content = entity.content;
-					this._activate();
-					this.fire('afterReload', path, isText, entity.content);
-					this.icon(EntryItem.toIcon('fileOpen'));
-				});
+			const url = encodeURIComponent(this.path);
+			const entity = await Http.get<EntryEntity>(`/entry/${url}`);
+			this.content = entity.content;
+			this._activate();
+			this.emit(EntryEvents.AfterLoaded, this);
+			this.icon = EntryItem.toIcon(EntryTypes.FileOpen);
 		} else {
 			this._activate();
-			this.fire('afterReload', path, isText, this.content);
+			this.emit(EntryEvents.AfterLoaded, this);
 		}
 	}
 
-	_activate () {
-		this.fire('deactivate');
-		this.display.active(true);
+	private _activate(): void {
+		this.emit(EntryEvents.Deactivated, this);
+		this.display.active = true;
 	}
 }
 
 class EntryDirectory extends EntryItem {
-	constructor (entity) {
+	public opened: boolean;
+
+	constructor (entity: EntryEntity) {
 		super(entity);
 		this.opened = true;
+		this._bind();
 	}
 
-	click () {
+	public click(): void {
+		this.emit(EntryEvents.Expanded, this);
 		this.opened = !this.opened;
-		const nextIcon = EntryItem.toIcon(this.opened ? 'directory' : 'directoryClose');
-		this.icon(nextIcon);
-		this.fire('expand', this.path, this.opened);
+		this.icon = EntryItem.toIcon(this.opened ? EntryTypes.Directory : EntryTypes.DirectoryClose);
 	}
 }
 
 class EntryAdd extends EntryItem {
-	constructor () {
+	public constructor() {
 		super({
 			path: '',
 			isFile: false,
+			isText: false,
 			content: ''
 		});
-		this.icon(EntryItem.toIcon('add'));
+		this.icon = EntryItem.toIcon(EntryTypes.FileAdd);
+		this._bind();
 	}
 
-	click () {
-		this.fireAsync('shownCreate')
-			.then((path) => {
-				if (EntryItem.validSavePath(path)) {
-					this.create(path);
-				};
-			});
+	public click(): void {
+		// FIXME via shownCreate
+		// if (Path.valid(path)) {
+		// 	this.create(path);
+		// };
+		this.emit(EntryEvents.Added, this);
 	}
 }

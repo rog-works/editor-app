@@ -7,8 +7,8 @@ enum DialogTypes {
 	Prompt
 }
 
-export type DialogEvents = 'accept' | 'cancel';
-export namespace DialogEvents {
+type DialogEvents = 'accept' | 'cancel';
+namespace DialogEvents {
 	export const Accept = 'accept';
 	export const Cancel = 'cancel';
 }
@@ -27,7 +27,7 @@ export default class Dialog extends EventEmitter {
 			close: true
 		}
 	) {
-		super(DialogEvents.Accept, DialogEvents.Cancel);
+		super([DialogEvents.Accept, DialogEvents.Cancel]);
 		ko.track(this);
 		ko.track(this.pos);
 		ko.track(this.display);

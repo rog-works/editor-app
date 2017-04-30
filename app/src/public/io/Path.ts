@@ -28,6 +28,6 @@ export default class Path {
 	}
 
 	public static valid(path: string): boolean {
-		return !/[\\:*?"<>|]+/.test(path);
+		return !/[\\:*?"<>|]+/.test(path) && path.length > 0;
 	}
 }

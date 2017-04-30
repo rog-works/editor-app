@@ -12,7 +12,7 @@ export default class WS extends EventEmitter {
 	private _ws: WebSocket;
 
 	public constructor(url: string) {
-		super(WSEvents.Message, WSEvents.Open, WSEvents.Close);
+		super([WSEvents.Message, WSEvents.Open, WSEvents.Close]);
 		this.url = url;
 		this._ws = this.connect(this.url);
 	}
