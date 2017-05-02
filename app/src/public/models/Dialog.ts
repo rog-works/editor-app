@@ -7,17 +7,18 @@ enum DialogTypes {
 	Prompt
 }
 
-type DialogEvents = 'accept' | 'cancel';
-namespace DialogEvents {
-	export const Accept = 'accept';
-	export const Cancel = 'cancel';
+export type DialogEvents = 'accepted' | 'canceled';
+export namespace DialogEvents {
+	export const Accepted = 'accepted';
+	export const Canceled = 'canceled';
 }
 
-export default class Dialog extends EventEmitter {
+export class Dialog extends EventEmitter {
 	public constructor(
 		public title: string = '',
 		public message: string = '',
 		public input: string = '',
+		public context: any = {}, // XXX
 		public confirmed: boolean = true,
 		public prompted: boolean = false,
 		public pos: any = { // XXX any
@@ -27,7 +28,7 @@ export default class Dialog extends EventEmitter {
 			close: true
 		}
 	) {
-		super([DialogEvents.Accept, DialogEvents.Cancel]);
+		super([DialogEvents.Accepted, DialogEvents.Canceled]);
 		ko.track(this);
 		ko.track(this.pos);
 		ko.track(this.display);
@@ -37,7 +38,7 @@ export default class Dialog extends EventEmitter {
 		return new DialogBuilder(this);
 	}
 
-	public show(type: DialogTypes, title: string, message: string, input: string): void {
+	public show(type: DialogTypes, title: string, message: string, input: string, context: any = {}): void {
 		const self = this;
 		this.title = title;
 		this.message = message;
@@ -45,16 +46,17 @@ export default class Dialog extends EventEmitter {
 		this.confirmed = type !== DialogTypes.Nortice;
 		this.prompted = type === DialogTypes.Prompt;
 		this.display.close = false;
+		this.context = context;
 	}
 
 	public ok() {
 		this.display.close = true;
-		this.emit(DialogEvents.Accept, this, this.prompted ? this.input : true);
+		this.emit(DialogEvents.Accepted, this, this.prompted ? this.input : true);
 	}
 
 	public cancel() {
 		this.display.close = true;
-		this.emit(DialogEvents.Cancel, this, false);
+		this.emit(DialogEvents.Canceled, this);
 	}
 }
 
@@ -63,7 +65,8 @@ class DialogBuilder {
 		private _owner: Dialog,
 		private _title: string = '',
 		private _message: string = '',
-		private _input: string = ''
+		private _input: string = '',
+		private _context: any = {}
 	) {}
 
 	public message(message: string): this {
@@ -81,15 +84,38 @@ class DialogBuilder {
 		return this;
 	}
 
+	public context(context: any): this {
+		this._context = context;
+		return this;
+	}
+
 	public confirm(): void {
-		this._owner.show(DialogTypes.Confirm, this._title || 'Confirm', this._message, this._input);
+		this._owner.show(
+			DialogTypes.Confirm,
+			this._title || 'Confirm',
+			this._message,
+			this._input,
+			this._context
+		);
 	}
 
 	public nortice(): void {
-		this._owner.show(DialogTypes.Nortice, this._title || 'Nortice', this._message, this._input);
+		this._owner.show(
+			DialogTypes.Nortice,
+			this._title || 'Nortice',
+			this._message,
+			this._input,
+			this._context
+		);
 	}
 
 	public prompt(): void {
-		this._owner.show(DialogTypes.Prompt, this._title || 'Prompt', this._message, this._input);
+		this._owner.show(
+			DialogTypes.Prompt,
+			this._title || 'Prompt',
+			this._message,
+			this._input,
+			this._context
+		);
 	}
 }

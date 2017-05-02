@@ -5,10 +5,16 @@ import {Entry, EntryItem, EntryEvents} from './models/Entry';
 import Shell from './models/Shell';
 import Weblog from './models/Weblog';
 // import Hex from './models/Hex';
-import Dialog from './models/Dialog';
+import {Dialog, DialogEvents} from './models/Dialog';
 import {Page} from './ui/Page';
 import EventEmitter from './event/EventEmitter';
 import KoPlugin from './components/KoPlugin';
+
+enum BehaviorTypes {
+	Create,
+	Rename,
+	Delete
+}
 
 export default class Application extends EventEmitter {
 	private static _instance: Application;
@@ -52,12 +58,11 @@ export default class Application extends EventEmitter {
 
 	private _init(): void {
 		// bind events
-		this.on(EditorEvents.Saved, this._onSaved);
-		this.on(EntryEvents.BeforeLoaded, this._onBeforeLoaded);
-		this.on(EntryEvents.AfterLoaded, this._onAfterLoaded);
-		this.on(shownCreate, this.shownCreateAsync);
-		this.on(shownRename, this.shownRenameAsync);
-		this.on(shownDelete, this.shownDeleteAsync);
+		this.editor.on(EditorEvents.Saved, this._onSaved);
+		this.entry.on(EntryEvents.BeforeLoaded, this._onBeforeLoaded);
+		this.entry.on(EntryEvents.AfterLoaded, this._onAfterLoaded);
+		this.dialog.on(DialogEvents.Accepted, this._onAccepted);
+		this.dialog.on(DialogEvents.Canceled, this._onCanceled);
 
 		// first view on entry
 		this.focus('entry');
@@ -99,36 +104,56 @@ export default class Application extends EventEmitter {
 		return false;
 	}
 
-	public async _onSaved(sender: Editor): Promise<boolean> {
-		if (!this.entry.has(sender.path)) {
-			throw new Error(`No such file or diretory. ${sender.path}`);
-		}
-		const entry = this.entry.at(sender.path);
-		const updated = await entry.update(sender.content);
-		this.editor.saved(updated);
+	private _onSaved(sender: Editor): boolean {
+		this._saved(sender.path, sender.content);
 		return false;
 	}
 
-	public shownCreate(): Promise<boolean> {
-		return await this._showPrompt('Input create file path', '/');
+	private async _saved(path: string, content: string): Promise<void> {
+		const entry = this.entry.at(path);
+		if (entry === null) {
+			throw new Error(`No such file or diretory. ${path}`);
+		}
+		const updated = await entry.update(content);
+		this.editor.saved(updated);
 	}
 
-	public async shownRename(path: string): Promise<boolean> {
-		return await this._showPrompt('Change file path', path);
+	private _onAccepted(sender: Dialog, result: any): boolean {
+		switch (sender.context.behavior) {
+		case BehaviorTypes.Create: this.entry.newEntry(<string>result); break;
+		case BehaviorTypes.Rename: (sender.context.item as EntryItem).rename(<string>result); break;
+		case BehaviorTypes.Delete: this.entry.remove(sender.context.item as EntryItem); break;
+		}
+		return false;
 	}
 
-	public async shownDelete(path: string): Promise<boolean> {
-		return await this._showConfirm(`'${path}' deleted?`);
+	private _onCanceled(sender: Dialog): boolean {
+		console.log(`cancel ${sender.context.behavior}`);
+		return false;
 	}
 
-	private async _showConfirm(message: string): Promise<boolean> {
-		return await this.dialog.build().message(message).confirm();
+	public shownCreate(): void {
+		this.dialog.build()
+			.context({behavior: BehaviorTypes.Create})
+			.message('Input create file path')
+			.input('/')
+			.prompt();
 	}
 
-	private async _showPrompt(message: string, input: string): Promise<boolean> {
-		return await this.dialog.build().message(message).input(input).prompt();
+	public shownRename(entry: EntryItem): void {
+		this.dialog.build()
+			.context({item: entry, behavior: BehaviorTypes.Rename})
+			.message('Change file path')
+			.input(entry.path)
+			.prompt();
 	}
-	
+
+	public shownDelete(entry: EntryItem): void {
+		this.dialog.build()
+			.context({item: entry, behavior: BehaviorTypes.Delete})
+			.message(`'${entry.path}' deleted?`)
+			.confirm();
+	}
 
 	public test(): void {
 		// XXX
