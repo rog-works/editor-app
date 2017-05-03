@@ -1,24 +1,24 @@
 const webpack = require('webpack');
 
-function externalModules() {
-	return {
-		'express': 'commonjs express',
-		'morgan': 'commonjs morgan',
-		'body-parser': 'commonjs body-parser',
-		'glob': 'commonjs glob',
-		'crypto-js': 'commonjs crypto-js',
-		'socket.io': 'commonjs socket.io',
-		'node': 'commonjs node',
-		'jquery': 'commonjs jquery', // FIXME
-		'knockout': 'commonjs knockout', // FIXME
-		'knockout-es5': 'commonjs knockout-es5', // FIXME
-		'ace': 'commonjs ace' // FIXME
-	}
-}
+// function externalModules() {
+// 	return {
+// 		'express': 'commonjs express',
+// 		'morgan': 'commonjs morgan',
+// 		'body-parser': 'commonjs body-parser',
+// 		'glob': 'commonjs glob',
+// 		'crypto-js': 'commonjs crypto-js',
+// 		'socket.io': 'commonjs socket.io',
+// 		'node': 'commonjs node',
+// 		'jquery': 'commonjs jquery', // FIXME
+// 		'knockout': 'commonjs knockout', // FIXME
+// 		'knockout-es5': 'commonjs knockout-es5', // FIXME
+// 		'ace': 'commonjs ace' // FIXME
+// 	}
+// }
 
 module.exports = {
 	entry: {
-		server: `${__dirname}/src/Index.ts`,
+		// server: `${__dirname}/src/Index.ts`,
 		client: `${__dirname}/src/public/Client.ts`
 	},
 	output: {
@@ -28,11 +28,11 @@ module.exports = {
 	resolve: {
 		extensions: ['.ts', '.js']
 	},
-	node: {
-		__filename: false,
-		__dirname: false
-	},
-	target: 'node',
+	// node: {
+	// 	__filename: false,
+	// 	__dirname: false
+	// },
+	// target: 'node',
 	module: {
 		rules: [
 			{
@@ -53,5 +53,5 @@ module.exports = {
 		poll: 500
 	},
 	devtool: 'source-map',
-	externals: externalModules()
+	// externals: externalModules()
 };
