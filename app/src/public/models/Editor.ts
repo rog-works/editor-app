@@ -1,5 +1,5 @@
 import * as ko from 'knockout-es5';
-// import * as ace from 'ace'; XXX import nessesory
+// import * as ace from 'ace'; // FIXME not resolve
 import {Page, States} from '../ui/Page';
 import Path from '../io/Path';
 import {KeyCodes} from '../ui/KeyMap';
@@ -14,7 +14,7 @@ export class Editor extends Page {
 		private _path: string = '#',
 		private _state: States = States.Syncronized
 	) {
-		super();
+		super([EditorEvents.Saved]);
 		this.load();
 		this._editor.on('change', this.changed.bind(this));
 		ko.track(this);

@@ -8,491 +8,147 @@
 		<link rel="stylesheet" chatset="utf8" href="vendors/normalize.css">
 		<link rel="stylesheet" chatset="utf8" href="css/style.css">
 	</head>
-	<body class="bc1 fc1">
-		<div id="main" data-bind="style: size, windowEvent: { resize: resize }">
-			<!-- inspector -->
-			<div class="fill" bind="css: { close: false }, style: inspector.size">
-				<div class="fill-w h0 table" bind="foreach: inspector.entries">
-					<div class="fill-w h0 row" bind="foreach: $data.values">
-						<!-- path -->
-						<div class="h0 cell bc2 bottom-line middle depth1" bind="text: $data.value, css: $data.css">signature</div>
-						<!-- value -->
-						<div class="h0 cell bc2 bottom-line middle" bind="text: $data.value, css: $data.css">-8552249625308161526</div>
-						<!-- sample -->
-						<div class="h0 cell bc2 bottom-line middle" bind="text: $data.value, css: $data.css">0x89504e470d0a1a0a</div>
-						<!-- address-s -->
-						<div class="h0 cell bc2 bottom-line middle" bind="text: $data.value, css: $data.css">0x00000000</div>
-						<!-- address-e -->
-						<div class="h0 cell bc2 bottom-line middle" bind="text: $data.value, css: $data.css">0x00000007</div>
-						<!-- relative -->
-						<div class="h0 cell bc2 bottom-line middle" bind="text: $data.value, css: $data.css">0x00000000</div>
-						<!-- size -->
-						<div class="h0 cell bc2 bottom-line middle" bind="text: $data.value, css: $data.css">0x08</div>
-						<!-- type -->
-						<div class="h0 cell bc2 bottom-line middle" bind="text: $data.value, css: $data.css">int8</div>
-						<!-- little-endian -->
-						<div class="h0 cell bc2 bottom-line middle fa fa-check" bind="text: $data.value, css: $data.css"></div>
-						<!-- description -->
-						<div class="h0 cell bc2 bottom-line middle" bind="text: $data.value, css: $data.css">PNG file signature</div>
+	<body>
+		<div class="bc1 fc1 flex fill">
+			<!-- content -->
+			<div class="w1 fill-h grow-1">
+				<div class="fill">
+					<!-- entry -->
+					<div class="bc2 fill close" data-bind="css: { close: entry.display.active() === false }">
+						<div class="fill scroll-y hide-scroll" data-bind="foreach: entry.entries">
+							<div class="bc2 fill-w h0 table bottom-line" data-bind="css: $data.display">
+								<i class="wh0 cell center fa" data-bind="css: $data.icon"></i>
+								<i class="fc4 wh0 cell center fa" data-bind="css: { 'fa-caret-left': $data.edit.close, 'fa-caret-right': $data.edit.close() === false }, click: $data.allow"></i>
+								<i class="wh0 cell center fa fa-pencil" data-bind="css: $data.edit, click: $data.rename"></i>
+								<i class="wh0 cell center fa fa-remove" data-bind="css: $data.edit, click: $data.delete"></i>
+								<a class="h0 cell middle" data-bind="text: $data.name, click: $data.click"></a>
+							</div>
+						</div>
 					</div>
-					<div class="bc2 fill-w h0 row bottom-line" bind="foreach: $data.values">
-						<!-- path -->
-						<div class="h0 cell bc2 bottom-line middle depth1" bind="text: $data.value, css: $data.css">ihdr</div>
-						<!-- value -->
-						<div class="h0 cell bc2 bottom-line middle" bind="text: $data.value, css: $data.css">{}</div>
-						<!-- sample -->
-						<div class="h0 cell bc2 bottom-line middle" bind="text: $data.value, css: $data.css"></div>
-						<!-- address-s -->
-						<div class="h0 cell bc2 bottom-line middle" bind="text: $data.value, css: $data.css">0x00000008</div>
-						<!-- address-e -->
-						<div class="h0 cell bc2 bottom-line middle" bind="text: $data.value, css: $data.css">0x00000021</div>
-						<!-- relative -->
-						<div class="h0 cell bc2 bottom-line middle" bind="text: $data.value, css: $data.css">0x00000008</div>
-						<!-- size -->
-						<div class="h0 cell bc2 bottom-line middle" bind="text: $data.value, css: $data.css">0x19</div>
-						<!-- type -->
-						<div class="h0 cell bc2 bottom-line middle" bind="text: $data.value, css: $data.css">object</div>
-						<!-- little-endian -->
-						<div class="h0 cell bc2 bottom-line middle fa fa-check" bind="text: $data.value, css: $data.css"></div>
-						<!-- description -->
-						<div class="h0 cell bc2 bottom-line middle" bind="text: $data.value, css: $data.css">IHDR chunk</div>
+					<!-- editor -->
+					<div class="bc2 fill" data-bind="css: { close: editor.display.active() === false }">
+						<div id="editor" class="fill" data-bind="event: { keydown: editor.keydown.bind($data.editor) }"></div>
 					</div>
-					<div class="bc2 fill-w h0 row bottom-line" bind="foreach: $data.values">
-						<!-- path -->
-						<div class="h0 cell bc2 bottom-line middle depth2" bind="text: $data.value, css: $data.css">size</div>
-						<!-- value -->
-						<div class="h0 cell bc2 bottom-line middle" bind="text: $data.value, css: $data.css">13</div>
-						<!-- sample -->
-						<div class="h0 cell bc2 bottom-line middle" bind="text: $data.value, css: $data.css">0x0000000D</div>
-						<!-- address-s -->
-						<div class="h0 cell bc2 bottom-line middle" bind="text: $data.value, css: $data.css">0x00000008</div>
-						<!-- address-s -->
-						<div class="h0 cell bc2 bottom-line middle" bind="text: $data.value, css: $data.css">0x0000000B</div>
-						<!-- relative -->
-						<div class="h0 cell bc2 bottom-line middle" bind="text: $data.value, css: $data.css">0x00000000</div>
-						<!-- size -->
-						<div class="h0 cell bc2 bottom-line middle" bind="text: $data.value, css: $data.css">0x04</div>
-						<!-- type -->
-						<div class="h0 cell bc2 bottom-line middle" bind="text: $data.value, css: $data.css">int4</div>
-						<!-- little-endian -->
-						<div class="h0 cell bc2 bottom-line middle fa fa-check" bind="text: $data.value, css: $data.css"></div>
-						<!-- description -->
-						<div class="h0 cell bc2 bottom-line middle" bind="text: $data.value, css: $data.css">chunk size</div>
+					<!-- shell -->
+					<div class="bc2 fill close" data-bind="css: { close: shell.display.active() === false }">
+						<div class="fill-w h1 table">
+							<span class="fc2 wh1 cell middle" data-bind="text: '[~' + shell.dir() + ']$'"></span>
+							<input type="text" class="bc2 fc2 fill-w h1 cell middle less" placeholder="input command" list="shell-history" data-bind="value: shell.query, css: shell.css, event: { keyup: shell.keyup.bind($data.shell) }">
+							<i class="wh1 cell center fa fa-remove" data-bind="click: shell.clear.bind($data.shell)"></i>
+							<datalist id="shell-history" data-bind="foreach: shell.history">
+								<option data-bind="value: $data">
+							</datalist>
+						</div>
+						<div data-bind="with: shell">
+							<div class="fill-w h90 scroll hide-scroll" data-bind="foreach: logs, wsEvent: { message: message }">
+								<pre class="font-s75 space-less" data-bind="text: $data.log, css: $data.css, click: $data.expand"></pre>
+							</div>
+						</div>
 					</div>
-					<div class="bc2 fill-w h0 row bottom-line" bind="foreach: $data.values">
-						<!-- path -->
-						<div class="h0 cell bc2 bottom-line middle depth2" bind="text: $data.value, css: $data.css">type</div>
-						<!-- value -->
-						<div class="h0 cell bc2 bottom-line middle" bind="text: $data.value, css: $data.css">IHDR</div>
-						<!-- sample -->
-						<div class="h0 cell bc2 bottom-line middle" bind="text: $data.value, css: $data.css">0x49484452</div>
-						<!-- address-s -->
-						<div class="h0 cell bc2 bottom-line middle" bind="text: $data.value, css: $data.css">0x0000000C</div>
-						<!-- address-e -->
-						<div class="h0 cell bc2 bottom-line middle" bind="text: $data.value, css: $data.css">0x0000000F</div>
-						<!-- relative -->
-						<div class="h0 cell bc2 bottom-line middle" bind="text: $data.value, css: $data.css">0x00000004</div>
-						<!-- size -->
-						<div class="h0 cell bc2 bottom-line middle" bind="text: $data.value, css: $data.css">0x04</div>
-						<!-- type -->
-						<div class="h0 cell bc2 bottom-line middle" bind="text: $data.value, css: $data.css">string</div>
-						<!-- little-endian -->
-						<div class="h0 cell bc2 bottom-line middle fa fa-check" bind="text: $data.value, css: $data.css"></div>
-						<!-- description -->
-						<div class="h0 cell bc2 bottom-line middle" bind="text: $data.value, css: $data.css">chunk type</div>
+					<!-- weblog -->
+					<div class="bc2 fill close" data-bind="css: { close: weblog.display.active() === false }">
+						<div class="fill-w h1 table">
+							<span class="fill-w h1"></span>
+							<i class="wh1 cell center fa fa-remove" data-bind="click: weblog.clear.bind($data.weblog)"></i>
+						</div>
+						<div data-bind="with: weblog">
+							<div class="fill-w h90 scroll hide-scroll" data-bind="foreach: logs, wsEvent: { message: message }">
+								<pre class="font-s75 space-less" data-bind="html: $data.log, css: $data.css, click: $data.expand"></pre>
+							</div>
+						</div>
 					</div>
-					<div class="bc2 fill-w h0 row bottom-line" bind="foreach: $data.values">
-						<!-- path -->
-						<div class="h0 cell bc2 bottom-line middle depth2" bind="text: $data.value, css: $data.css">width</div>
-						<!-- value -->
-						<div class="h0 cell bc2 bottom-line middle" bind="text: $data.value, css: $data.css">128</div>
-						<!-- sample -->
-						<div class="h0 cell bc2 bottom-line middle" bind="text: $data.value, css: $data.css">0x00000080</div>
-						<!-- address-s -->
-						<div class="h0 cell bc2 bottom-line middle" bind="text: $data.value, css: $data.css">0x00000010</div>
-						<!-- address-e -->
-						<div class="h0 cell bc2 bottom-line middle" bind="text: $data.value, css: $data.css">0x00000013</div>
-						<!-- relative -->
-						<div class="h0 cell bc2 bottom-line middle" bind="text: $data.value, css: $data.css">0x00000008</div>
-						<!-- size -->
-						<div class="h0 cell bc2 bottom-line middle" bind="text: $data.value, css: $data.css">0x04</div>
-						<!-- type -->
-						<div class="h0 cell bc2 bottom-line middle" bind="text: $data.value, css: $data.css">int4</div>
-						<!-- little-endian -->
-						<div class="h0 cell bc2 bottom-line middle fa fa-check" bind="text: $data.value, css: $data.css"></div>
-						<!-- description -->
-						<div class="h0 cell bc2 bottom-line middle" bind="text: $data.value, css: $data.css">image width</div>
+					<!-- console -->
+					<div class="bc2 fill close" data-bind="css: { close: console.display.active() === false }">
+						<div class="fill-w h1 table">
+							<span class="fill-w h1"></span>
+							<i class="wh1 cell center fa fa-remove" id="console-clear" data-bind="click: console.clear.bind($data.console)"></i>
+						</div>
+						<div class="fill-w h90 scroll hide-scroll" data-bind="foreach: console.logs">
+							<pre class="font-s75 space-less" data-bind="text: $data.log, css: $data.css, click: $data.expand"></pre>
+						</div>
 					</div>
-					<div class="bc2 fill-w h0 row bottom-line" bind="foreach: $data.values">
-						<!-- path -->
-						<div class="h0 cell bc2 bottom-line middle depth2" bind="text: $data.value, css: $data.css">height</div>
-						<!-- value -->
-						<div class="h0 cell bc2 bottom-line middle" bind="text: $data.value, css: $data.css">128</div>
-						<!-- sample -->
-						<div class="h0 cell bc2 bottom-line middle" bind="text: $data.value, css: $data.css">0x00000080</div>
-						<!-- address-s -->
-						<div class="h0 cell bc2 bottom-line middle" bind="text: $data.value, css: $data.css">0x00000014</div>
-						<!-- address-e -->
-						<div class="h0 cell bc2 bottom-line middle" bind="text: $data.value, css: $data.css">0x00000017</div>
-						<!-- relative -->
-						<div class="h0 cell bc2 bottom-line middle" bind="text: $data.value, css: $data.css">0x0000000C</div>
-						<!-- size -->
-						<div class="h0 cell bc2 bottom-line middle" bind="text: $data.value, css: $data.css">0x04</div>
-						<!-- type -->
-						<div class="h0 cell bc2 bottom-line middle" bind="text: $data.value, css: $data.css">int4</div>
-						<!-- little-endian -->
-						<div class="h0 cell bc2 bottom-line middle fa fa-check" bind="text: $data.value, css: $data.css"></div>
-						<!-- description -->
-						<div class="h0 cell bc2 bottom-line middle" bind="text: $data.value, css: $data.css">image height</div>
+					<!-- hex FIXME -->
+					<!--<div class="bc2 font-s75 fill scroll hide-scroll close" data-bind="click: hex.focus.bind($data.hex), event: { scroll: hex.scroll.bind($data.hex) }, css: { close: hex.display.active() === false }">
+						<div class="w480 relative" data-bind="style: hex.rows.position">
+							<input class="dummy" type="text" data-bind="attr: { pos: hex.editor.cursor }, hasFocus: hex.focused, event: { keydown: hex.keydown.bind($data.hex), copy: hex.copy.bind($data.hex), cut: hex.cut.bind($data.hex), paste: hex.paste.bind($data.hex) }">
+							<div class="left table" data-bind="foreach: hex.rows">
+								<div class="row">
+									<div class="fc4 bc2 h- cell center bottom-line" data-bind="text: $data.address"></div>
+								</div>
+							</div>
+							<div class="left table margin-l3 hex" data-bind="foreach: hex.rows">
+								<div class="row" data-bind="foreach: $data.columns">
+									<div class="fc1 bc2 h- cell center bottom-line" data-bind="attr: { pos: $data.globalPos }, text: $data.hex, css: { 'fc1-p': $data.globalPos() === $root.hex.editor.cursor(), 'bc1-s': $data.globalPos() >= $root.hex.editor.selectBegin && $data.globalPos() < $root.hex.editor.selectEnd }"></div>
+								</div>
+							</div>
+							<div class="left table margin-l3" data-bind="foreach: hex.rows">
+								<div class="row">
+									<div class="fc4 bc2 h- cell middle bottom-line" data-bind="text: $data.text"></div>
+								</div>
+							</div>
+						</div>
+						<div data-bind="style: hex.rows.globalSize"></div>
+					</div>-->
+				</div>
+			</div>
+			<!-- toolbar -->
+			<div class="w1 fill-h grow-0 scroll-y hide-scroll">
+				<div class="bc1 wh1 table" data-bind="css: entry.display, click: focus.bind($data, 'entry')">
+					<i class="cell center fa fa-sitemap" data-bind="css: entry.icon"></i>
+				</div>
+				<div class="bc1 wh1 table" data-bind="css: editor.display, click: focus.bind($data, 'editor')">
+					<i class="cell center fa fa-pencil" data-bind="css: editor.icon"></i>
+				</div>
+				<div class="bc1 wh1 table" data-bind="css: shell.display, click: focus.bind($data, 'shell')">
+					<i class="cell center fa fa-terminal" data-bind="css: shell.icon"></i>
+				</div>
+				<div class="bc1 wh1 table" data-bind="css: weblog.display, click: focus.bind($data, 'weblog')">
+					<i class="cell center fa fa-commenting" data-bind="css: weblog.icon"></i>
+				</div>
+				<div class="bc1 wh1 table" data-bind="css: console.display, click: focus.bind($data, 'console')">
+					<i class="cell center fa fa-info" data-bind="css: console.icon"></i>
+				</div>
+				<div class="bc1 wh1 table bottom-line" data-bind="css: hex.display, click: focus.bind($data, 'hex')">
+					<i class="cell center fa fa-table" data-bind="css: hex.icon"></i>
+				</div>
+				<div class="bc1 wh1 table" data-bind="css: { close: editor.display.active() === false }, click: editor.save.bind($data.editor)">
+					<i class="cell center fa fa-save"></i>
+				</div>
+				<!--<div class="bc1 wh1 table" data-bind="click: test">-->
+				<!--	<i class="cell center fa fa-info"></i>-->
+				<!--</div>-->
+				<div class="bc1 wh1 table" data-bind="click: editor.cursor.bind($data.editor, 'left')">
+					<i class="cell center fa fa-caret-left"></i>
+				</div>
+				<div class="bc1 wh1 table" data-bind="click: editor.cursor.bind($data.editor, 'right')">
+					<i class="cell center fa fa-caret-right"></i>
+				</div>
+			</div>
+			<!-- dialog -->
+			<div class="bc1 trans25 float close" data-bind="css: dialog.display">
+				<div class="bc1 trans100 w8 auto frame" data-bind="style: dialog.pos">
+					<div class="fill-w h1">
+						<div class="left table">
+							<i class="wh1 cell center fa fa-info-circle"></i>
+							<span class="h1 cell middle" data-bind="text: dialog.title"></span>
+						</div>
+						<div class="right table" data-bind="click: dialog.cancel.bind($data.dialog)">
+							<i class="wh1 cell center fa fa-close"></i>
+						</div>
 					</div>
-					<div class="bc2 fill-w h0 row bottom-line" bind="foreach: $data.values">
-						<!-- path -->
-						<div class="h0 cell bc2 bottom-line middle depth2" bind="text: $data.value, css: $data.css">depth</div>
-						<!-- value -->
-						<div class="h0 cell bc2 bottom-line middle" bind="text: $data.value, css: $data.css">8</div>
-						<!-- sample -->
-						<div class="h0 cell bc2 bottom-line middle" bind="text: $data.value, css: $data.css">0x08</div>
-						<!-- address-s -->
-						<div class="h0 cell bc2 bottom-line middle" bind="text: $data.value, css: $data.css">0x00000018</div>
-						<!-- address-e -->
-						<div class="h0 cell bc2 bottom-line middle" bind="text: $data.value, css: $data.css">0x00000018</div>
-						<!-- relative -->
-						<div class="h0 cell bc2 bottom-line middle" bind="text: $data.value, css: $data.css">0x00000010</div>
-						<!-- size -->
-						<div class="h0 cell bc2 bottom-line middle" bind="text: $data.value, css: $data.css">0x01</div>
-						<!-- type -->
-						<div class="h0 cell bc2 bottom-line middle" bind="text: $data.value, css: $data.css">byte</div>
-						<!-- little-endian -->
-						<div class="h0 cell bc2 bottom-line middle fa fa-check" bind="text: $data.value, css: $data.css"></div>
-						<!-- description -->
-						<div class="h0 cell bc2 bottom-line middle" bind="text: $data.value, css: $data.css">bit depth</div>
+					<div class="bc2 fill-w">
+						<div class="fill-w" data-bind="text: dialog.message"></div>
+						<input type="text" placeholder="input" class="bc2 fc2 fill-w h1 less" data-bind="value: dialog.input, css: { close: dialog.prompted() === false }">
 					</div>
-					<div class="bc2 fill-w h0 row bottom-line" bind="foreach: $data.values">
-						<!-- path -->
-						<div class="h0 cell bc2 bottom-line middle depth2" bind="text: $data.value, css: $data.css">colorType</div>
-						<!-- value -->
-						<div class="h0 cell bc2 bottom-line middle" bind="text: $data.value, css: $data.css">6</div>
-						<!-- sample -->
-						<div class="h0 cell bc2 bottom-line middle" bind="text: $data.value, css: $data.css">0x06</div>
-						<!-- address-s -->
-						<div class="h0 cell bc2 bottom-line middle" bind="text: $data.value, css: $data.css">0x00000019</div>
-						<!-- address-e -->
-						<div class="h0 cell bc2 bottom-line middle" bind="text: $data.value, css: $data.css">0x00000019</div>
-						<!-- relative -->
-						<div class="h0 cell bc2 bottom-line middle" bind="text: $data.value, css: $data.css">0x00000011</div>
-						<!-- size -->
-						<div class="h0 cell bc2 bottom-line middle" bind="text: $data.value, css: $data.css">0x01</div>
-						<!-- type -->
-						<div class="h0 cell bc2 bottom-line middle" bind="text: $data.value, css: $data.css">byte</div>
-						<!-- little-endian -->
-						<div class="h0 cell bc2 bottom-line middle fa fa-check" bind="text: $data.value, css: $data.css"></div>
-						<!-- description -->
-						<div class="h0 cell bc2 bottom-line middle" bind="text: $data.value, css: $data.css">color type</div>
-					</div>
-					<div class="bc2 fill-w h0 row bottom-line" bind="foreach: $data.values">
-						<!-- path -->
-						<div class="h0 cell bc2 bottom-line middle depth2" bind="text: $data.value, css: $data.css">compress</div>
-						<!-- value -->
-						<div class="h0 cell bc2 bottom-line middle" bind="text: $data.value, css: $data.css">0</div>
-						<!-- sample -->
-						<div class="h0 cell bc2 bottom-line middle" bind="text: $data.value, css: $data.css">0x00</div>
-						<!-- address-s -->
-						<div class="h0 cell bc2 bottom-line middle" bind="text: $data.value, css: $data.css">0x0000001A</div>
-						<!-- address-e -->
-						<div class="h0 cell bc2 bottom-line middle" bind="text: $data.value, css: $data.css">0x0000001A</div>
-						<!-- relative -->
-						<div class="h0 cell bc2 bottom-line middle" bind="text: $data.value, css: $data.css">0x00000012</div>
-						<!-- size -->
-						<div class="h0 cell bc2 bottom-line middle" bind="text: $data.value, css: $data.css">0x01</div>
-						<!-- type -->
-						<div class="h0 cell bc2 bottom-line middle" bind="text: $data.value, css: $data.css">byte</div>
-						<!-- little-endian -->
-						<div class="h0 cell bc2 bottom-line middle fa fa-check" bind="text: $data.value, css: $data.css"></div>
-						<!-- description -->
-						<div class="h0 cell bc2 bottom-line middle" bind="text: $data.value, css: $data.css">compression type</div>
-					</div>
-					<div class="bc2 fill-w h0 row bottom-line" bind="foreach: $data.values">
-						<!-- path -->
-						<div class="h0 cell bc2 bottom-line middle depth2" bind="text: $data.value, css: $data.css">filter</div>
-						<!-- value -->
-						<div class="h0 cell bc2 bottom-line middle" bind="text: $data.value, css: $data.css">0</div>
-						<!-- sample -->
-						<div class="h0 cell bc2 bottom-line middle" bind="text: $data.value, css: $data.css">0x00</div>
-						<!-- address-s -->
-						<div class="h0 cell bc2 bottom-line middle" bind="text: $data.value, css: $data.css">0x0000001B</div>
-						<!-- address-e -->
-						<div class="h0 cell bc2 bottom-line middle" bind="text: $data.value, css: $data.css">0x0000001B</div>
-						<!-- relative -->
-						<div class="h0 cell bc2 bottom-line middle" bind="text: $data.value, css: $data.css">0x00000013</div>
-						<!-- size -->
-						<div class="h0 cell bc2 bottom-line middle" bind="text: $data.value, css: $data.css">0x01</div>
-						<!-- type -->
-						<div class="h0 cell bc2 bottom-line middle" bind="text: $data.value, css: $data.css">byte</div>
-						<!-- little-endian -->
-						<div class="h0 cell bc2 bottom-line middle fa fa-check" bind="text: $data.value, css: $data.css"></div>
-						<!-- description -->
-						<div class="h0 cell bc2 bottom-line middle" bind="text: $data.value, css: $data.css">filter type</div>
-					</div>
-					<div class="bc2 fill-w h0 row bottom-line" bind="foreach: $data.values">
-						<!-- path -->
-						<div class="h0 cell bc2 bottom-line middle depth2" bind="text: $data.value, css: $data.css">interlace</div>
-						<!-- value -->
-						<div class="h0 cell bc2 bottom-line middle" bind="text: $data.value, css: $data.css">0</div>
-						<!-- sample -->
-						<div class="h0 cell bc2 bottom-line middle" bind="text: $data.value, css: $data.css">0x00</div>
-						<!-- address-s -->
-						<div class="h0 cell bc2 bottom-line middle" bind="text: $data.value, css: $data.css">0x0000001C</div>
-						<!-- address-e -->
-						<div class="h0 cell bc2 bottom-line middle" bind="text: $data.value, css: $data.css">0x0000001C</div>
-						<!-- relative -->
-						<div class="h0 cell bc2 bottom-line middle" bind="text: $data.value, css: $data.css">0x00000014</div>
-						<!-- size -->
-						<div class="h0 cell bc2 bottom-line middle" bind="text: $data.value, css: $data.css">0x01</div>
-						<!-- type -->
-						<div class="h0 cell bc2 bottom-line middle" bind="text: $data.value, css: $data.css">byte</div>
-						<!-- little-endian -->
-						<div class="h0 cell bc2 bottom-line middle fa fa-check" bind="text: $data.value, css: $data.css"></div>
-						<!-- description -->
-						<div class="h0 cell bc2 bottom-line middle" bind="text: $data.value, css: $data.css">interlace type</div>
-					</div>
-					<div class="bc2 fill-w h0 row bottom-line" bind="foreach: $data.values">
-						<!-- path -->
-						<div class="h0 cell bc2 bottom-line middle depth2" bind="text: $data.value, css: $data.css">crc</div>
-						<!-- value -->
-						<div class="h0 cell bc2 bottom-line middle" bind="text: $data.value, css: $data.css">3275645387</div>
-						<!-- sample -->
-						<div class="h0 cell bc2 bottom-line middle" bind="text: $data.value, css: $data.css">0xC33E61CB</div>
-						<!-- address-s -->
-						<div class="h0 cell bc2 bottom-line middle" bind="text: $data.value, css: $data.css">0x0000001D</div>
-						<!-- address-e -->
-						<div class="h0 cell bc2 bottom-line middle" bind="text: $data.value, css: $data.css">0x00000020</div>
-						<!-- relative -->
-						<div class="h0 cell bc2 bottom-line middle" bind="text: $data.value, css: $data.css">0x00000015</div>
-						<!-- size -->
-						<div class="h0 cell bc2 bottom-line middle" bind="text: $data.value, css: $data.css">0x04</div>
-						<!-- type -->
-						<div class="h0 cell bc2 bottom-line middle" bind="text: $data.value, css: $data.css">int4</div>
-						<!-- little-endian -->
-						<div class="h0 cell bc2 bottom-line middle fa fa-check" bind="text: $data.value, css: $data.css"></div>
-						<!-- description -->
-						<div class="h0 cell bc2 bottom-line middle" bind="text: $data.value, css: $data.css">IHDR chunk CRC</div>
-					</div>
-					<div class="bc2 fill-w h0 row bottom-line" bind="foreach: $data.values">
-						<!-- path -->
-						<div class="h0 cell bc2 bottom-line middle depth1" bind="text: $data.value, css: $data.css">idat</div>
-						<!-- value -->
-						<div class="h0 cell bc2 bottom-line middle" bind="text: $data.value, css: $data.css">{}</div>
-						<!-- sample -->
-						<div class="h0 cell bc2 bottom-line middle" bind="text: $data.value, css: $data.css"></div>
-						<!-- address-s -->
-						<div class="h0 cell bc2 bottom-line middle" bind="text: $data.value, css: $data.css">0x00000021</div>
-						<!-- address-e -->
-						<div class="h0 cell bc2 bottom-line middle" bind="text: $data.value, css: $data.css">0x00001C78</div>
-						<!-- relative -->
-						<div class="h0 cell bc2 bottom-line middle" bind="text: $data.value, css: $data.css">0x00000021</div>
-						<!-- size -->
-						<div class="h0 cell bc2 bottom-line middle" bind="text: $data.value, css: $data.css">0x1C57</div>
-						<!-- type -->
-						<div class="h0 cell bc2 bottom-line middle" bind="text: $data.value, css: $data.css">object</div>
-						<!-- little-endian -->
-						<div class="h0 cell bc2 bottom-line middle fa fa-check" bind="text: $data.value, css: $data.css"></div>
-						<!-- description -->
-						<div class="h0 cell bc2 bottom-line middle" bind="text: $data.value, css: $data.css">IDAT chunk</div>
-					</div>
-					<div class="bc2 fill-w h0 row bottom-line" bind="foreach: $data.values">
-						<!-- path -->
-						<div class="h0 cell bc2 bottom-line middle depth2" bind="text: $data.value, css: $data.css">size</div>
-						<!-- value -->
-						<div class="h0 cell bc2 bottom-line middle" bind="text: $data.value, css: $data.css">7243</div>
-						<!-- sample -->
-						<div class="h0 cell bc2 bottom-line middle" bind="text: $data.value, css: $data.css">0x00001C4B</div>
-						<!-- address-s -->
-						<div class="h0 cell bc2 bottom-line middle" bind="text: $data.value, css: $data.css">0x00000021</div>
-						<!-- address-e -->
-						<div class="h0 cell bc2 bottom-line middle" bind="text: $data.value, css: $data.css">0x00000024</div>
-						<!-- relative -->
-						<div class="h0 cell bc2 bottom-line middle" bind="text: $data.value, css: $data.css">0x00000000</div>
-						<!-- size -->
-						<div class="h0 cell bc2 bottom-line middle" bind="text: $data.value, css: $data.css">0x04</div>
-						<!-- type -->
-						<div class="h0 cell bc2 bottom-line middle" bind="text: $data.value, css: $data.css">int4</div>
-						<!-- little-endian -->
-						<div class="h0 cell bc2 bottom-line middle fa fa-check" bind="text: $data.value, css: $data.css"></div>
-						<!-- description -->
-						<div class="h0 cell bc2 bottom-line middle" bind="text: $data.value, css: $data.css">chunk size</div>
-					</div>
-					<div class="bc2 fill-w h0 row bottom-line" bind="foreach: $data.values">
-						<!-- path -->
-						<div class="h0 cell bc2 bottom-line middle depth2" bind="text: $data.value, css: $data.css">type</div>
-						<!-- value -->
-						<div class="h0 cell bc2 bottom-line middle" bind="text: $data.value, css: $data.css">IDAT</div>
-						<!-- sample -->
-						<div class="h0 cell bc2 bottom-line middle" bind="text: $data.value, css: $data.css">0x49444154</div>
-						<!-- address-s -->
-						<div class="h0 cell bc2 bottom-line middle" bind="text: $data.value, css: $data.css">0x00000025</div>
-						<!-- address-e -->
-						<div class="h0 cell bc2 bottom-line middle" bind="text: $data.value, css: $data.css">0x00000028</div>
-						<!-- relative -->
-						<div class="h0 cell bc2 bottom-line middle" bind="text: $data.value, css: $data.css">0x00000004</div>
-						<!-- size -->
-						<div class="h0 cell bc2 bottom-line middle" bind="text: $data.value, css: $data.css">0x04</div>
-						<!-- type -->
-						<div class="h0 cell bc2 bottom-line middle" bind="text: $data.value, css: $data.css">string</div>
-						<!-- little-endian -->
-						<div class="h0 cell bc2 bottom-line middle fa fa-check" bind="text: $data.value, css: $data.css"></div>
-						<!-- description -->
-						<div class="h0 cell bc2 bottom-line middle" bind="text: $data.value, css: $data.css">chunk type</div>
-					</div>
-					<div class="bc2 fill-w h0 row bottom-line" bind="foreach: $data.values">
-						<!-- path -->
-						<div class="h0 cell bc2 bottom-line middle depth2" bind="text: $data.value, css: $data.css">bytes</div>
-						<!-- value -->
-						<div class="h0 cell bc2 bottom-line middle" bind="text: $data.value, css: $data.css">[]</div>
-						<!-- sample -->
-						<div class="h0 cell bc2 bottom-line middle" bind="text: $data.value, css: $data.css"></div>
-						<!-- address-s -->
-						<div class="h0 cell bc2 bottom-line middle" bind="text: $data.value, css: $data.css">0x00000029</div>
-						<!-- address-e -->
-						<div class="h0 cell bc2 bottom-line middle" bind="text: $data.value, css: $data.css">0x00001C73</div>
-						<!-- relative -->
-						<div class="h0 cell bc2 bottom-line middle" bind="text: $data.value, css: $data.css">0x00000008</div>
-						<!-- size -->
-						<div class="h0 cell bc2 bottom-line middle" bind="text: $data.value, css: $data.css">0x1C4B</div>
-						<!-- type -->
-						<div class="h0 cell bc2 bottom-line middle" bind="text: $data.value, css: $data.css">byte[]</div>
-						<!-- little-endian -->
-						<div class="h0 cell bc2 bottom-line middle fa fa-check" bind="text: $data.value, css: $data.css"></div>
-						<!-- description -->
-						<div class="h0 cell bc2 bottom-line middle" bind="text: $data.value, css: $data.css">image data bytes</div>
-					</div>
-					<div class="bc2 fill-w h0 row bottom-line" bind="foreach: $data.values">
-						<!-- path -->
-						<div class="h0 cell bc2 bottom-line middle depth2" bind="text: $data.value, css: $data.css">crc</div>
-						<!-- value -->
-						<div class="h0 cell bc2 bottom-line middle" bind="text: $data.value, css: $data.css">4158163270</div>
-						<!-- sample -->
-						<div class="h0 cell bc2 bottom-line middle" bind="text: $data.value, css: $data.css">0xF7D88946</div>
-						<!-- address-s -->
-						<div class="h0 cell bc2 bottom-line middle" bind="text: $data.value, css: $data.css">0x00001C74</div>
-						<!-- address-e -->
-						<div class="h0 cell bc2 bottom-line middle" bind="text: $data.value, css: $data.css">0x00001C77</div>
-						<!-- relative -->
-						<div class="h0 cell bc2 bottom-line middle" bind="text: $data.value, css: $data.css">0x00001C4E</div>
-						<!-- size -->
-						<div class="h0 cell bc2 bottom-line middle" bind="text: $data.value, css: $data.css">0x04</div>
-						<!-- type -->
-						<div class="h0 cell bc2 bottom-line middle" bind="text: $data.value, css: $data.css">int4</div>
-						<!-- little-endian -->
-						<div class="h0 cell bc2 bottom-line middle fa fa-check" bind="text: $data.value, css: $data.css"></div>
-						<!-- description -->
-						<div class="h0 cell bc2 bottom-line middle" bind="text: $data.value, css: $data.css">IDAT chunk CRC</div>
-					</div>
-					<div class="bc2 fill-w h0 row bottom-line" bind="foreach: $data.values">
-						<!-- path -->
-						<div class="h0 cell bc2 bottom-line middle depth1" bind="text: $data.value, css: $data.css">iend</div>
-						<!-- value -->
-						<div class="h0 cell bc2 bottom-line middle" bind="text: $data.value, css: $data.css">{}</div>
-						<!-- sample -->
-						<div class="h0 cell bc2 bottom-line middle" bind="text: $data.value, css: $data.css"></div>
-						<!-- address-s -->
-						<div class="h0 cell bc2 bottom-line middle" bind="text: $data.value, css: $data.css">0x00001C78</div>
-						<!-- address-e -->
-						<div class="h0 cell bc2 bottom-line middle" bind="text: $data.value, css: $data.css">0x00001C83</div>
-						<!-- relative -->
-						<div class="h0 cell bc2 bottom-line middle" bind="text: $data.value, css: $data.css">0x00001C78</div>
-						<!-- size -->
-						<div class="h0 cell bc2 bottom-line middle" bind="text: $data.value, css: $data.css">0x0C</div>
-						<!-- type -->
-						<div class="h0 cell bc2 bottom-line middle" bind="text: $data.value, css: $data.css">object</div>
-						<!-- little-endian -->
-						<div class="h0 cell bc2 bottom-line middle fa fa-check" bind="text: $data.value, css: $data.css"></div>
-						<!-- description -->
-						<div class="h0 cell bc2 bottom-line middle" bind="text: $data.value, css: $data.css">IEND chunk</div>
-					</div>
-					<div class="bc2 fill-w h0 row bottom-line" bind="foreach: $data.values">
-						<!-- path -->
-						<div class="h0 cell bc2 bottom-line middle depth2" bind="text: $data.value, css: $data.css">size</div>
-						<!-- value -->
-						<div class="h0 cell bc2 bottom-line middle" bind="text: $data.value, css: $data.css">0</div>
-						<!-- sample -->
-						<div class="h0 cell bc2 bottom-line middle" bind="text: $data.value, css: $data.css">0x00000000</div>
-						<!-- address-s -->
-						<div class="h0 cell bc2 bottom-line middle" bind="text: $data.value, css: $data.css">0x00001C78</div>
-						<!-- address-e -->
-						<div class="h0 cell bc2 bottom-line middle" bind="text: $data.value, css: $data.css">0x00001c7B</div>
-						<!-- relative -->
-						<div class="h0 cell bc2 bottom-line middle" bind="text: $data.value, css: $data.css">0x00000000</div>
-						<!-- size -->
-						<div class="h0 cell bc2 bottom-line middle" bind="text: $data.value, css: $data.css">0x04</div>
-						<!-- type -->
-						<div class="h0 cell bc2 bottom-line middle" bind="text: $data.value, css: $data.css">int4</div>
-						<!-- little-endian -->
-						<div class="h0 cell bc2 bottom-line middle fa fa-check" bind="text: $data.value, css: $data.css"></div>
-						<!-- description -->
-						<div class="h0 cell bc2 bottom-line middle" bind="text: $data.value, css: $data.css">chunk size</div>
-					</div>
-					<div class="bc2 fill-w h0 row bottom-line" bind="foreach: $data.values">
-						<!-- path -->
-						<div class="h0 cell bc2 bottom-line middle depth2" bind="text: $data.value, css: $data.css">type</div>
-						<!-- value -->
-						<div class="h0 cell bc2 bottom-line middle" bind="text: $data.value, css: $data.css">IEND</div>
-						<!-- sample -->
-						<div class="h0 cell bc2 bottom-line middle" bind="text: $data.value, css: $data.css">0x49454E44</div>
-						<!-- address-s -->
-						<div class="h0 cell bc2 bottom-line middle" bind="text: $data.value, css: $data.css">0x00001C7C</div>
-						<!-- address-e -->
-						<div class="h0 cell bc2 bottom-line middle" bind="text: $data.value, css: $data.css">0x00001c7F</div>
-						<!-- relative -->
-						<div class="h0 cell bc2 bottom-line middle" bind="text: $data.value, css: $data.css">0x00000004</div>
-						<!-- size -->
-						<div class="h0 cell bc2 bottom-line middle" bind="text: $data.value, css: $data.css">0x04</div>
-						<!-- type -->
-						<div class="h0 cell bc2 bottom-line middle" bind="text: $data.value, css: $data.css">string</div>
-						<!-- little-endian -->
-						<div class="h0 cell bc2 bottom-line middle fa fa-check" bind="text: $data.value, css: $data.css"></div>
-						<!-- description -->
-						<div class="h0 cell bc2 bottom-line middle" bind="text: $data.value, css: $data.css">chunk type</div>
-					</div>
-					<div class="bc2 fill-w h0 row bottom-line" bind="foreach: $data.values">
-						<!-- path -->
-						<div class="h0 cell bc2 bottom-line middle depth2" bind="text: $data.value, css: $data.css">crc</div>
-						<!-- value -->
-						<div class="h0 cell bc2 bottom-line middle" bind="text: $data.value, css: $data.css">2923585666</div>
-						<!-- sample -->
-						<div class="h0 cell bc2 bottom-line middle" bind="text: $data.value, css: $data.css">0xAE426082</div>
-						<!-- address-s -->
-						<div class="h0 cell bc2 bottom-line middle" bind="text: $data.value, css: $data.css">0x00001C80</div>
-						<!-- address-e -->
-						<div class="h0 cell bc2 bottom-line middle" bind="text: $data.value, css: $data.css">0x00001c83</div>
-						<!-- relative -->
-						<div class="h0 cell bc2 bottom-line middle" bind="text: $data.value, css: $data.css">0x00000008</div>
-						<!-- size -->
-						<div class="h0 cell bc2 bottom-line middle" bind="text: $data.value, css: $data.css">0x04</div>
-						<!-- type -->
-						<div class="h0 cell bc2 bottom-line middle" bind="text: $data.value, css: $data.css">int4</div>
-						<!-- little-endian -->
-						<div class="h0 cell bc2 bottom-line middle fa fa-check" bind="text: $data.value, css: $data.css"></div>
-						<!-- description -->
-						<div class="h0 cell bc2 bottom-line middle" bind="text: $data.value, css: $data.css">IEND chunk CRC</div>
+					<div class="fill-w h1 table" data-bind="css: { close: dialog.confirmed() === false }">
+						<div class="bc1 fc1-e w50 h1 cell center right-line" data-bind="click: dialog.cancel.bind($data.dialog)"><i class="fa fa-close"></i>Cancel</div>
+						<div class="bc1 fc1-p w50 h1 cell center" data-bind="click: dialog.ok.bind($data.dialog)"><i class="fa fa-check"></i>OK</div>
 					</div>
 				</div>
 			</div>
 		</div>
-		<!--<script type="text/javascript" chatset="utf8" data-main="js/client.js" src="http://requirejs.org/docs/release/2.2.0/minified/require.js"></script>-->
+		<!-- script -->
 		<script type="text/javascript" chatset="utf8" src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.2.0/ace.js"></script>
-		<script type="text/javascript" chatset="utf8" src="vendors/jquery-2.2.1.min.js"></script>
-		<script type="text/javascript" chatset="utf8" src="http://cdnjs.cloudflare.com/ajax/libs/knockout/2.3.0/knockout-min.js"></script>
-		<script type="text/javascript" chatset="utf8" src="js/lib/ws.js"></script>
-		<script type="text/javascript" chatset="utf8" src="js/lib/koplugin.js"></script>
-		<script type="text/javascript" chatset="utf8" src="js/models/node.js"></script>
-		<script type="text/javascript" chatset="utf8" src="js/models/logger.js"></script>
-		<script type="text/javascript" chatset="utf8" src="js/models/editor.js"></script>
-		<script type="text/javascript" chatset="utf8" src="js/models/endivy.js"></script>
-		<script type="text/javascript" chatset="utf8" src="js/models/weblog.js"></script>
-		<script type="text/javascript" chatset="utf8" src="js/models/shell.js"></script>
-		<script type="text/javascript" chatset="utf8" src="js/models/console.js"></script>
-		<script type="text/javascript" chatset="utf8" src="js/models/hex.js"></script>
-		<script type="text/javascript" chatset="utf8" src="js/models/dialog.js"></script>
-		<script type="text/javascript" chatset="utf8" src="js/client.js"></script>
+		<script type="text/javascript" chatset="utf8" src="js/bundle.js"></script>
 	</body>
 </html>

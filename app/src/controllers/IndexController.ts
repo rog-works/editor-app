@@ -6,15 +6,15 @@ export default class IndexController extends Controller {
 		this._res.sendFile('/opt/app/app/app/views/index.html');
 	}
 
-	public index2(): void {
-		this._res.sendFile('/opt/app/app/app/views/index2.html');
+	public show(id: number): void {
+		this._res.sendFile(`/opt/app/app/app/views/index${id}.html`);
 	}
 
 	// @override
 	public static routes () {
 		return [
 			Route.get('/').on('index'),
-			Route.get('/2').on('index2')
+			Route.get('/[\d]').on('show')
 		];
 	}
 }

@@ -1,5 +1,5 @@
 import * as ko from 'knockout-es5';
-import Application from '../Client';
+import Application from '../applications/Application';
 
 type Plugins = 'bindWindowEvent' | 'bindWSEvent';
 namespace Plugins {

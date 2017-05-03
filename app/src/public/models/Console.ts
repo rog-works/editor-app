@@ -9,10 +9,16 @@ export default class Console extends Page implements Log {
 
 	public constructor() {
 		super();
-		this.logs = []
-		this._logger = new Logger(this)
-		this._bind();
+		this.logs = [];
+		this._logger = new Logger(this);
+		if (this.shouldBind) {
+			this._bind();
+		}
 		ko.track(this);
+	}
+
+	public get shouldBind(): boolean {
+		return /iphone|android/.test(navigator.userAgent.toLowerCase());
 	}
 
 	public clear(): void {

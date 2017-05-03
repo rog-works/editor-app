@@ -19,11 +19,12 @@ const webpack = require('webpack');
 module.exports = {
 	entry: {
 		// server: `${__dirname}/src/Index.ts`,
-		client: `${__dirname}/src/public/Client.ts`
+		client: `${__dirname}/src/public/Index.ts`
 	},
 	output: {
 		path: `${__dirname}/`,
-		filename: '[name].bundle.js'
+		// filename: '[name].bundle.js'
+		filename: 'public/js/bundle.js'
 	},
 	resolve: {
 		extensions: ['.ts', '.js']

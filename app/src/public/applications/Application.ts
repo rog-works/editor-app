@@ -1,14 +1,15 @@
-import WS from './net/WS';
-import Console from './models/Console';
-import {Editor, EditorEvents} from './models/Editor';
-import {Entry, EntryItem, EntryEvents} from './models/Entry';
-import Shell from './models/Shell';
-import Weblog from './models/Weblog';
+import * as ko from 'knockout-es5';
+import WS from '../net/WS';
+import Console from '../models/Console';
+import {Editor, EditorEvents} from '../models/Editor';
+import {Entry, EntryItem, EntryEvents} from '../models/Entry';
+import Shell from '../models/Shell';
+import Weblog from '../models/Weblog';
 // import Hex from './models/Hex';
-import {Dialog, DialogEvents} from './models/Dialog';
-import {Page} from './ui/Page';
-import EventEmitter from './event/EventEmitter';
-import KoPlugin from './components/KoPlugin';
+import {Dialog, DialogEvents} from '../models/Dialog';
+import {Page} from '../ui/Page';
+import EventEmitter from '../event/EventEmitter';
+import KoPlugin from '../components/KoPlugin';
 
 enum BehaviorTypes {
 	Create,
@@ -20,7 +21,7 @@ export default class Application extends EventEmitter {
 	private static _instance: Application;
 
 	private constructor(
-		public ws = new WS('ws://localhost:24224'),
+		public ws = new WS('ws://localhost:18082'),
 		public console = new Console(),
 		public editor = new Editor(),
 		public entry = new Entry(),
@@ -36,15 +37,15 @@ export default class Application extends EventEmitter {
 		return this._instance || (this._instance = new this());
 	}
 
-	public static init(): void {
-		window.onload = () => this._instance._bind();
+	public static run(): void {
+		window.onload = () => this.instance._init();
 	}
 
-	private _bind(): void {
+	private _init(): void {
 		try {
 			console.log('On load started');
 			this._depended();
-			this._init();
+			this._bind();
 			console.log('On load finished');
 		} catch (error) {
 			console.error(error.message, error.stack);
@@ -56,7 +57,7 @@ export default class Application extends EventEmitter {
 		KoPlugin.bind();
 	}
 
-	private _init(): void {
+	private _bind(): void {
 		// bind events
 		this.editor.on(EditorEvents.Saved, this._onSaved);
 		this.entry.on(EntryEvents.BeforeLoaded, this._onBeforeLoaded);
@@ -66,6 +67,9 @@ export default class Application extends EventEmitter {
 
 		// first view on entry
 		this.focus('entry');
+
+		// bindings
+		ko.applyBindings(this);
 	}
 
 	public focus(pageName: string): boolean {
