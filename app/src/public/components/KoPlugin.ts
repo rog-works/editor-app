@@ -26,8 +26,8 @@ export default class KoPlugin {
 						return;
 					}
 					const handler = (e: any) => value[key].apply(viewModel, [e]);
-					const disposer = () => $(window).off(key, handler);
-					$(window).on(key, handler);
+					const disposer = () => window.removeEventListener(key, handler); // FIXME
+					window.addEventListener(key, handler); // FIXME
 					ko.utils.domNodeDisposal.addDisposeCallback(element, disposer);
 				});
 			}
