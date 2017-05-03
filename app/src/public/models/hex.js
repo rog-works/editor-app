@@ -1,56 +1,40 @@
-'use strict';
+import {Page, States, Icons} from '../ui/Page';
+import {KeyCodes} from '../ui/KeyMap';
 
 class Hex extends Page {
-	constructor () {
+	public constructor() {
 		super();
-		this.KEY_CODE_S = 83;
-		this.STATE_SYNCRONIZED = 'syncronized';
-		this.STATE_MODIFIED = 'modified';
-		this.ICON_STATE_SYNCRONIZED = 'fa-table';
-		this.ICON_STATE_MODIFIED = 'fa-check-circle';
-
 		// state
-		this.state = this.STATE_SYNCRONIZED;
-		this.icon[this.ICON_STATE_SYNCRONIZED] = ko.observable(true);
-		this.icon[this.ICON_STATE_MODIFIED] = ko.observable(false);
-
 		this.path = '#';
-		this.rows = HexRows.mixin(ko.observableArray([]));
+		this.rows = HexRows.mixin([]);
 		this.editor = new HexEditor();
-		this.focused = ko.observable(false);
+		this.focused = false;
+		ko.track(this);
+	}
+	
+	public syncronizedIcon(): Icons {
+		return Icons.Hex;
 	}
 
-	static init () {
-		const self = new Hex();
-		// self.load();
-		// self._editor().on('change', () => { self.changed(); });
-		return self;
-	}
-
-	load (path = '#', content = '') {
+	public load(path: string = '#', content: string = ''): void {
 		try {
 		const stream = new TextStream(content);
-		this._transition(this.STATE_LOADING);
+		this._transition(States.Loading);
 		this.path = path;
 		this.rows.load(stream);
 		this.editor.load(stream);
-		this._transition(this.STATE_SYNCRONIZED);
+		this._transition(States.Syncronized);
 		} catch (error) {
 			console.error(error);
 		}
 	}
 
-	focus () {
-		console.log('On focus', this.focused());
-		this.focused(true);
+	public focus(): void {
+		console.log('On focus', this.focused);
+		this.focused = true;
 	}
 
-	resize (width, height) {
-		super.resize(width, height);
-		this.rows.resize(width, height);
-	}
-
-	keydown (self, e) {
+	public keydown(self: this, e: KeyboardEvent): boolean {
 		console.log('On keydown', e.keyCode, e.ctrlKey, e.shiftKey);
 		if (!this.editor.onKeydown(e.keyCode, e.ctrlKey, e.shiftKey)) {
 			this.rows.changed();
@@ -60,32 +44,32 @@ class Hex extends Page {
 		}
 	}
 
-	copy (self, e) {
+	public copy(self: this, e: any): boolean { // FIXME
 		console.log('On copy');
 		return this.editor.onCopy(e.originalEvent.clipboardData);
 	}
 
-	cut (self, e) {
+	public cut(self: this, e: any): boolean { // FIXME
 		console.log('On cut');
 		return this.editor.onCut(e.originalEvent.clipboardData);
 	}
 
-	paste (self, e) {
+	public paste(self: this, e: any): boolean { // FIXME
 		console.log('On paste');
 		return this.editor.onPaste(e.originalEvent.clipboardData);
 	}
 
-	scroll (self, e) {
+	public scroll(self: this, e: ScrollEvent): boolean {
 		this.rows.scrollY(e.target.scrollTop);
 		return true;
 	}
 
-	save () {
+	public save(): void {
 		this._transition(this.STATE_LOADING);
-		this.fire('updateEntry', this.path, this.rows.stream.source);
+		this.emit(HexEvents.UpdateEntry, this.path, this.rows.stream.source);
 	}
 
-	saved (updated) {
+	public saved(updated: boolean) {
 		this._transition(updated ? this.STATE_SYNCRONIZED : this.STATE_MODIFIED);
 	}
 

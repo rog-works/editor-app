@@ -19,6 +19,7 @@ export namespace Icons {
 	export const Directory = 'fa-folder-open'; // XXX bad depends
 	export const DirectoryClose = 'fa-folder'; // XXX bad depends
 	export const FileAdd = 'fa-plus'; // XXX bad depends
+	export const Hex = 'fa-table';
 }
 
 export class Page extends EventEmitter {
