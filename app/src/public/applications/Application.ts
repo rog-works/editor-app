@@ -59,11 +59,11 @@ export default class Application extends EventEmitter {
 
 	private _bind(): void {
 		// bind events
-		this.editor.on(EditorEvents.Saved, this._onSaved);
-		this.entry.on(EntryEvents.BeforeLoaded, this._onBeforeLoaded);
-		this.entry.on(EntryEvents.AfterLoaded, this._onAfterLoaded);
-		this.dialog.on(DialogEvents.Accepted, this._onAccepted);
-		this.dialog.on(DialogEvents.Canceled, this._onCanceled);
+		this.editor.on(EditorEvents.Saved, this._onSaved.bind(this));
+		this.entry.on(EntryEvents.BeforeLoaded, this._onBeforeLoaded.bind(this));
+		this.entry.on(EntryEvents.AfterLoaded, this._onAfterLoaded.bind(this));
+		this.dialog.on(DialogEvents.Accepted, this._onAccepted.bind(this));
+		this.dialog.on(DialogEvents.Canceled, this._onCanceled.bind(this));
 
 		// first view on entry
 		this.focus('entry');

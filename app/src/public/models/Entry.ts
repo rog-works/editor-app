@@ -47,7 +47,7 @@ export class Entry extends Page {
 			this._transition(States.Loading);
 			const entries = (await Http.get<EntryEntity[]>(`/entry/${url}`)).map(entity => EntryItem.toEntry(entity));
 			this.removeAll();
-			this.adds(this.entries);
+			this.adds(entries);
 			this.add(new EntryAdd());
 			this.closeAll();
 		} catch (err) {
@@ -67,13 +67,14 @@ export class Entry extends Page {
 	}
 
 	public add(entry: EntryItem): void {
-		entry.on(EntryEvents.Created, this._onCreated);
-		entry.on(EntryEvents.Deleted, this._onDeleted);
-		entry.on(EntryEvents.BeforeLoaded, this._onBeforeLoaded);
-		entry.on(EntryEvents.AfterLoaded, this._onAfterLoaded);
-		entry.on(EntryEvents.Deactivated, this._onDeactivated);
-		entry.on(EntryEvents.Expanded, this._onExpanded);
-		entry.on(EntryEvents.Added, this._onAdded);
+		entry.on(EntryEvents.Created, this._onCreated.bind(this));
+		entry.on(EntryEvents.Deleted, this._onDeleted.bind(this));
+		entry.on(EntryEvents.BeforeLoaded, this._onBeforeLoaded.bind(this));
+		entry.on(EntryEvents.AfterLoaded, this._onAfterLoaded.bind(this));
+		entry.on(EntryEvents.Deactivated, this._onDeactivated.bind(this));
+		entry.on(EntryEvents.Expanded, this._onExpanded.bind(this));
+		entry.on(EntryEvents.Added, this._onAdded.bind(this));
+		this.entries.push(entry);
 	}
 
 	public adds(entries: EntryItem[]): void {
@@ -138,9 +139,9 @@ export class Entry extends Page {
 	}
 
 	private _onExpanded(sender: EntryDirectory): boolean {
-		const opened = !sender.opened;
+		const opened = sender.opened;
 		for (const entry of this.entries) {
-			if (entry.dir.startsWith(sender.dir)) {
+			if (entry.dir.startsWith(sender.path)) {
 				if (opened && entry.closes > 0) {
 					entry.closes -= 1;
 				} else if (!opened) {
@@ -188,7 +189,7 @@ export class EntryItem extends EventEmitter {
 		const path = entity.path.replace(/\/$/, '');
 		const routes = path.substr(1).split('/');
 		const depth = Math.max(1, routes.length);
-		const name = Path.basename(path);
+		const name = routes.pop() || ''; // XXX decrese routes
 		const dir = Path.join('/', ...routes);
 		this.path = path;
 		this.isFile = entity.isFile;
@@ -350,9 +351,9 @@ class EntryDirectory extends EntryItem {
 	}
 
 	public click(): void {
-		this.emit(EntryEvents.Expanded, this);
 		this.opened = !this.opened;
 		this.icon = EntryItem.toIcon(this.opened ? EntryTypes.Directory : EntryTypes.DirectoryClose);
+		this.emit(EntryEvents.Expanded, this);
 	}
 }
 
