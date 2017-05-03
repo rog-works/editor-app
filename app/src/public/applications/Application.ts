@@ -75,7 +75,7 @@ export default class Application extends EventEmitter {
 	public focus(pageName: string): boolean {
 		for(const key of Object.keys(this)) {
 			const prop = (<any>this)[key];
-			if ('activate' in prop) {
+			if (('activate' in prop) && prop.display.active) {
 				prop.activate(false);
 				break;
 			}

@@ -8,15 +8,13 @@ namespace Plugins {
 }
 
 export default class KoPlugin {
-	public static bind(bindKeys = [Plugins.WindowEvent, Plugins.WSEvent]) {
+	public static bind(bindKeys: Plugins[] = [Plugins.WindowEvent, Plugins.WSEvent]): void {
 		for (const key of bindKeys) {
-			if (key in this) {
-				(<any>this)[key]();
-			}
+			this[key]();
 		}
 	}
 
-	public static bindWindowEvent () {
+	public static bindWindowEvent(): void {
 		ko.bindingHandlers.windowEvent = {
 			init: (element, valueAccessor, allBindings, viewModel, bindingContext) => {
 				const value = valueAccessor();
@@ -34,7 +32,7 @@ export default class KoPlugin {
 		};
 	}
 
-	public static bindWSEvent () {
+	public static bindWSEvent(): void {
 		let binds: any[] = [];
 		ko.bindingHandlers.wsEvent = {
 			init: (element, valueAccessor, allBindings, viewModel, bindingContext) => {
@@ -47,7 +45,7 @@ export default class KoPlugin {
 						// console.log('Already bind exists');
 						return;
 					}
-					const handler = (e: any) => value[key].apply(viewModel, [e]);
+					const handler = (sender: any, e: MessageEvent) => value[key].apply(viewModel, [sender, e.data]);
 					// XXX
 					// const disposer = () => {
 					// 	binds = binds.filter(self => self !== viewModel);

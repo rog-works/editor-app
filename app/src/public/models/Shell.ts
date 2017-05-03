@@ -82,9 +82,10 @@ export default class Shell extends Page implements Log {
 		}
 	}
 
-	public message([tag, data]: [string, any]) {
+	public onMessage(sender: any, event: [string, any]): boolean {
+		const [tag, data] = event;
 		if (tag === 'editor.shell-log') {
-			return this._logger.put(data.message);
+			this._logger.put(data.message);
 		}
 		return true;
 	}

@@ -18,7 +18,7 @@ export default class Weblog extends Page implements Log {
 		this.logs = [];
 	}
 
-	public message(event: [string, any]): boolean {
+	public onMessage(sender: any, event: [string, any]): boolean {
 		const [tag, data] = event;
 		// if (tag === 'editor.access-log') {
 		if (tag === 'editor.webpack-log') {

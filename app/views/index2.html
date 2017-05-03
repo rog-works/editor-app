@@ -40,7 +40,7 @@
 							</datalist>
 						</div>
 						<div data-bind="with: shell">
-							<div class="fill-w h90 scroll hide-scroll" data-bind="foreach: logs, wsEvent: { message: message }">
+							<div class="fill-w h90 scroll hide-scroll" data-bind="foreach: logs, wsEvent: { message: onMessage }">
 								<pre class="font-s75 space-less" data-bind="text: $data.log, css: $data.css, click: $data.expand"></pre>
 							</div>
 						</div>
@@ -52,7 +52,7 @@
 							<i class="wh1 cell center fa fa-remove" data-bind="click: weblog.clear.bind($data.weblog)"></i>
 						</div>
 						<div data-bind="with: weblog">
-							<div class="fill-w h90 scroll hide-scroll" data-bind="foreach: logs, wsEvent: { message: message }">
+							<div class="fill-w h90 scroll hide-scroll" data-bind="foreach: logs, wsEvent: { message: onMessage }">
 								<pre class="font-s75 space-less" data-bind="html: $data.log, css: $data.css, click: $data.expand"></pre>
 							</div>
 						</div>
@@ -108,9 +108,9 @@
 				<div class="bc1 wh1 table" data-bind="css: console.display, click: focus.bind($data, 'console')">
 					<i class="cell center fa fa-info" data-bind="css: console.icon"></i>
 				</div>
-				<div class="bc1 wh1 table bottom-line" data-bind="css: hex.display, click: focus.bind($data, 'hex')">
+				<!--<div class="bc1 wh1 table bottom-line" data-bind="css: hex.display, click: focus.bind($data, 'hex')">
 					<i class="cell center fa fa-table" data-bind="css: hex.icon"></i>
-				</div>
+				</div>-->
 				<div class="bc1 wh1 table" data-bind="css: { close: editor.display.active === false }, click: editor.save.bind($data.editor)">
 					<i class="cell center fa fa-save"></i>
 				</div>
