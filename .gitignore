@@ -1,6 +1,8 @@
 node_modules/
 *bundle.js
 *bundle.js.map
-app/dist/
+# app/dist/
+app/src/**/*.js
+app/src/**/*.js.map
 yarn-error.log
 

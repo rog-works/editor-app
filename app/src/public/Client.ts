@@ -120,7 +120,7 @@ export default class Application extends EventEmitter {
 
 	private _onAccepted(sender: Dialog, result: any): boolean {
 		switch (sender.context.behavior) {
-		case BehaviorTypes.Create: this.entry.newEntry(<string>result); break;
+		case BehaviorTypes.Create: this.entry.new(<string>result); break;
 		case BehaviorTypes.Rename: (sender.context.item as EntryItem).rename(<string>result); break;
 		case BehaviorTypes.Delete: this.entry.remove(sender.context.item as EntryItem); break;
 		}

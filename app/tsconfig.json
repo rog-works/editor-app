@@ -1,7 +1,7 @@
 {
 	"compilerOptions": {
 		"rootDir": "./src",
-		"outDir": "./dist",
+		"outDir": "./src",
 		"sourceMap": true,
 		"noImplicitAny": true,
 		"module": "commonjs",

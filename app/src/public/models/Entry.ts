@@ -56,6 +56,16 @@ export class Entry extends Page {
 		this._transition(States.Syncronized);
 	}
 
+	public new(path: string): void {
+		const entity: EntryEntity = {
+			path: path,
+			isFile: true,
+			isText: true,
+			content: 'hoge' // XXX empty
+		};
+		this.add(new EntryFile(entity));
+	}
+
 	public add(entry: EntryItem): void {
 		entry.on(EntryEvents.Created, this._onCreated);
 		entry.on(EntryEvents.Deleted, this._onDeleted);
