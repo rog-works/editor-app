@@ -19,7 +19,7 @@ const webpack = require('webpack');
 module.exports = {
 	entry: {
 		// server: `${__dirname}/src/Index.ts`,
-		client: `${__dirname}/src/public/Index.ts`
+		client: `${__dirname}/client/Index.ts`
 	},
 	output: {
 		path: `${__dirname}/`,

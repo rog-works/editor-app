@@ -1,7 +1,7 @@
 {
 	"compilerOptions": {
-		"rootDir": "./src",
-		"outDir": "./src",
+		"rootDir": "./server",
+		"outDir": "./server",
 		"sourceMap": true,
 		"noImplicitAny": true,
 		"module": "commonjs",
@@ -13,12 +13,12 @@
 		]
 	},
 	"include": [
-		"./src/**/*.ts"
+		"./server/**/*.ts"
 	],
 	"exclude": [
 		"./node_modules"
 	],
 	"files": [
-		"./src/Index.ts"
+		"./server/Index.ts"
 	]
 }

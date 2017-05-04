@@ -1,13 +1,14 @@
 import Controller from '../components/Controller';
 import Route from '../components/Route';
+import * as Path from 'path';
 
 export default class IndexController extends Controller {
 	public index(): void {
-		this._res.sendFile('/opt/app/app/app/views/index.html');
+		this._res.sendFile(Path.join(__dirname, '../views/index.html'));
 	}
 
 	public show(id: number): void {
-		this._res.sendFile(`/opt/app/app/app/views/index${id}.html`);
+		this._res.sendFile(Path.join(__dirname, `../views/index${id}.html`));
 	}
 
 	// @override
