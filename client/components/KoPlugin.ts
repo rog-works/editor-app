@@ -45,7 +45,7 @@ export default class KoPlugin {
 						// console.log('Already bind exists');
 						return;
 					}
-					const handler = (sender: any, e: MessageEvent) => value[key].apply(viewModel, [sender, e.data]);
+					const handler = (sender: any, e: MessageEvent) => value[key].apply(viewModel, [sender, e]);
 					// XXX
 					// const disposer = () => {
 					// 	binds = binds.filter(self => self !== viewModel);

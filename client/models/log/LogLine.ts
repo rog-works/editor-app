@@ -2,7 +2,7 @@ import * as ko from 'knockout-es5';
 
 export default class LogLine {
 	public constructor(
-		public readonly message: string,
+		public readonly text: string,
 		public readonly color: string,
 		public separated: boolean,
 		public css: any = {},

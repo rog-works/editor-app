@@ -21,9 +21,9 @@ services:
       - 18089:18089
     environment:
       PORT: 80
-      MAIN_SCRIPT: /opt/app/server/Index.js
+      MAIN_SCRIPT: /opt/app/dist/server/Index.js
       TZ: Asia/Tokyo
-    command: [node, '--debug=0.0.0.0:18089', /opt/app/server/Index.js]
+    command: [node, '--debug=0.0.0.0:18089', /opt/app/dist/server/Index.js]
     logging:
       options:
         max-size: '128m'

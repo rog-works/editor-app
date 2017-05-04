@@ -43,16 +43,18 @@ export default class WS extends EventEmitter {
 	}
 
 	private _onMessage(message: MessageEvent): boolean {
-		this.emit(WSEvents.Message, this, message);
+		this.emit(WSEvents.Message, this, JSON.parse(message.data));
 		return true;
 	}
 
 	private _onOpen(): boolean {
+		console.log('On WS open');
 		this.emit(WSEvents.Open, this);
 		return true;
 	}
 
 	private _onClose(): boolean {
+		console.log('On WS close');
 		this.emit(WSEvents.Close, this);
 		this._retry();
 		return true;

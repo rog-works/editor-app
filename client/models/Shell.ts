@@ -61,7 +61,7 @@ export default class Shell extends Page implements Log {
 		return [dir, query];
 	}
 
-	public async _exec(): Promise<void> {
+	private _exec(): void {
 		const orgQuery = this.query;
 		const [dir, query] = this._parse(orgQuery);
 		if (query.length === 0) {
@@ -76,7 +76,7 @@ export default class Shell extends Page implements Log {
 		this.query = '';
 		this._logger.line(`$ ${orgQuery}`);
 		const url = '?dir=' + encodeURIComponent(this.dir);
-		await Http.post<void>(`/shell${url}`, {data: {query: query}});
+		Http.post<void>(`/shell${url}`, {query: query});
 		if (this.history.indexOf(orgQuery) === -1) {
 			this.history.push(orgQuery);
 		}

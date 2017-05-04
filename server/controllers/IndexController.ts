@@ -4,11 +4,11 @@ import * as Path from 'path';
 
 export default class IndexController extends Controller {
 	public index(): void {
-		this._res.sendFile(Path.join(__dirname, '../views/index.html'));
+		this._res.sendFile(Path.join(__dirname, '../../../public/html/index.html')); // XXX bad mismatch
 	}
 
 	public show(id: number): void {
-		this._res.sendFile(Path.join(__dirname, `../views/index${id}.html`));
+		this._res.sendFile(Path.join(__dirname, `../../../public/html/index${id}.html`));
 	}
 
 	// @override

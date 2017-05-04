@@ -31,40 +31,46 @@
 					</div>
 					<!-- shell -->
 					<div class="bc2 fill close" data-bind="css: { close: shell.display.active === false }">
-						<div class="fill-w h1 table">
-							<span class="fc2 wh1 cell middle" data-bind="text: '[~' + shell.dir + ']$'"></span>
-							<input type="text" class="bc2 fc2 fill-w h1 cell middle less" placeholder="input command" list="shell-history" data-bind="value: shell.query, css: shell.css, event: { keyup: shell.keyup.bind($data.shell) }">
-							<i class="wh1 cell center fa fa-remove" data-bind="click: shell.clear.bind($data.shell)"></i>
-							<datalist id="shell-history" data-bind="foreach: shell.history">
-								<option data-bind="value: $data">
-							</datalist>
-						</div>
-						<div data-bind="with: shell">
-							<div class="fill-w h90 scroll hide-scroll" data-bind="foreach: logs, wsEvent: { message: onMessage }">
-								<pre class="font-s75 space-less" data-bind="text: $data.log, css: $data.css, click: $data.expand"></pre>
+						<div class="fill flex column">
+							<div class="fill-w h1 grow-0 table">
+								<span class="fc2 wh1 cell middle" data-bind="text: '[~' + shell.dir + ']$'"></span>
+								<input type="text" class="bc2 fc2 fill-w h1 cell middle less" placeholder="input command" list="shell-history" data-bind="value: shell.query, css: shell.css, event: { keyup: shell.keyup.bind($data.shell) }">
+								<i class="wh1 cell center fa fa-remove" data-bind="click: shell.clear.bind($data.shell)"></i>
+								<datalist id="shell-history" data-bind="foreach: shell.history">
+									<option data-bind="value: $data">
+								</datalist>
 							</div>
+							<!-- ko with: shell -->
+								<div class="fill-w h1 grow-1 scroll hide-scroll" data-bind="foreach: logs, wsEvent: { message: onMessage }">
+									<div class="space-less" data-bind="text: $data.text, css: $data.css, click: $data.expand"></div>
+								</div>
+							<!-- /ko -->
 						</div>
 					</div>
 					<!-- weblog -->
 					<div class="bc2 fill close" data-bind="css: { close: weblog.display.active === false }">
-						<div class="fill-w h1 table">
-							<span class="fill-w h1"></span>
-							<i class="wh1 cell center fa fa-remove" data-bind="click: weblog.clear.bind($data.weblog)"></i>
-						</div>
-						<div data-bind="with: weblog">
-							<div class="fill-w h90 scroll hide-scroll" data-bind="foreach: logs, wsEvent: { message: onMessage }">
-								<pre class="font-s75 space-less" data-bind="html: $data.log, css: $data.css, click: $data.expand"></pre>
+						<div class="fill flex column">
+							<div class="fill-w h1 grow-0 table">
+								<span class="fill-w h1"></span>
+								<i class="wh1 cell center fa fa-remove" data-bind="click: weblog.clear.bind($data.weblog)"></i>
 							</div>
+							<!-- ko with: weblog -->
+								<div class="fill-w h1 grow-1 scroll hide-scroll" data-bind="foreach: logs, wsEvent: { message: onMessage }">
+									<div class="space-less" data-bind="html: $data.text, css: $data.css, click: $data.expand"></div>
+								</div>
+							<!-- /ko -->
 						</div>
 					</div>
 					<!-- console -->
 					<div class="bc2 fill close" data-bind="css: { close: console.display.active === false }">
-						<div class="fill-w h1 table">
-							<span class="fill-w h1"></span>
-							<i class="wh1 cell center fa fa-remove" id="console-clear" data-bind="click: console.clear.bind($data.console)"></i>
-						</div>
-						<div class="fill-w h90 scroll hide-scroll" data-bind="foreach: console.logs">
-							<pre class="font-s75 space-less" data-bind="text: $data.log, css: $data.css, click: $data.expand"></pre>
+						<div class="fill flex column">
+							<div class="fill-w h1 grow-0 table">
+								<span class="fill-w h1"></span>
+								<i class="wh1 cell center fa fa-remove" id="console-clear" data-bind="click: console.clear.bind($data.console)"></i>
+							</div>
+							<div class="fill-w h1 grow-1 scroll hide-scroll" data-bind="foreach: console.logs">
+								<div class="space-less" data-bind="text: $data.text, css: $data.css, click: $data.expand"></div>
+							</div>
 						</div>
 					</div>
 					<!-- hex FIXME -->
