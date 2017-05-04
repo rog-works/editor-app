@@ -7,8 +7,13 @@ export default class ShellController extends Controller {
 		const args = query.split(' ');
 		const command = args.shift() || '';
 		const options = {cwd: `/opt/app${dir}`};
-		(new Entity()).run(command, args, options);
+		new Entity().run(command, args, options);
 		this.view(true);
+	}
+
+	// @override
+	public keys(): string[] {
+		return [];
 	}
 
 	// @override
