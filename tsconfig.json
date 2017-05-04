@@ -1,6 +1,5 @@
 {
 	"compilerOptions": {
-		"rootDir": "./server",
 		"outDir": "./server",
 		"sourceMap": true,
 		"noImplicitAny": true,

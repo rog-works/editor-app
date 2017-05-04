@@ -1,3 +1,9 @@
+/* reset */
+body {
+	font-size: 14px;
+	font-family: 'ヒラギノ角ゴシック Pro', 'Hiragino Kaku Gothic Pro', メイリオ, Meiryo, Osaka, 'ＭＳ Ｐゴシック', 'MS PGothic', sans-serif;
+}
+
 /* hex styles */
 .dummy {
 	width: 0;

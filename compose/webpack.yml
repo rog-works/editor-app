@@ -1,0 +1,13 @@
+version: '2'
+services:
+  webpack:
+    container_name: editor-webpack
+    image: editor-webpack
+    build: ../docker/webpack
+    volumes:
+      - ../:/opt
+    command: 'npm run build'
+    logging:
+      options:
+        max-size: '128m'
+        max-file: '1'

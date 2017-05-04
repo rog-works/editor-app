@@ -8,7 +8,7 @@ import EntryController from '../controllers/EntryController';
 import ShellController from '../controllers/ShellController';
 
 export default class Application {
-	public static readonly PUBLIC_ROOT_PATH = '/opt/app/app/app/public';
+	public static readonly PUBLIC_ROOT_PATH = '/opt/app/public';
 	public static readonly ACCESS_LOG_PATH = '/var/log/app/editor.log';
 
 	private constructor (
