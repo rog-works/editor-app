@@ -14,6 +14,7 @@ export default class Weblog extends Page implements Log {
 		ko.track(this);
 	}
 
+
 	public clear(): void {
 		this.logs = [];
 	}
@@ -44,6 +45,8 @@ export default class Weblog extends Page implements Log {
 		message = message.replace(/\s?\/editor-webpack\s?/, '');
 		message = message.replace(/\s?stdout\s?/, '');
 		message = message.replace(/[\w\d]{64}/, '');
+		message = message.split('\u001B').join(''); // XXX tab?
+		message = message.split('\b').join(''); // XXX back delete?
 		message = message.split('[31m').join('<span style="color:#f00">');
 		message = message.split('[32m').join('<span style="color:#0f0">');
 		message = message.split('[33m').join('<span style="color:#ff0">');

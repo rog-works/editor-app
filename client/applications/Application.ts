@@ -11,10 +11,11 @@ import {Page} from '../ui/Page';
 import EventEmitter from '../event/EventEmitter';
 import KoPlugin from '../components/KoPlugin';
 
-enum BehaviorTypes {
-	Create,
-	Rename,
-	Delete
+type BehaviorTypes = 'create' | 'rename' | 'delete';
+namespace BehaviorTypes {
+	export const Create = 'create';
+	export const Rename = 'rename';
+	export const Delete = 'delete';
 }
 
 type Pages = 'entry' | 'editor' | 'console' | 'shell' | 'weblog';
@@ -111,7 +112,7 @@ export default class Application extends EventEmitter {
 		} else {
 			// this.hex.load(sender.path, sender.content); // FIXME
 			// this.hex.focus();
-			// this.focus('hex');
+		// this.focus('hex');
 		}
 		return false;
 	}
@@ -136,6 +137,7 @@ export default class Application extends EventEmitter {
 	}
 
 	private _onAccepted(sender: Dialog, result: any): boolean {
+		console.log('ON Accepted', sender.context.behavior);
 		switch (sender.context.behavior) {
 		case BehaviorTypes.Create: this.entry.create(<string>result); break;
 		case BehaviorTypes.Rename: (sender.context.item as EntryItem).rename(<string>result); break;
@@ -145,7 +147,7 @@ export default class Application extends EventEmitter {
 	}
 
 	private _onCanceled(sender: Dialog): boolean {
-		console.log(`cancel ${sender.context.behavior}`);
+		console.log('On Canceled', sender.context.behavior);
 		return false;
 	}
 
