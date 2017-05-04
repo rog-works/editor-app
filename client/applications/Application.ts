@@ -17,6 +17,15 @@ enum BehaviorTypes {
 	Delete
 }
 
+type Pages = 'entry' | 'editor' | 'console' | 'shell' | 'weblog';
+namespace Pages {
+	export const Entry = 'entry';
+	export const Editor = 'editor';
+	export const Console = 'console';
+	export const Shell = 'shell';
+	export const Weblog = 'weblog';
+}
+
 export default class Application extends EventEmitter {
 	private static _instance: Application;
 
@@ -62,17 +71,18 @@ export default class Application extends EventEmitter {
 		this.editor.on(EditorEvents.Saved, this._onSaved.bind(this));
 		this.entry.on(EntryEvents.BeforeLoaded, this._onBeforeLoaded.bind(this));
 		this.entry.on(EntryEvents.AfterLoaded, this._onAfterLoaded.bind(this));
+		this.entry.on(EntryEvents.Added, this._onAdded.bind(this));
 		this.dialog.on(DialogEvents.Accepted, this._onAccepted.bind(this));
 		this.dialog.on(DialogEvents.Canceled, this._onCanceled.bind(this));
 
 		// first view on entry
-		this.focus('entry');
+		this.focus(Pages.Entry);
 
 		// bindings
 		ko.applyBindings(this);
 	}
 
-	public focus(pageName: string): boolean {
+	public focus(page: Pages): boolean {
 		for(const key of Object.keys(this)) {
 			const prop = (<any>this)[key]; // XXX any
 			if (('activate' in prop) && prop.display.active) {
@@ -80,9 +90,7 @@ export default class Application extends EventEmitter {
 				break;
 			}
 		}
-		if (pageName in this) {
-			(<any>this)[pageName].activate(true); // XXX any
-		}
+		this[page].activate(true);
 		return false;
 	}
 
@@ -99,12 +107,17 @@ export default class Application extends EventEmitter {
 		if (sender.isText) {
 			this.editor.load(sender.path, sender.content);
 			this.editor.focus();
-			this.focus('editor');
+			this.focus(Pages.Editor);
 		} else {
 			// this.hex.load(sender.path, sender.content); // FIXME
 			// this.hex.focus();
 			// this.focus('hex');
 		}
+		return false;
+	}
+
+	private _onAdded(sender: EntryItem): boolean {
+		this.shownCreate();
 		return false;
 	}
 
@@ -124,9 +137,9 @@ export default class Application extends EventEmitter {
 
 	private _onAccepted(sender: Dialog, result: any): boolean {
 		switch (sender.context.behavior) {
-		case BehaviorTypes.Create: this.entry.new(<string>result); break;
+		case BehaviorTypes.Create: this.entry.create(<string>result); break;
 		case BehaviorTypes.Rename: (sender.context.item as EntryItem).rename(<string>result); break;
-		case BehaviorTypes.Delete: this.entry.remove(sender.context.item as EntryItem); break;
+		case BehaviorTypes.Delete: this.entry.delete(sender.context.item as EntryItem); break;
 		}
 		return false;
 	}

@@ -19,8 +19,8 @@
 							<div class="bc2 fill-w h0 table bottom-line" data-bind="css: $data.display">
 								<i class="wh0 cell center fa" data-bind="css: $data.icon"></i>
 								<i class="fc4 wh0 cell center fa" data-bind="css: { 'fa-caret-left': $data.edit.close, 'fa-caret-right': $data.edit.close === false }, click: $data.allow"></i>
-								<i class="wh0 cell center fa fa-pencil" data-bind="css: $data.edit, click: $data.rename"></i>
-								<i class="wh0 cell center fa fa-remove" data-bind="css: $data.edit, click: $data.delete"></i>
+								<i class="wh0 cell center fa fa-pencil" data-bind="css: $data.edit, click: $root.shownRename.bind($root, $data)"></i>
+								<i class="wh0 cell center fa fa-remove" data-bind="css: $data.edit, click: $root.shownDelete.bind($root, $data)"></i>
 								<a class="h0 cell middle" data-bind="text: $data.name, click: $data.click"></a>
 							</div>
 						</div>
@@ -125,7 +125,7 @@
 				</div>
 			</div>
 			<!-- dialog -->
-			<div class="bc1 trans25 float close" data-bind="css: dialog.display">
+			<div class="bc1 trans75 fill float close" data-bind="css: dialog.display">
 				<div class="bc1 trans100 w8 auto frame" data-bind="style: dialog.pos">
 					<div class="fill-w h1">
 						<div class="left table">

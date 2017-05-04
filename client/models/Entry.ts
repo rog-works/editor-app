@@ -19,7 +19,7 @@ enum EntryTypes { // XXX type???
 	FileAdd // XXX
 }
 
-export type EntryEvents = 'created' | 'updated' | 'deleted' | 'renamed' | 'beforeReload' | 'afterReload' | 'deactivate' | 'expand';
+export type EntryEvents = 'created' | 'updated' | 'deleted' | 'renamed' | 'beforeReload' | 'afterReload' | 'deactivate' | 'expand' | 'added' | 'connectFailed';
 export namespace EntryEvents {
 	export const Created = 'created';
 	export const Updated = 'updated';
@@ -30,13 +30,18 @@ export namespace EntryEvents {
 	export const Deactivated = 'deactivates';
 	export const Expanded = 'expanded';
 	export const Added = 'added';
+	export const ConnectFailed = 'connectFailed';
 }
 
 export class Entry extends Page {
 	public constructor(
-		public readonly entries: EntryItem[] = []
+		public entries: EntryItem[] = []
 	) {
-		super([EntryEvents.BeforeLoaded, EntryEvents.AfterLoaded]);
+		super([
+			EntryEvents.BeforeLoaded,
+			EntryEvents.AfterLoaded,
+			EntryEvents.Added
+		]);
 		this.load();
 		ko.track(this);
 	}
@@ -50,30 +55,45 @@ export class Entry extends Page {
 			this.adds(entries);
 			this.add(new EntryAdd());
 			this.closeAll();
-		} catch (err) {
+		} catch (error) {
 			// XXX
 		}
 		this._transition(States.Syncronized);
 	}
 
-	public new(path: string): void {
+	public async create(path: string): Promise<void> { // XXX
 		const entity: EntryEntity = {
 			path: path,
 			isFile: true,
 			isText: true,
-			content: 'hoge' // XXX empty
+			content: 'empty' // XXX empty
 		};
-		this.add(new EntryFile(entity));
+		const entry = new EntryFile(entity);
+		this._bindEntry(entry);
+		const created = await entry.create();
+		if (created) {
+			this.entries.push(entry);
+		}
 	}
 
-	public add(entry: EntryItem): void {
-		entry.on(EntryEvents.Created, this._onCreated.bind(this));
-		entry.on(EntryEvents.Deleted, this._onDeleted.bind(this));
+	private _bindEntry(entry: EntryItem): void {
 		entry.on(EntryEvents.BeforeLoaded, this._onBeforeLoaded.bind(this));
 		entry.on(EntryEvents.AfterLoaded, this._onAfterLoaded.bind(this));
 		entry.on(EntryEvents.Deactivated, this._onDeactivated.bind(this));
 		entry.on(EntryEvents.Expanded, this._onExpanded.bind(this));
 		entry.on(EntryEvents.Added, this._onAdded.bind(this));
+		entry.on(EntryEvents.ConnectFailed, this._onConnectFailed.bind(this));
+	}
+
+	public async delete(target: EntryItem): Promise<void> { // XXX
+		const deleted = await target.delete();
+		if (deleted) {
+			this.remove(target);
+		}
+	}
+
+	public add(entry: EntryItem): void {
+		this._bindEntry(entry);
 		this.entries.push(entry);
 	}
 
@@ -83,18 +103,19 @@ export class Entry extends Page {
 		}
 	}
 
-	public remove(entry: EntryItem): EntryItem[] {
-		return this.entries.remove(entry);
+	public remove(target: EntryItem): EntryItem[] {
+		const index = this.entries.indexOf(target);
+		return index !== -1 ? this.entries.splice(index, 1) : [];
 	}
 
 	public removeAll(): void {
-		this.entries.removeAll();
+		this.entries = [];
 	}
 
 	public closeAll(): void {
 		for (const entry of this.entries) {
 			if (entry instanceof EntryDirectory) {
-				entry.click(); // XXX rename
+				entry.expand();
 			}
 		}
 	}
@@ -108,22 +129,22 @@ export class Entry extends Page {
 		return null;
 	}
 
-	private _onCreated(sender: EntryItem): boolean {
-		this.add(sender);
+	// @override
+	protected get syncronizedIcon(): Icons {
+		return Icons.Entry;
+	}
+
+	private _onUpdated(sender: EntryItem): boolean {
+		this._transition(States.Syncronized);
 		return false;
 	}
 
-	private _onDeleted(sender: EntryItem): boolean {
-		this.remove(sender);
-		return false;
-	}
-
-	private _onBeforeLoaded(sender: any, e: any): boolean {
+	private _onBeforeLoaded(sender: any, e: any): boolean { // FIXME callable?
 		this.emit(EntryEvents.BeforeLoaded, sender, e);
 		return true;
 	}
 
-	private _onAfterLoaded(sender: any, e: any): boolean {
+	private _onAfterLoaded(sender: any, e: any): boolean { // FIXME callable?
 		this.emit(EntryEvents.AfterLoaded, sender, e);
 		return true;
 	}
@@ -153,14 +174,14 @@ export class Entry extends Page {
 		return false;
 	}
 
-	private _onAdded(sender: any, e: any): boolean {
-		this.emit(EntryEvents.Added, sender, e);
+	private _onAdded(sender: EntryItem): boolean {
+		this.emit(EntryEvents.Added, sender);
 		return true;
 	}
 
-	// @override
-	protected get syncronizedIcon(): Icons {
-		return Icons.Entry;
+	private _onConnectFailed(sender: EntryItem): boolean {
+		this._transition(States.Error);
+		return true;
 	}
 }
 
@@ -180,11 +201,14 @@ export class EntryItem extends EventEmitter {
 		super([
 			EntryEvents.Created,
 			EntryEvents.Deleted,
+			EntryEvents.Updated,
+			EntryEvents.Renamed,
 			EntryEvents.BeforeLoaded,
 			EntryEvents.AfterLoaded,
 			EntryEvents.Deactivated,
 			EntryEvents.Expanded,
-			EntryEvents.Added
+			EntryEvents.Added,
+			EntryEvents.ConnectFailed
 		]);
 		const path = entity.path.replace(/\/$/, '');
 		const routes = path.substr(1).split('/');
@@ -215,48 +239,56 @@ export class EntryItem extends EventEmitter {
 		ko.track(this.edit);
 	}
 
-	public async create(path: string): Promise<boolean> {
-		const created = await Http.post<boolean>('/entry/', {data: {path: path}});
-		if (created) {
-			const entity: EntryEntity = {
-				path: path,
-				isFile: true,
-				isText: true,
-				content: ''
-			};
-			this.emit(EntryEvents.Created, this, new EntryFile(entity));
+	public async create(): Promise<boolean> {
+		try {
+			const created = await Http.post<boolean>('/entry/', { path: this.path });
+			if (created) {
+				this.emit(EntryEvents.Created, this);
+			}
+			return created;
+		} catch (error) {
+			this.emit(EntryEvents.ConnectFailed, this);
+			return false;
 		}
-		return created;
 	}
 
 	public async update(content: string): Promise<boolean> {
-		const url = encodeURIComponent(this.path);
-		const updated = await Http.put<boolean>(`/entry/${url}`, {data: {content: content}});
-		if (updated) {
-			this.emit(EntryEvents.Updated, this, updated);
+		try {
+			const url = encodeURIComponent(this.path);
+			const updated = await Http.put<boolean>(`/entry/${url}`, { content: content });
+			if (updated) {
+				this.content = content;
+				this.emit(EntryEvents.Updated, this);
+			}
+			return updated;
+		} catch (error) {
+			this.emit(EntryEvents.ConnectFailed, this);
+			return false;
 		}
-		return updated;
 	}
 
 	public async rename(to: string): Promise<boolean> {
-		// FIXME via shownRename
 		if (!Path.valid(to)) {
 			return false;
 		}
-		const encodePath = encodeURIComponent(this.path);
-		const encodeTo = encodeURIComponent(to);
-		const url = `/${encodePath}/rename?to=${encodeTo}`;
-		const renamed = await Http.put<boolean>(`/entry/${url}`);
-		if (renamed) {
-			this.path = to;
-			this.name = Path.basename(to);
-			this.emit(EntryEvents.Renamed, this, renamed);
+		try {
+			const encodePath = encodeURIComponent(this.path);
+			const encodeTo = encodeURIComponent(to);
+			const url = `/${encodePath}/rename?to=${encodeTo}`;
+			const renamed = await Http.put<boolean>(`/entry/${url}`);
+			if (renamed) {
+				this.path = to;
+				this.name = Path.basename(to);
+				this.emit(EntryEvents.Renamed, this);
+			}
+			return renamed;
+		} catch (error) {
+			this.emit(EntryEvents.ConnectFailed, this);
+			return false;
 		}
-		return renamed;
 	}
 
 	public async delete(): Promise<boolean> {
-		// FIXME via shownDelete
 		const prev = this.path + (!this.isFile ? '/' : ''); // XXX directory is ends with '/'
 		const url = encodeURIComponent(prev);
 		const deleted = await Http.delete<boolean>(`/entry/${url}`);
@@ -312,26 +344,25 @@ class EntryFile extends EntryItem {
 		this._load();
 	}
 
-	public async update(content: string): Promise<boolean> {
-		const updated = await super.update(content);
-		if (updated) {
-			this.content = content;
-		}
-		return updated;
-	}
-
-	private async _load(): Promise<void> {
+	private async _load(): Promise<boolean> {
 		this.emit(EntryEvents.BeforeLoaded, this);
-		if (this.content === '') {
+		if (this.content !== '') {
+			this._activate();
+			this.emit(EntryEvents.AfterLoaded, this);
+			return true;
+		}
+
+		try {
 			const url = encodeURIComponent(this.path);
 			const entity = await Http.get<EntryEntity>(`/entry/${url}`);
 			this.content = entity.content;
-			this._activate();
-			this.emit(EntryEvents.AfterLoaded, this);
 			this.icon = EntryItem.toIcon(EntryTypes.FileOpen);
-		} else {
 			this._activate();
 			this.emit(EntryEvents.AfterLoaded, this);
+			return true;
+		} catch (error) {
+			this.emit(EntryEvents.ConnectFailed, this);
+			return false;
 		}
 	}
 
@@ -351,6 +382,10 @@ class EntryDirectory extends EntryItem {
 	}
 
 	public click(): void {
+		this.expand();
+	}
+
+	public expand(): void {
 		this.opened = !this.opened;
 		this.icon = EntryItem.toIcon(this.opened ? EntryTypes.Directory : EntryTypes.DirectoryClose);
 		this.emit(EntryEvents.Expanded, this);
@@ -370,10 +405,6 @@ class EntryAdd extends EntryItem {
 	}
 
 	public click(): void {
-		// FIXME via shownCreate
-		// if (Path.valid(path)) {
-		// 	this.create(path);
-		// };
 		this.emit(EntryEvents.Added, this);
 	}
 }

@@ -4,22 +4,38 @@ import EventEmitter from '../event/EventEmitter';
 export enum States {
 	Loading,
 	Syncronized,
-	Modified
+	Modified,
+	Error
 }
 
-export type Icons =  '' | 'fa-refresh' | 'fa-spin' | 'fa-pencil' | 'fa-check-circle' | 'fa-sitemap' | 'fa-download' | 'fa-folder-open' | 'fa-folder' | 'fa-plus';
+export type Icons =  ''
+	| 'fa-refresh'
+	| 'fa-spin'
+	| 'fa-check-circle'
+	| 'fa-exclamation-circle'
+	| 'fa-pencil'
+	| 'fa-sitemap'
+	| 'fa-table'
+	| 'fa-download'
+	| 'fa-folder-open'
+	| 'fa-folder'
+	| 'fa-plus';
+
 export namespace Icons {
 	export const Empty = '';
 	export const Loading = 'fa-refresh';
 	export const LoadingSpin = 'fa-spin';
 	export const Modified = 'fa-check-circle';
+	export const Error = 'fa-exclamation-circle';
+	// page
 	export const Editor = 'fa-pencil'; // XXX bad depends
-	export const Entry = 'fa-sitemap'; // XXX bad depends
-	export const FileOpen = 'fa-download'; // XXX bad depends
-	export const Directory = 'fa-folder-open'; // XXX bad depends
-	export const DirectoryClose = 'fa-folder'; // XXX bad depends
-	export const FileAdd = 'fa-plus'; // XXX bad depends
+	export const Entry = 'fa-sitemap';
 	export const Hex = 'fa-table';
+	// entry
+	export const FileOpen = 'fa-download'; // XXX bad depends
+	export const Directory = 'fa-folder-open';
+	export const DirectoryClose = 'fa-folder';
+	export const FileAdd = 'fa-plus';
 }
 
 export class Page extends EventEmitter {
@@ -28,12 +44,14 @@ export class Page extends EventEmitter {
 		public display: any = { // XXX any
 			active: false
 		},
-		public icon: any = { // XXX
+		public icon: any = { // XXX any
 			[Icons.Loading]: false,
 			[Icons.LoadingSpin]: false,
 			[Icons.Modified]: false,
+			[Icons.Error]: false,
 			[Icons.Editor]: false,
-			[Icons.Entry]: false
+			[Icons.Entry]: false,
+			[Icons.Hex]: false
 		}
 	) {
 		super(tags);
@@ -64,8 +82,14 @@ export class Page extends EventEmitter {
 			this.icon[Icons.Modified] = true;
 			break;
 
+		case States.Error:
+			this.icon[Icons.Error] = true;
+			break;
+
 		case States.Syncronized:
 			this.icon[this.syncronizedIcon] = true;
+			break;
+
 		}
 	}
 }

@@ -144,7 +144,7 @@ body {
 	background-color: #282;
 }
 
-.bc1.trans25  { background-color: rgba(0, 0, 0, 0.25); }
+.bc1.trans75  { background-color: rgba(0, 0, 0, 0.75); }
 .bc1.trans100 { background-color: rgba(0, 0, 0, 1); }
 
 a.fc1,

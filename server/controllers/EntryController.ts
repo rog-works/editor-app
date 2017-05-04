@@ -22,11 +22,11 @@ export default class EntryController extends Controller {
 	}
 
 	public async destroy(path: string): Promise<void> {
-		this.view(Entity.destroy(path));
+		this.view(await Entity.destroy(path));
 	}
 
 	public async rename(path: string, to: string): Promise<void> {
-		this.view(Entity.rename(path, to));
+		this.view(await Entity.rename(path, to));
 	}
 
 	// @override
