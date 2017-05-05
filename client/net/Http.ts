@@ -15,7 +15,7 @@ export default class Http {
 			request[verb](url)
 				.type('form')
 				.send(data)
-				.timeout(1000)
+				.timeout(1500)
 				.end((error: any, res: request.Response) => {
 					if (error) {
 						console.error('Failed request', verb, url, error, res);
