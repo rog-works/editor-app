@@ -42,7 +42,7 @@
 							</div>
 							<!-- ko with: shell -->
 								<div class="fill-w h1 grow-1 scroll hide-scroll" data-bind="foreach: logs, wsEvent: { message: onMessage }">
-									<div class="space-less" data-bind="text: $data.text, css: $data.css, click: $data.expand"></div>
+									<div class="font-s75 space-less text-pre" data-bind="text: $data.text, css: $data.css, click: $data.expand"></div>
 								</div>
 							<!-- /ko -->
 						</div>
@@ -56,7 +56,7 @@
 							</div>
 							<!-- ko with: weblog -->
 								<div class="fill-w h1 grow-1 scroll hide-scroll" data-bind="foreach: logs, wsEvent: { message: onMessage }">
-									<div class="space-less text-pre" data-bind="html: $data.text, css: $data.css, click: $data.expand"></div>
+									<div class="font-s75 space-less text-pre" data-bind="html: $data.text, css: $data.css, click: $data.expand"></div>
 								</div>
 							<!-- /ko -->
 						</div>
@@ -69,7 +69,7 @@
 								<i class="wh1 cell center fa fa-remove" id="console-clear" data-bind="click: console.clear.bind($data.console)"></i>
 							</div>
 							<div class="fill-w h1 grow-1 scroll hide-scroll" data-bind="foreach: console.logs">
-								<div class="space-less" data-bind="text: $data.text, css: $data.css, click: $data.expand"></div>
+								<div class="font-s75 space-less text-pre" data-bind="text: $data.text, css: $data.css, click: $data.expand"></div>
 							</div>
 						</div>
 					</div>
