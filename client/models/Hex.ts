@@ -1,19 +1,23 @@
+import * as ko from 'knockout-es5';
 import {Page, States, Icons} from '../ui/Page';
 import {KeyCodes} from '../ui/KeyMap';
+import HexEdiror from './ui/HexEditor';
+import TextStream from '../io/TextStream';
 
-class Hex extends Page {
-	public constructor() {
+export class Hex extends Page {
+	public constructor(
+		public path: string = '#',
+		public rows: HexRows = HexRows.mixin([]),
+		public editor: HexEditor = new HexEditor(),
+		public focused = false
+	) {
 		super();
 		// state
-		this.path = '#';
-		this.rows = HexRows.mixin([]);
-		this.editor = new HexEditor();
-		this.focused = false;
 		ko.track(this);
 	}
 
 	// @override
-	public syncronizedIcon(): Icons {
+	protected get syncronizedIcon(): Icons {
 		return Icons.Hex;
 	}
 
@@ -60,7 +64,7 @@ class Hex extends Page {
 		return this.editor.onPaste(e.originalEvent.clipboardData);
 	}
 
-	public scroll(self: this, e: ScrollEvent): boolean {
+	public scroll(self: this, e: ): boolean {
 		this.rows.scrollY(e.target.scrollTop);
 		return true;
 	}
