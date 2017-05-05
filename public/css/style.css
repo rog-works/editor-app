@@ -71,6 +71,10 @@ body {
 	text-align: right;
 }
 
+.text-pre {
+	white-space: pre;
+}
+
 /* size styles */
 .fill   {  width: 100%; height: 100%; }
 .fill-w {  width: 100%; }

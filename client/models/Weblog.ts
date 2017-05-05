@@ -37,23 +37,46 @@ export default class Weblog extends Page implements Log {
 		for (const key in data) {
 			lines.push(data[key]);
 		}
-		return this.colorized(lines.join(' '));
+		return this._colorify(lines.join(' '));
 	}
 
 	public colorized(message: string): string {
+		return '';
+	}
+
+	public _colorify(message: string): string {
 		message = message.replace(/\s?\/nodered-webpack\s?/, '');
 		message = message.replace(/\s?\/editor-webpack\s?/, '');
 		message = message.replace(/\s?stdout\s?/, '');
 		message = message.replace(/[\w\d]{64}/, '');
-		message = message.split('\u001B').join(''); // XXX tab?
-		message = message.split('\b').join(''); // XXX back delete?
-		message = message.split('[31m').join('<span style="color:#f00">');
-		message = message.split('[32m').join('<span style="color:#0f0">');
-		message = message.split('[33m').join('<span style="color:#ff0">');
-		message = message.split('[1m').join('<span style="font-weight:bold">');
-		message = message.split('[22m').join('</span>');
-		message = message.split('[39m').join('</span>');
+		message = message.split(EscapeCodes.ColorRed).join('<span style="color:#f00">');
+		message = message.split(EscapeCodes.ColorGreen).join('<span style="color:#0f0">');
+		message = message.split(EscapeCodes.ColorYellow).join('<span style="color:#ff0">');
+		message = message.split(EscapeCodes.Bold).join('<span style="font-weight:bold">');
+		message = message.split(EscapeCodes.BoldEnd).join('</span>');
+		message = message.split(EscapeCodes.ColorEnd).join('</span>');
+		message = message.split(EscapeCodes.Escape).join('');
+		message = message.split(EscapeCodes.BackSpace).join('');
 		return message;
 	}
 }
 
+type EscapeCodes = '\u001B'
+	| '\b'
+	| '[1m'
+	| '[22m'
+	| '[31m'
+	| '[32m'
+	| '[33m'
+	| '[39m'
+
+namespace EscapeCodes {
+	export const Escape = '\u001B';
+	export const BackSpace = '\b';
+	export const Bold = '[1m';
+	export const BoldEnd = '[22m';
+	export const ColorRed = '[31m';
+	export const ColorGreen = '[32m';
+	export const ColorYellow = '[33m';
+	export const ColorEnd = '[39m';
+}

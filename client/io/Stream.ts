@@ -1,9 +1,7 @@
-'use strict';
-
-class Stream {
-	constructor (source) {
-		this._source = source;
-		this._pos = 0;
+export class Stream {
+	public constructor(
+		private _source: BufferSource,
+		private _pos: number = 0) {
 		this.load(this._source);
 	}
 
