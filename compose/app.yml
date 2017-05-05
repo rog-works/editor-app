@@ -1,0 +1,26 @@
+version: '2'
+services:
+  app:
+    container_name: editor-app
+    image: editor-app:latest
+    build: ../docker/app
+    privileged: true
+    volumes:
+      # application-root
+      - ~/editor:/opt
+      # docker-compose for Container from host
+      - /usr/local/bin/docker-compose:/usr/local/bin/docker-compose
+      # XXX .bash_profile
+      - ~/.bash_profile:/home/node/.ash_profile
+      # XXX .gitconfig
+      - ~/.gitconfig:/home/node/.gitconfig
+      # XXX ssh privatee key
+      - ~/.ssh/id_rsa:/home/node/.ssh/id_rsa
+    ports:
+      - 8080:8080
+      - 18089:18089
+    command: [node, '--debug=0.0.0.0:18089', /opt/app/dist/server/Index.js]
+    logging:
+      options:
+        max-size: '128m'
+        max-file: '1'

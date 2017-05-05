@@ -1,0 +1,9 @@
+version: '2'
+services:
+  log:
+    container_name: editor-log
+    image: editor-log:latest
+    build: ../docker/log
+    ports:
+      - 24224:24224
+      - 18082:8080
