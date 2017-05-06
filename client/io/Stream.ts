@@ -4,9 +4,9 @@ export enum SeekTypes {
 	End
 }
 
-type Buffer = string | BufferSource; // FIXME type missmatch?
+type Buffer = string | BufferSource; // FIXME type mismatch?
 
-export class Stream {
+export abstract class Stream {
 	public constructor(
 		private _source: Buffer,
 		private _pos: number = 0
@@ -59,7 +59,7 @@ export class Stream {
 		return Math.min(length, this.available);
 	}
 
-	public load(source: Buffer): Buffer {
+	public load(source: Buffer): void {
 		this._source = source;
 		this._pos = 0;
 	}
@@ -69,7 +69,7 @@ export class Stream {
 		return this.pos <= end && end <= this.length;
 	}
 
-	public read(length: number | undefined = undefined): boolean {
+	public read(length: number | undefined = undefined): string { // FIXME number | string ?
 		const _length = this._roundAvailable(length !== undefined ? length : this.available);
 		if (this.isInside(_length)) {
 			const begin = this.pos;
@@ -81,9 +81,9 @@ export class Stream {
 		}
 	}
 
-	protected _readImpl(length: number): number
+	protected abstract _readImpl(length: number): number;
 
-	public peak(length: numbet | undefined = undefined): number { // XXX number?
+	public peak(length: number | undefined = undefined): number { // XXX number | string ?
 		const _length = this._roundAvailable(length !== undefined ? length : this.available);
 		const begin = this.pos;
 		const data = this.read(_length);
@@ -91,7 +91,7 @@ export class Stream {
 		return data;
 	}
 
-	public write (values) {
+	public write(values: number[]): void { // XXX mismatch?
 		const begin = this.pos;
 		if (this.pos === 0) {
 			this.remove(values.length);
@@ -105,10 +105,7 @@ export class Stream {
 		this.seek(begin + values.length, SeekTypes.Begin);
 	}
 
-	// expected override the sub class
-	_writeImpl (pos, values) {
-		throw new Error('No implemented');
-	}
+	protected abstract _writeImpl(pos: number, values: number[]): void; // XXX mismatch
 
 	insert (values) {
 		const begin = this.pos;

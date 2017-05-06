@@ -1,14 +1,15 @@
 import * as ko from 'knockout-es5';
 import {Page, States, Icons} from '../ui/Page';
 import {KeyCodes} from '../ui/KeyMap';
-import HexEdiror from './ui/HexEditor';
-import TextStream from '../io/TextStream';
+import HexEdiror from '../ui/HexEditor';
+import {Stream, TextStream, SeekTypes} from '../io/Stream';
 
 export class Hex extends Page {
 	public constructor(
 		public path: string = '#',
 		public rows: HexRows = HexRows.mixin([]),
 		public editor: HexEditor = new HexEditor(),
+		public state: States = States.Syncronized,
 		public focused = false
 	) {
 		super();
@@ -139,7 +140,7 @@ class HexRows {
 	}
 
 	public hexAt(localPos: number): string {
-		this._stream.seek(this.toGlobalPos(localPos), 'begin');
+		this._stream.seek(this.toGlobalPos(localPos), SeekTypes.Begin);
 		if (this._stream.isInside(1)) {
 			return this._stream.read(1).toUpperCase();
 		} else {
@@ -253,7 +254,7 @@ class HexRow {
 		this._localPos = HexUtil.toPos(value);
 	} 
 
-	public hexAt(x: number): Hex {
+	public hexAt(x: number): string {
 		return this._rows.hexAt(this.toLocalPos(x));
 	}
 
@@ -269,19 +270,19 @@ class HexRow {
 		for (let x = 0; x < 32; x += 1) {
 			this.columns.push(new HexColumn(this, x));
 		}
-		this.address(HexUtil.toAddress(this._rows.toByteOfGlobalPos(this._localPos)));
-		this.text(HexUtil.byteToStr(this._bytes()));
+		this.address = HexUtil.toAddress(this._rows.toByteOfGlobalPos(this._localPos));
+		this.text = HexUtil.byteToStr(this._bytes());
 	}
 
 	public update(): void {
 		for (const column of this.columns) {
 			column.update();
 		}
-		this.address(HexUtil.toAddress(this._rows.toByteOfGlobalPos(this._localPos)));
-		this.text(HexUtil.byteToStr(this._bytes()));
+		this.address = HexUtil.toAddress(this._rows.toByteOfGlobalPos(this._localPos));
+		this.text = HexUtil.byteToStr(this._bytes());
 	}
 
-	public _bytes(): string[] {
+	public _bytes(): number[] {
 		let bytes = [];
 		for (let x = 0; x < 16; x += 1) {
 			const columnH = this.columns[x * 2 + 0]; // FIXME
@@ -297,7 +298,7 @@ class HexRow {
 
 export class HexColumn {
 	public constructor(
-		private _row: number,
+		private _row: HexRow, // XXX rename
 		private _posX: number,
 		private _value: number | null = null, // XXX nullable
 		public hex: string = '-',
@@ -348,31 +349,31 @@ class HexUtil {
 	}
 
 	public static toText(hexBytes: string): string {
-		const bytes = HexUtil.hexToBytes(hexBytes);
-		return HexUtil.byteToStr(bytes);
+		const bytes = this.hexToBytes(hexBytes);
+		return this.byteToStr(bytes);
 	}
 
 	static hexToBytes (hexBytes: string): number[] {
 		const bytes: number[] = [];
-		for (const i = 0; i < hexBytes.length; i += 2) {
-			bytes.push(HexUtil.toByte(hexBytes.substr(i, 2)));
+		for (let i = 0; i < hexBytes.length; i += 2) {
+			bytes.push(this.toByte(hexBytes.substr(i, 2)));
 		}
 		return bytes;
 	}
 
 	public static byteToStr(bytes: number[], encode: string = 'UTF8'): string {
-		return HexUtil[`byteToStr${encode}`](bytes);
+		return this[`byteToStr${encode}`](bytes);
 	}
 
 	// XXX
-	public static byteToStrSJIS(bytes: numbers[]): string {
+	public static byteToStrSJIS(bytes: number[]): string {
 		let str = '';
 		for (let i = 0; i < bytes.length; i += 1) {
-			const byte = HexUtil._readByte(bytes, i);
+			const byte = this._readByte(bytes, i);
 			if (byte <= 0x7f) {
 				str += String.fromCharCode(byte);
 			} else {
-				const chara = (HexUtil._readByte(i + 1) << 8) | byte;
+				const chara = (this._readByte(bytes, i + 1) << 8) | byte;
 				str += String.fromCharCode(chara);
 				i += 1;
 			}
@@ -383,23 +384,23 @@ class HexUtil {
 	public static byteToStrUTF8(bytes: number[]): string {
 		let str = '';
 		for (let i = 0; i < bytes.length; i += 1) {
-			const byte = HexUtil._readByte(bytes, i);
+			const byte = this._readByte(bytes, i);
 			if (byte <= 0x7f) {
 				str += String.fromCharCode(byte);
 			} else if (byte <= 0xdf) {
 				let chara = ((byte & 0x1f) << 6);
-				chara += (HexUtil._readByte(i + 1) & 0x3f);
+				chara += (this._readByte(bytes, i + 1) & 0x3f);
 				str += String.fromCharCode(chara);
 				i += 1;
 			} else if (i <= 0xe0) {
-				let chara = 0x800 | ((HexUtil._readByte(i + 1) & 0x1f) << 6);
-				chara += (HexUtil._readByte(i + 2) & 0x3f);
+				let chara = 0x800 | ((this._readByte(bytes, i + 1) & 0x1f) << 6);
+				chara += (this._readByte(bytes, i + 2) & 0x3f);
 				str += String.fromCharCode(chara);
 				i += 2;
 			} else {
 				let chara = ((byte & 0x0f) << 12);
-				chara += ((HexUtil._readByte(i + 1) & 0x3f) << 6);
-				chara += (HexUtil._readByte(i + 2) & 0x3f);
+				chara += ((this._readByte(bytes, i + 1) & 0x3f) << 6);
+				chara += (this._readByte(bytes, i + 2) & 0x3f);
 				str += String.fromCharCode(chara);
 				i += 2;
 			}
