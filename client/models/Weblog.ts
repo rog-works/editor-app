@@ -14,7 +14,6 @@ export default class Weblog extends Page implements Log {
 		ko.track(this);
 	}
 
-
 	public clear(): void {
 		this.logs = [];
 	}
@@ -49,14 +48,14 @@ export default class Weblog extends Page implements Log {
 		message = message.replace(/\s?\/editor-webpack\s?/, '');
 		message = message.replace(/\s?stdout\s?/, '');
 		message = message.replace(/[\w\d]{64}/, '');
-		message = message.split(EscapeCodes.ColorRed).join('<span style="color:#f00">');
-		message = message.split(EscapeCodes.ColorGreen).join('<span style="color:#0f0">');
-		message = message.split(EscapeCodes.ColorYellow).join('<span style="color:#ff0">');
-		message = message.split(EscapeCodes.Bold).join('<span style="font-weight:bold">');
-		message = message.split(EscapeCodes.BoldEnd).join('</span>');
-		message = message.split(EscapeCodes.ColorEnd).join('</span>');
-		message = message.split(EscapeCodes.Escape).join('');
-		message = message.split(EscapeCodes.BackSpace).join('');
+		message = message.split(ControlCodes.Bold).join('<span style="font-weight:bold">');
+		message = message.split(ControlCodes.BoldEnd).join('</span>');
+		message = message.split(ControlCodes.ColorRed).join('<span style="color:#f00">');
+		message = message.split(ControlCodes.ColorGreen).join('<span style="color:#0f0">');
+		message = message.split(ControlCodes.ColorYellow).join('<span style="color:#ff0">');
+		message = message.split(ControlCodes.ColorEnd).join('</span>');
+		message = message.split(ControlCodes.Escape).join('');
+		message = message.split(ControlCodes.BackSpace).join('');
 		return message;
 	}
 }
@@ -70,7 +69,7 @@ type EscapeCodes = '\u001B'
 	| '[33m'
 	| '[39m'
 
-namespace EscapeCodes {
+namespace ControlCodes {
 	export const Escape = '\u001B';
 	export const BackSpace = '\b';
 	export const Bold = '[1m';

@@ -92,6 +92,7 @@ export default class Shell extends Page implements Log {
 
 	public colorized(line: string): string {
 		if (/^\tmodified:/.test(line) ||
+			/^\trenamed:/.test(line) ||
 			/^\tnew file:/.test(line) ||
 			/^\+/.test(line)) {
 			return 'fc1-p';

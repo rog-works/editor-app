@@ -1,29 +1,34 @@
+import * as ko from 'knockout-es5';
 import {Page, States, Icons} from '../ui/Page';
 import {KeyCodes} from '../ui/KeyMap';
+import HexEdiror from './ui/HexEditor';
+import TextStream from '../io/TextStream';
 
-class Hex extends Page {
-	public constructor() {
+export class Hex extends Page {
+	public constructor(
+		public path: string = '#',
+		public rows: HexRows = HexRows.mixin([]),
+		public editor: HexEditor = new HexEditor(),
+		public focused = false
+	) {
 		super();
 		// state
-		this.path = '#';
-		this.rows = HexRows.mixin([]);
-		this.editor = new HexEditor();
-		this.focused = false;
 		ko.track(this);
 	}
-	
-	public syncronizedIcon(): Icons {
+
+	// @override
+	protected get syncronizedIcon(): Icons {
 		return Icons.Hex;
 	}
 
 	public load(path: string = '#', content: string = ''): void {
 		try {
-		const stream = new TextStream(content);
-		this._transition(States.Loading);
-		this.path = path;
-		this.rows.load(stream);
-		this.editor.load(stream);
-		this._transition(States.Syncronized);
+			const stream = new TextStream(content);
+			this._transition(States.Loading);
+			this.path = path;
+			this.rows.load(stream);
+			this.editor.load(stream);
+			this._transition(States.Syncronized);
 		} catch (error) {
 			console.error(error);
 		}
@@ -59,67 +64,57 @@ class Hex extends Page {
 		return this.editor.onPaste(e.originalEvent.clipboardData);
 	}
 
-	public scroll(self: this, e: ScrollEvent): boolean {
+	public scroll(self: this, e: ): boolean {
 		this.rows.scrollY(e.target.scrollTop);
 		return true;
 	}
 
 	public save(): void {
-		this._transition(this.STATE_LOADING);
+		this._transition(States.Loading);
 		this.emit(HexEvents.UpdateEntry, this.path, this.rows.stream.source);
 	}
 
-	public saved(updated: boolean) {
-		this._transition(updated ? this.STATE_SYNCRONIZED : this.STATE_MODIFIED);
+	public saved(updated: boolean): void {
+		this._transition(updated ? States.Syncronized : States.Modified);
 	}
 
-	changed () {
-		if (this.state === this.STATE_SYNCRONIZED) {
-			this._transition(this.STATE_MODIFIED);
+	public changed(): void {
+		if (this.state === States.Syncronized) {
+			this._transition(States.Modified);
 		}
 	}
 
-	beforeLoad () {
-		this._transition(this.STATE_LOADING);
+	public beforeLoad(): void {
+		this._transition(States.Loading);
 	}
 
-	_transition (state) {
+	protected _transition (state) {
 		super._transition(state);
 		this.state = state;
-		if (state === this.STATE_MODIFIED) {
-			this.icon[this.ICON_STATE_MODIFIED](true);
-		} else if (state === this.STATE_SYNCRONIZED) {
-			this.icon[this.ICON_STATE_SYNCRONIZED](true);
-		}
 	}
 }
 
 class HexRows {
-	constructor () {
-		// XXX
-		this.ROW_SIZE_H = 16;
+	public static readonly ROW_SIZE_H = 16; // XXX
 
-		this._localPos = 0;
-		this._globalPos = 0;
-		this._stream = new TextStream();
-
-		// layout
-		this.position = {
-			top: ko.observable(0)
-		};
-		// XXX
-		this.size = {
+	public constructor(
+		private _localPos: number = 0,
+		private _globalPos: number = 0,
+		private _stream: Stream = new TextStream(),
+		public position: any = {
+			top: 0
+		},
+		public globalSize = { // XXX
 			width: 360,
 			height: 640
-		};
-		// XXX
-		this.globalSize = {
-			width: ko.observable(360),
-			height: ko.observable(640)
-		};
+		}
+	) {
+		ko.track(this);
+		ko.track(this.position);
+		ko.track(this.globalSize);
 	}
 
-	static mixin (obj) {
+	public static mixin(obj): any { // XXX any
 		const self = new HexRows();
 		for (const key in self) {
 			if (self.hasOwnProperty(key)) {
@@ -143,7 +138,7 @@ class HexRows {
 		return obj;
 	}
 
-	hexAt (localPos) {
+	public hexAt(localPos: number): string {
 		this._stream.seek(this.toGlobalPos(localPos), 'begin');
 		if (this._stream.isInside(1)) {
 			return this._stream.read(1).toUpperCase();
@@ -152,37 +147,36 @@ class HexRows {
 		}
 	}
 
-	toGlobalPos (localPos) {
+	public toGlobalPos(localPos: number): number {
 		return (HexUtil.toRowPos(this._globalPos) * 32) + localPos;
 	}
 
 	// XXX
-	toByteOfGlobalPos (localPos) {
+	public toByteOfGlobalPos(localPos: number): number {
 		return this._globalPos + localPos;
 	}
 
-	load (stream) {
+	public load(stream: Stream): void {
 		this._globalPos = 0;
 		this._stream = stream;
-		this.position.top(0);
-		this.resize(this.size.width, this.size.height);
+		this.position.top = 0;
 	}
 
-	clear () {
-		this.removeAll();
+	public clear(): void {
+		while (this.pop()) {}
 	}
 
-	resize (width, height) {
+	public resize (width: number, height: number): void { // FIXME
 		// resize
 		this.size.width = width;
 		this.size.height = height;
 		const globalRowNum = ~~((this._stream.length + 31) / 32);
-		this.globalSize.width(width);
-		this.globalSize.height(globalRowNum * this.ROW_SIZE_H);
+		this.globalSize.width = width;
+		this.globalSize.height(globalRowNum * HexRows.ROW_SIZE_H);
 
 		// reallocate
 		const rows = this();
-		const localRowNum = Math.min(~~(height / this.ROW_SIZE_H), globalRowNum);
+		const localRowNum = Math.min(~~(height / HexRows.ROW_SIZE_H), globalRowNum);
 		const diffRowNum = localRowNum - rows.length;
 		if (diffRowNum > 0) {
 			const beforeRowPos = rows.length;
@@ -199,17 +193,17 @@ class HexRows {
 		this.moveRow(HexUtil.toRowPos(this._globalPos));
 	}
 
-	changed () {
+	public changed(): void {
 		this.moveRow(HexUtil.toRowPos(this._globalPos));
 	}
 
-	scrollY (posY) {
+	public scrollY(posY): void {
 		const globalRowPos = HexUtil.toRowPos(posY);
-		this.position.top(posY);
+		this.position.top = posY;
 		this.moveRow(globalRowPos);
 	}
 
-	moveRow (globalRowPos) {
+	public moveRow(globalRowPos: number): void {
 		const diffRowPos = globalRowPos - HexUtil.toRowPos(this._globalPos);
 		this._globalPos = HexUtil.toPos(globalRowPos);
 
@@ -219,9 +213,7 @@ class HexRows {
 			for (const row of rows) {
 				row.localRowPos = (row.localRowPos + rows.length - diffRowPos) % rows.length;
 			}
-			this.sort((a, b) => {
-				return a.localRowPos - b.localRowPos;
-			});
+			this.sort((a, b) => a.localRowPos - b.localRowPos);
 		}
 
 		// reindex
@@ -232,44 +224,48 @@ class HexRows {
 }
 
 class HexRow {
-	constructor (rows, localRowPos) {
-		this._rows = rows;
+	public constructor(
+		private _rows: HexRows, // XXX parent rename
+		localRowPos: number,
+		private _localPos: number = 0,
+		public columns = [],
+		public address: string = '',
+		public text: string = ''
+	) {
 		this._localPos = HexUtil.toPos(localRowPos);
-		this.columns = [];
-		this.address = ko.observable('');
-		this.text = ko.observable('');
+		ko.track(this);
 		this.load();
 	}
 
-	get rows () {
+	public get rows(): HexRows {
 		return this._rows;
 	}
 
-	get localPos () {
+	public get localPos(): number {
 		return this._localPos;
 	}
 
-	get localRowPos () {
+	public get localRowPos(): number {
 		return HexUtil.toRowPos(this._localPos);
 	}
 
-	set localRowPos (value) {
+	public set localRowPos(value: number) {
 		this._localPos = HexUtil.toPos(value);
 	} 
 
-	hexAt (x) {
+	public hexAt(x: number): Hex {
 		return this._rows.hexAt(this.toLocalPos(x));
 	}
 
-	toLocalPos (x) {
+	public toLocalPos(x: number): number {
 		return (this.localRowPos * 32) + x;
 	}
 
-	toGlobalPos (x) {
+	public toGlobalPos(x: number): number {
 		return this._rows.toGlobalPos(this.toLocalPos(x));
 	}
 
-	load () {
+	public load() {
 		for (let x = 0; x < 32; x += 1) {
 			this.columns.push(new HexColumn(this, x));
 		}
@@ -277,7 +273,7 @@ class HexRow {
 		this.text(HexUtil.byteToStr(this._bytes()));
 	}
 
-	update () {
+	public update(): void {
 		for (const column of this.columns) {
 			column.update();
 		}
@@ -285,10 +281,10 @@ class HexRow {
 		this.text(HexUtil.byteToStr(this._bytes()));
 	}
 
-	_bytes () {
+	public _bytes(): string[] {
 		let bytes = [];
 		for (let x = 0; x < 16; x += 1) {
-			const columnH = this.columns[x * 2 + 0];
+			const columnH = this.columns[x * 2 + 0]; // FIXME
 			const columnL = this.columns[x * 2 + 1];
 			if (!columnH.available) {
 				break;
@@ -299,75 +295,77 @@ class HexRow {
 	}
 }
 
-class HexColumn {
-	constructor (row, posX) {
-		this._row = row;
-		this._posX = posX;
-		this._value = null;
-		this.hex = ko.observable('-');
-		this.css = {};
-		this.globalPos = ko.observable(0);
+export class HexColumn {
+	public constructor(
+		private _row: number,
+		private _posX: number,
+		private _value: number | null = null, // XXX nullable
+		public hex: string = '-',
+		public css: any = {}, // XXX any
+		public globalPos: number = 0
+	) {
+		ko.track(this);
 	}
 
-	get value () {
+	public get value(): number { // FIXME type
 		return this._value;
 	}
 
-	get available () {
+	public get available(): boolean {
 		return this._value !== null;
 	}
 
-	update () {
+	public update(): void {
 		const hex = this._row.hexAt(this._posX);
-		if (this.hex() !== hex) {
-			this.hex(hex);
+		if (this.hex !== hex) {
+			this.hex = hex;
 			this._value = hex !== '-' ? HexUtil.toByte(hex) : null;
 		}
 		// XXX
-		this.globalPos(this._row.toGlobalPos(this._posX));
+		this.globalPos = this._row.toGlobalPos(this._posX);
 	}
 }
 
 class HexUtil {
-	static toAddress (value) {
+	public static toAddress(value: number): string {
 		return `00000000${value.toString(16).toUpperCase()}`.slice(-8);
 	}
 
-	static toRowPos (pos) {
+	public static toRowPos(pos: number): number {
 		return ~~(pos / 16);
 	}
 
-	static toPos (rowPos) {
+	public static toPos(rowPos: number): number {
 		return rowPos * 16;
 	}
 
-	static toHex (byte) {
+	public static toHex(byte: number): string {
 		return `00${byte.toString(16).toUpperCase()}`.slice(-2);
 	}
 
-	static toByte (hex) {
+	public static toByte(hex: string): number {
 		return parseInt(hex, 16);
 	}
 
-	static toText (hexBytes) {
+	public static toText(hexBytes: string): string {
 		const bytes = HexUtil.hexToBytes(hexBytes);
 		return HexUtil.byteToStr(bytes);
 	}
 
-	static hexToBytes (hexBytes) {
-		const bytes = [];
+	static hexToBytes (hexBytes: string): number[] {
+		const bytes: number[] = [];
 		for (const i = 0; i < hexBytes.length; i += 2) {
 			bytes.push(HexUtil.toByte(hexBytes.substr(i, 2)));
 		}
 		return bytes;
 	}
 
-	static byteToStr (bytes, encode = 'UTF8') {
+	public static byteToStr(bytes: number[], encode: string = 'UTF8'): string {
 		return HexUtil[`byteToStr${encode}`](bytes);
 	}
 
-	// FIXME
-	static byteToStrSJIS (bytes) {
+	// XXX
+	public static byteToStrSJIS (bytes) {
 		let str = '';
 		for (let i = 0; i < bytes.length; i += 1) {
 			const byte = HexUtil._readByte(bytes, i);
