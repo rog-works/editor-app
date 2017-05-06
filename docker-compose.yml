@@ -1,0 +1,27 @@
+version: '2'
+services:
+  editor-app:
+    extends:
+      file: ~/editor/app/compose/app.yml
+      service: app
+    # volumes:
+    #   - /var/run/docker.sock:/var/run/docker.sock
+
+  editor-webpack:
+    extends:
+      file: ~/editor/app/compose/webpack.yml
+      service: webpack
+    depends_on:
+      - editor-log
+    logging:
+      driver: fluentd
+      options:
+        fluentd-address: localhost:24224
+        tag: editor.webpack-log
+
+  editor-log:
+    extends:
+      file: ~/editor/app/compose/log.yml
+      service: log
+    volumes_from:
+      - editor-app

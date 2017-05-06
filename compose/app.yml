@@ -4,7 +4,6 @@ services:
     container_name: editor-app
     image: editor-app:latest
     build: ../docker/app
-    privileged: true
     volumes:
       # application-root
       - ~/editor:/opt
