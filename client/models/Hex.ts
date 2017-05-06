@@ -365,7 +365,7 @@ class HexUtil {
 	}
 
 	// XXX
-	public static byteToStrSJIS (bytes) {
+	public static byteToStrSJIS(bytes: numbers[]): string {
 		let str = '';
 		for (let i = 0; i < bytes.length; i += 1) {
 			const byte = HexUtil._readByte(bytes, i);
@@ -380,7 +380,7 @@ class HexUtil {
 		return str;
 	}
 
-	static byteToStrUTF8 (bytes) {
+	public static byteToStrUTF8(bytes: number[]): string {
 		let str = '';
 		for (let i = 0; i < bytes.length; i += 1) {
 			const byte = HexUtil._readByte(bytes, i);
@@ -407,7 +407,7 @@ class HexUtil {
 		return str;
 	}
 
-	static _readByte (bytes, offset) {
+	public static _readByte(bytes: number[], offset: number): number {
 		return bytes.length > offset ? bytes[offset] : 0;
 	}
 }

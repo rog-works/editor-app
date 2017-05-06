@@ -1,103 +1,108 @@
+export enum SeekTypes {
+	Curr,
+	Begin,
+	End
+}
+
+type Buffer = string | BufferSource; // FIXME type missmatch?
+
 export class Stream {
 	public constructor(
-		private _source: BufferSource,
-		private _pos: number = 0) {
+		private _source: Buffer,
+		private _pos: number = 0
+	) {
 		this.load(this._source);
 	}
 
-	get pos () {
+	public get pos(): number {
 		return this._pos;
 	}
 
-	get length () {
+	public get length(): number {
 		return this._source.length;
 	}
 
-	get source () {
+	public get source(): Buffer {
 		return this._source;
 	}
 
 	// XXX
-	set source (value) {
+	public set source(value: Buffer) {
 		this._source = value;
 	}
 
-	get available () {
+	public get available(): number {
 		return this.length - this._pos;
 	}
 
-	seek (value, type = 'curr') {
+	public seek(value: number, type: SeekTypes = SeekTypes.Curr): void {
 		let next = this.pos;
 		switch (type) {
-			case 'curr':
-				next += value;
-				break;
-			case 'begin':
-				next = value;
-				break;
-			case 'end':
-				next = this.length - value;
-				break;
+		case SeekTypes.Curr:
+			next += value;
+			break;
+		case SeekTypes.Begin:
+			next = value;
+			break;
+		case SeekTypes.End:
+			next = this.length - value;
+			break;
 		}
 		this._pos = this._roundPos(next);
 	}
 
-	_roundPos (pos) {
+	private _roundPos(pos: number): number {
 		return Math.min(Math.max(pos, 0), this.length);
 	}
 
-	_roundAvailable (length) {
+	private _roundAvailable(length: number): number {
 		return Math.min(length, this.available);
 	}
 
-	load (source) {
+	public load(source: Buffer): Buffer {
 		this._source = source;
 		this._pos = 0;
 	}
 
-	isInside (offset = undefined) {
+	public isInside(offset: number | undefined = undefined): boolean { // XXX undefined?!
 		const end = this._roundPos(this.pos + (offset || 0));
 		return this.pos <= end && end <= this.length;
 	}
 
-	read (length = undefined) {
+	public read(length: number | undefined = undefined): boolean {
 		const _length = this._roundAvailable(length !== undefined ? length : this.available);
 		if (this.isInside(_length)) {
 			const begin = this.pos;
 			const data = this._readImpl(_length);
-			this.seek(begin + _length, 'begin');
+			this.seek(begin + _length, SeekTypes.Begin);
 			return data;
 		} else {
-			// FIXME
-			return '';
+			return ''; // XXX
 		}
 	}
 
-	// expected override the sub class
-	_readImpl (length) {
-		throw new Error('No implemented');
-	}
+	protected _readImpl(length: number): number
 
-	peak (length = undefined) {
+	public peak(length: numbet | undefined = undefined): number { // XXX number?
 		const _length = this._roundAvailable(length !== undefined ? length : this.available);
 		const begin = this.pos;
 		const data = this.read(_length);
-		this.seek(begin, 'begin');
+		this.seek(begin, SeekTypes.Begin);
 		return data;
 	}
 
-	write (values) {
+	public write (values) {
 		const begin = this.pos;
 		if (this.pos === 0) {
 			this.remove(values.length);
-			this.seek(0, 'begin');
+			this.seek(0, SeekTypes.Begin);
 			this.insert(values);
 		} else if (this.pos === this.length) {
 			this.insert(values);
 		} else {
 			this._writeImpl(values);
 		}
-		this.seek(begin + values.length, 'begin');
+		this.seek(begin + values.length, SeekTypes.Begin);
 	}
 
 	// expected override the sub class
