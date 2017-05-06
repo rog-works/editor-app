@@ -7,7 +7,7 @@ services:
     volumes:
       - ../:/opt
     command: 'npm run build'
-    logging:
-      options:
-        max-size: '128m'
-        max-file: '1'
+    # logging:
+    #   options:
+    #     max-size: '128m'
+    #     max-file: '1'
