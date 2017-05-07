@@ -18,7 +18,7 @@ services:
     ports:
       - 8080:8080
       - 18089:18089
-    command: [node, '--debug=0.0.0.0:18089', /opt/app/dist/server/Index.js]
+    command: [node, '--inspect=0.0.0.0:18089', /opt/app/dist/server/Index.js]
     logging:
       options:
         max-size: '128m'
