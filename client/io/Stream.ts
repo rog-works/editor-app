@@ -5,6 +5,7 @@ export enum SeekTypes {
 }
 
 type Buffer = string | BufferSource; // FIXME type mismatch?
+type Source = string | Array // FIXME
 
 export abstract class Stream {
 	public constructor(
@@ -69,7 +70,7 @@ export abstract class Stream {
 		return this.pos <= end && end <= this.length;
 	}
 
-	public read(length: number | undefined = undefined): string { // FIXME number | string ?
+	public read(length: number | undefined = undefined): Source { // FIXME number | string ?
 		const _length = this._roundAvailable(length !== undefined ? length : this.available);
 		if (this.isInside(_length)) {
 			const begin = this.pos;
@@ -81,9 +82,9 @@ export abstract class Stream {
 		}
 	}
 
-	protected abstract _readImpl(length: number): number;
+	protected abstract _readImpl(length: number): Source;
 
-	public peak(length: number | undefined = undefined): number { // XXX number | string ?
+	public peak(length: number | undefined = undefined): Source { // XXX number | string ?
 		const _length = this._roundAvailable(length !== undefined ? length : this.available);
 		const begin = this.pos;
 		const data = this.read(_length);
@@ -107,44 +108,40 @@ export abstract class Stream {
 
 	protected abstract _writeImpl(pos: number, values: number[]): void; // XXX mismatch
 
-	insert (values) {
+	public insert(values: number[]): void {
 		const begin = this.pos;
 		this._insertImpl(values);
-		this.seek(begin + values.length, 'begin');
+		this.seek(begin + values.length, SeekTypes.Begin);
 	}
 
-	_insertImpl (values) {
-		throw new Error('No implemented');
-	}
+	protected abstract _insertImpl(values: number[]): void; // FIXME
 
-	remove (length = undefined) {
+	public remove(length: number | undefined = undefined) { // FIXME
 		const _length = this._roundAvailable(length !== undefined ? length : this.available);
 		if (_length > 0) {
 			const begin = this.pos;
 			this._removeImpl(_length);
-			this.seek(begin, 'begin');
+			this.seek(begin, SeekTypes.Begin);
 		}
 	}
 
-	_removeImpl (values) {
-		throw new Error('No implemented');
-	}
+	protected abstract _removeImpl(values: number[]): void;
 }
 
 class TextStream extends Stream {
-	constructor (source = '') {
+	public constructor(source: string = '') {
 		super(source);
 	}
 
 	// @override
-	_readImpl (length) {
+	protected _readImpl(length: number): string { // FIXME
 		return this.source.substr(this.pos, length);
 	}
 
 	// @override
-	_writeImpl (values) {
+	protected _writeImpl(values: number[]): void {
 		const begin = this.pos;
-		this.seek(0, 'begin');
+		this.seek(0, SeekTypes.Begin);
 		const head = this.read(begin);
 		this.seek(values.length);
 		const tail = this.read();
@@ -152,14 +149,14 @@ class TextStream extends Stream {
 	}
 
 	// @override
-	_insertImpl (values) {
+	protected _insertImpl(values: number[]): void {
 		if (this.pos === 0) {
 			this.source = values + this.source;
 		} else if (this.pos === this.length) {
 			this.source = this.source + values;
 		} else {
 			const begin = this.pos;
-			this.seek(0, 'begin');
+			this.seek(0, SeekTypes.Begin);
 			const head = this.read(begin);
 			const tail = this.read();
 			this.source = head + values + tail;
@@ -167,9 +164,9 @@ class TextStream extends Stream {
 	}
 
 	// @override
-	_removeImpl (length) {
+	protected _removeImpl(length: number): void {
 		const begin = this.pos;
-		this.seek(0, 'begin');
+		this.seek(0, SeekTypes.Begin);
 		const head = this.read(begin);
 		this.seek(length);
 		const tail = this.read();
@@ -177,13 +174,13 @@ class TextStream extends Stream {
 	}
 }
 
-class ArrayStream extends Stream {
-	constructor (source = []) {
+export class ArrayStream extends Stream {
+	public constructor (source: Array = []) {
 		super(source);
 	}
 
 	// @override
-	_readImpl (length) {
+	protected _readImpl(length: number): Array {
 		// XXX copyWithin
 		const copy = [];
 		for (let i = 0; i < length; i += 1) {
@@ -193,12 +190,12 @@ class ArrayStream extends Stream {
 	}
 
 	// @override
-	_writeImpl (values) {
+	protected _writeImpl(values: Array): Array {
 		this.source.splice(this.pos, values.length, ...values);
 	}
 
 	// @override
-	_insertImpl (values) {
+	protected _insertImpl(values: Array): void {
 		if (this.pos === 0) {
 			this.source.unshift(...values);
 		} else if (this.pos === this.length) {
@@ -209,7 +206,7 @@ class ArrayStream extends Stream {
 	}
 
 	// @override
-	_removeImpl (length) {
+	protected _removeImpl(length: number): void {
 		this.source.splice(this.pos, length);
 	}
 }

@@ -1,76 +1,58 @@
-'use strict';
+import * as ko from 'knockout-es5';
+import {KeyCodes} from './KeyMap';
+import {Stream} from '../io/Stream';
 
-class HexEditor {
-	constructor () {
-		// keypress
-		this.KEY_CODE_0 = 48;
-		this.KEY_CODE_1 = 49;
-		this.KEY_CODE_2 = 50;
-		this.KEY_CODE_3 = 51;
-		this.KEY_CODE_4 = 52;
-		this.KEY_CODE_5 = 53;
-		this.KEY_CODE_6 = 54;
-		this.KEY_CODE_7 = 55;
-		this.KEY_CODE_8 = 56;
-		this.KEY_CODE_9 = 57;
-		this.KEY_CODE_A = 65;
-		this.KEY_CODE_B = 66;
-		this.KEY_CODE_C = 67;
-		this.KEY_CODE_D = 68;
-		this.KEY_CODE_E = 69;
-		this.KEY_CODE_F = 70;
-		// keyup/down
-		// - move cursor
-		this.KEY_CODE_LEFT = 37;
-		this.KEY_CODE_UP = 38;
-		this.KEY_CODE_RIGHT = 39;
-		this.KEY_CODE_DOWN = 40;
-		// - copy/cut/paste
-		this.KEY_CODE_COPY = 67;
-		this.KEY_CODE_CUT = 88;
-		this.KEY_CODE_PASTE = 86;
-		// - remove
-		this.KEY_CODE_REMOVE = 46;
-		this.KEY_CODE_BACKSPACE = 8;
-		// - toggle update/insert
-		this.KEY_CODE_INSERT = 45;
-		// - undo/redo
-		this.KEY_CODE_UNDO = 90;
-		this.KEY_CODE_REDO = 89;
-		// - save
-		this.KEY_CODE_SAVE = 83;
+enum KeyRole {
+	Copy = KeyCodes.C,
+	Cut = KeyCodes.X,
+	Paste = KeyCodes.P,
+	Remove = KeyCodes.Delete,
+	Backspace = KeyCodes.Backspace,
+	Insert = KeyCodes.Insert,
+	Undo = KeyCodes.Z,
+	Redo = KeyCodes.Y,
+	Save = KeyCodes.S
+}
 
-		this._stream = null;
-		this._mode = 'update';
-		this.cursor = ko.observable(0);
-		this._selectBegin = -1;
-		this._selectEnd = -1;
-		this._undo = new Undo();
+enum Modes {
+	Update
+}
+
+export default class HexEditor {
+	public constructor(
+		private _stream: Stream | null = null, // XXX nullable
+		private _mode: Modes = Modes.Updatel
+		public cursor: number = 0,
+		private _selectBegin: number = -1,
+		private _selectEnd: number = -1,
+		private _undo: Undo = new Undo();
+	) {
+		ko.track(this);
 	}
 
-	get selectBegin () {
+	public get selectBegin(): number {
 		return this._selectBegin;
 	}
 
-	get selectEnd () {
+	public get selectEnd(): number {
 		return this._selectEnd;
 	}
 
-	load (stream) {
+	public load(stream: Stream): void {
 		this._stream = stream;
-		this._mode = 'update';
-		this.cursor(0);
+		this._mode = Modes.Uupdate;
+		this.cursor = 0;
 		this._undo.clear();
 		this.unselect();
 	}
 
-	unselect () {
+	public unselect(): void {
 		this._selectBegin = -1;
 		this._selectEnd = -1;
 	}
 
-	onCopy (clipboard) {
-		if (this.isSelected()) {
+	public onCopy(clipboard: ClipboardEvent): boolean { // FIXME
+		if (this.isSelected) {
 			this._toClipboard(clipboard, this._selectedValues());
 			return false;
 		} else {
@@ -78,8 +60,8 @@ class HexEditor {
 		}
 	}
 
-	onCut (clipboard) {
-		if (this.isSelected()) {
+	public onCut(clipboard: ClipboardEvent): boolean {
+		if (this.isSelected) {
 			this._toClipboard(clipboard, this._selectedValues());
 			this.bulkRemove(this._selectBegin, this._selectEnd - this._selectBegin);
 			this.unselect();
@@ -89,128 +71,128 @@ class HexEditor {
 		}
 	}
 
-	onPaste (clipboard) {
-		if (this.isSelected()) {
+	public onPaste(clipboard: ClipboardEvent): boolean {
+		if (this.isSelected) {
 			this.bulkRemove(this._selectBegin, this._selectEnd - this._selectBegin);
 			this.unselect();
 		}
-		this.bulkInsert(this.cursor(), this._fromClipboard(clipboard));
+		this.bulkInsert(this.cursor, this._fromClipboard(clipboard));
 		return false;
 	}
 
-	onKeydown (keyCode, isCtrl, isShift) {
+	public onKeydown(keyCode: KeyCodes, isCtrl: boolean, isShift: boolean): boolean {
 		 if (isShift) {
 			switch (keyCode) {
-				case this.KEY_CODE_LEFT:
-				case this.KEY_CODE_UP:
-				case this.KEY_CODE_RIGHT:
-				case this.KEY_CODE_DOWN:
+				case KeyCodes.Left:
+				case KeyCodes.Up:
+				case KeyCodes.Right:
+				case KeyCodes.Down:
 					return this._onKeydownSelectMove(keyCode);
-				case this.KEY_CODE_F:
-				case this.KEY_CODE_B:
+				case KeyCodes.F:
+				case KeyCodes.B:
 					return isCtrl && this._onKeydownSelectMove(keyCode);
 			}
 		} else if (isCtrl) {
 			switch (keyCode) {
-				case this.KEY_CODE_F:
-				case this.KEY_CODE_B:
+				case KeyCodes.F:
+				case KeyCodes.B:
 					return this._onKeydownMove(keyCode);
-				case this.KEY_CODE_UNDO:
+				case KeyCodes.Undo:
 					return this._onKeydownUndo();
-				case this.KEY_CODE_REDO:
+				case KeyCodes.Redo:
 					return this._onKeydownRedo();
-				case this.KEY_CODE_SAVE:
+				case KeyCodes.Save:
 					return this._onKeydownSave();
 			}
 		} else if (!isCtrl && !isShift) {
 			switch (keyCode) {
-				case this.KEY_CODE_0:
-				case this.KEY_CODE_1:
-				case this.KEY_CODE_2:
-				case this.KEY_CODE_3:
-				case this.KEY_CODE_4:
-				case this.KEY_CODE_5:
-				case this.KEY_CODE_6:
-				case this.KEY_CODE_7:
-				case this.KEY_CODE_8:
-				case this.KEY_CODE_9:
-				case this.KEY_CODE_A:
-				case this.KEY_CODE_B:
-				case this.KEY_CODE_C:
-				case this.KEY_CODE_D:
-				case this.KEY_CODE_E:
-				case this.KEY_CODE_F:
+				case KeyCodes.0:
+				case KeyCodes.1:
+				case KeyCodes.2:
+				case KeyCodes.3:
+				case KeyCodes.4:
+				case KeyCodes.5:
+				case KeyCodes.6:
+				case KeyCodes.7:
+				case KeyCodes.8:
+				case KeyCodes.9:
+				case KeyCodes.A:
+				case KeyCodes.B:
+				case KeyCodes.C:
+				case KeyCodes.D:
+				case KeyCodes.E:
+				case KeyCodes.F:
 					return this._onKeypressUpdate(keyCode);
-				case this.KEY_CODE_LEFT:
-				case this.KEY_CODE_UP:
-				case this.KEY_CODE_RIGHT:
-				case this.KEY_CODE_DOWN:
+				case KeyCodes.Left:
+				case KeyCodes.Up:
+				case KeyCodes.Right:
+				case KeyCodes.Down:
 					return this._onKeydownMove(keyCode);
-				case this.KEY_CODE_REMOVE:
-				case this.KEY_CODE_BACKSPACE:
+				case KeyCodes.Remove:
+				case KeyCodes.Backspace:
 					return this._onKeydownRemove(keyCode);
-				case this.KEY_CODE_INSERT:
+				case KeyCodes.Insert:
 					return this._onKeydownInsert();
 			}
 		}
 		return true;
 	}
 
-	_onKeypressUpdate (keyCode) {
+	private _onKeypressUpdate(keyCode: KeyCodes): boolean {
 		const allows = [
-			this.KEY_CODE_0,
-			this.KEY_CODE_1,
-			this.KEY_CODE_2,
-			this.KEY_CODE_3,
-			this.KEY_CODE_4,
-			this.KEY_CODE_5,
-			this.KEY_CODE_6,
-			this.KEY_CODE_7,
-			this.KEY_CODE_8,
-			this.KEY_CODE_9,
-			this.KEY_CODE_A,
-			this.KEY_CODE_B,
-			this.KEY_CODE_C,
-			this.KEY_CODE_D,
-			this.KEY_CODE_E,
-			this.KEY_CODE_F
+			KeyCodes.0,
+			KeyCodes.1,
+			KeyCodes.2,
+			KeyCodes.3,
+			KeyCodes.4,
+			KeyCodes.5,
+			KeyCodes.6,
+			KeyCodes.7,
+			KeyCodes.8,
+			KeyCodes.9,
+			KeyCodes.A,
+			KeyCodes.B,
+			KeyCodes.C,
+			KeyCodes.D,
+			KeyCodes.E,
+			KeyCodes.F
 		];
 		const hex = allows.indexOf(keyCode).toString(16).toUpperCase();
-		if (this.isInsert(this.cursor())) {
-			this.insert(this.cursor(), hex);
+		if (this.isInsert(this.cursor)) {
+			this.insert(this.cursor, hex);
 		} else {
-			this.update(this.cursor(), hex);
+			this.update(this.cursor, hex);
 		}
 		return false;
 	}
 
-	_onKeydownMove (keyCode) {
+	private _onKeydownMove(keyCode: KeyCodes): boolean {
 		const allows = {
-			[this.KEY_CODE_LEFT]: -1,
-			[this.KEY_CODE_UP]: -32,
-			[this.KEY_CODE_RIGHT]: 1,
-			[this.KEY_CODE_DOWN]: 32,
+			[KeyCodes.LEFT]: -1,
+			[KeyCodes.UP]: -32,
+			[KeyCodes.RIGHT]: 1,
+			[KeyCodes.DOWN]: 32,
 			// XXX
-			[this.KEY_CODE_F]: 32 * 16,
-			[this.KEY_CODE_B]: -32 * 16,
+			[KeyCodes.F]: 32 * 16,
+			[KeyCodes.B]: -32 * 16,
 		};
 		this.unselect();
-		this.moveCursor(this.cursor() + allows[keyCode]);
+		this.moveCursor(this.cursor + allows[keyCode]);
 		return false;
 	}
 
 	_onKeydownSelectMove (keyCode) {
 		const allows = {
-			[this.KEY_CODE_LEFT]: -1,
-			[this.KEY_CODE_UP]: -32,
-			[this.KEY_CODE_RIGHT]: 1,
-			[this.KEY_CODE_DOWN]: 32,
+			[KeyCodes.LEFT]: -1,
+			[KeyCodes.UP]: -32,
+			[KeyCodes.RIGHT]: 1,
+			[KeyCodes.DOWN]: 32,
 			// XXX
-			[this.KEY_CODE_F]: 32 * 16,
-			[this.KEY_CODE_B]: -32 * 16,
+			[KeyCodes.F]: 32 * 16,
+			[KeyCodes.B]: -32 * 16,
 		};
-		const prev = this.cursor();
-		const next = this._getNextCursor(this.cursor() + allows[keyCode]);
+		const prev = this.cursor;
+		const next = this._getNextCursor(this.cursor + allows[keyCode]);
 		const toBack = next < prev;
 		const initialMoved = this._selectBegin === -1;
 		// XXX
@@ -234,12 +216,12 @@ class HexEditor {
 		return false;
 	}
 
-	_onKeydownRemove (keyCode) {
-		if (this.isSelected()) {
+	private _onKeydownRemove(keyCode: KeyCodes): boolean {
+		if (this.isSelected) {
 			this.bulkRemove(this._selectBegin, this._selectEnd - this._selectBegin);
 			this.unselect();
 		} else {
-			this.remove(this.cursor(), keyCode === this.KEY_CODE_BACKSPACE);
+			this.remove(this.cursor, keyCode === KeyCodes.BACKSPACE);
 		}
 		return false;
 	}
