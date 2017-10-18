@@ -106,16 +106,16 @@ export default class HexEditor {
 			}
 		} else if (!isCtrl && !isShift) {
 			switch (keyCode) {
-				case KeyCodes.0:
-				case KeyCodes.1:
-				case KeyCodes.2:
-				case KeyCodes.3:
-				case KeyCodes.4:
-				case KeyCodes.5:
-				case KeyCodes.6:
-				case KeyCodes.7:
-				case KeyCodes.8:
-				case KeyCodes.9:
+				case KeyCodes.Num0:
+				case KeyCodes.Num1:
+				case KeyCodes.Num2:
+				case KeyCodes.Num3:
+				case KeyCodes.Num4:
+				case KeyCodes.Num5:
+				case KeyCodes.Num6:
+				case KeyCodes.Num7:
+				case KeyCodes.Num8:
+				case KeyCodes.Num9:
 				case KeyCodes.A:
 				case KeyCodes.B:
 				case KeyCodes.C:
@@ -140,16 +140,16 @@ export default class HexEditor {
 
 	private _onKeypressUpdate(keyCode: KeyCodes): boolean {
 		const allows = [
-			KeyCodes.0,
-			KeyCodes.1,
-			KeyCodes.2,
-			KeyCodes.3,
-			KeyCodes.4,
-			KeyCodes.5,
-			KeyCodes.6,
-			KeyCodes.7,
-			KeyCodes.8,
-			KeyCodes.9,
+			KeyCodes.Num0,
+			KeyCodes.Num1,
+			KeyCodes.Num2,
+			KeyCodes.Num3,
+			KeyCodes.Num4,
+			KeyCodes.Num5,
+			KeyCodes.Num6,
+			KeyCodes.Num7,
+			KeyCodes.Num8,
+			KeyCodes.Num9,
 			KeyCodes.A,
 			KeyCodes.B,
 			KeyCodes.C,
